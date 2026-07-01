@@ -1,0 +1,2 @@
+{"name":"kamikazzi","private":true,"description":"Static 3D web game (Three.js). Run `npm start` to serve on http://localhost:8765/","scripts":{"start":"python -m http.server 8765"}}
+
