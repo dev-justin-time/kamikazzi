@@ -32,13 +32,23 @@ function makePropeller() {
   const b2 = new THREE.Mesh(GEO.blade, SHARED.prop);
   b2.rotation.z = Math.PI / 2;
   prop.add(b1, b2);
-  prop.position.set(0, 0, 3.75);
+  // Propeller is now HUD-lock world-space (see game/world.js loop() and
+  // factory contract below) — its world position is overwritten each frame
+  // based on the camera + viewport. Starting at (0,0,0) so the very first
+  // frame BEFORE world.js runs its sync lands at world origin (visible for
+  // one frame during createWorld()'s plane composition, then immediately
+  // snapped to the camera-bottom ray in the first loop() frame).
+  prop.position.set(0, 0, 0);
   return prop;
 }
 
 /**
  * Procedurally builds a stylised WW1 plane using shared geometry/material.
- * Returns a THREE.Group with a child named 'propeller'.
+ * Returns `{ plane, propeller }` — the plane group and the propeller Group
+ * are kept SEPARATE so the propeller can be re-parented to scene for
+ * HUD-style viewport lock (see world.js syncPropellerToViewport()).
+ * PlaneController is given the propeller ref directly (sibling lookup is
+ * no longer needed) and spins it the same way as before.
  */
 export function buildPlane() {
   const g = new THREE.Group();
@@ -75,12 +85,16 @@ export function buildPlane() {
   cockpit.scale.set(1, 0.8, 1.4);
   g.add(cockpit);
 
-  g.add(makePropeller());
-  return g;
+  return { plane: g, propeller: makePropeller() };
 }
 
 /**
  * Loads a GLB plane from `url`. Wraps it in a Group with a propeller fallback.
+ * Returns `{ plane: wrapper, propeller }`. If the GLB ships its own
+ * 'propeller'-named object we hand that back as the propeller ref so
+ * PlaneController can spin it; otherwise we synthesise one and ALSO hand it
+ * back (it is NOT added to the wrapper in either path — world.js re-parents
+ * it to `scene` for HUD lock).
  * @param {string} url
  * @param {{scale?:number, castShadow?:boolean, receiveShadow?:boolean, onProgress?:Function}} options
  */
@@ -109,11 +123,15 @@ export async function loadPlaneFromGLB(url, options = {}) {
         }
       });
 
-      if (!wrapper.getObjectByName('propeller')) {
-        wrapper.add(makePropeller());
-      }
+      // GLB-sourced propeller (if any) stays in the wrapper for the model
+      // integrity, but we ALSO synthesise a world-space HUD propeller so
+      // the screen-lock behavior is uniform across procedural and GLB
+      // paths. The two are siblings in the scene tree (plane keeps the
+      // GLB's, scene gets the synthesised one); PlaneController only
+      // touches the HUD-locked one.
+      const hudPropeller = makePropeller();
 
-      resolve(wrapper);
+      resolve({ plane: wrapper, propeller: hudPropeller });
     }, progress => { if (options.onProgress) options.onProgress(progress); },
        err => { console.warn('loadPlaneFromGLB failed', err); reject(err); });
   });

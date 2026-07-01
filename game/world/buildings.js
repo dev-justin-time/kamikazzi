@@ -58,31 +58,52 @@ function buildFace(mesh, faceW, faceH, normalAxis, sign, faceDepth) {
     }
   }
 
-  // 35% chance: add a graffiti decal on this face. Decal geometry stays unique (varies in size)
-  // but the underlying texture is shared via loadTexture().
-  if (Math.random() >= 0.35) return;
+  // 75% chance per face: slap a random graffiti decal on this wall. Decal
+  // geometry stays unique (varies in size per face) but the underlying
+  // texture is shared via loadTexture() so 9 decals × N buildings doesn't
+  // pull 9N PNG fetches.
+  if (Math.random() >= 0.75) return;
   const pic = GRAFFITI_ASSETS[Math.floor(Math.random() * GRAFFITI_ASSETS.length)];
   loadTexture(pic).then(tex => {
-    const desiredW = faceW * 0.10;
-    const maxW = Math.max(0.1, usableW * 0.9);
+    // ~70% of face width (was 40%): each sticker covers at least 70% MIN
+    // of the face (within usableW clamp at 0.95 × faceW, so the upper bound
+    // is ~95% if face is wider than decal). Aspect 0.6–1.6 keeps decals
+    // mostly square-to-portrait so they feel like posters, not banners.
+    const desiredW = faceW * 0.70;
+    const maxW = Math.max(0.1, usableW * 0.95);
     const decalW = Math.min(desiredW, maxW);
-    const aspect = 0.6 + Math.random() * 1.2;
-    const decalH = Math.min(decalW * aspect, Math.max(0.1, usableH * 0.9));
+    const aspect = 0.6 + Math.random() * 1.0;
+    const decalH = Math.min(decalW * aspect, Math.max(0.1, usableH * 0.92));
 
+    // depthTest ON + depthWrite OFF is the trick that satisfies 'cover
+    // buildings with images but not windows': the decal draws in FRONT of
+    // the wall (visible everywhere on the face) but BEHIND frames/panes
+    // (windows occlude the decal wherever they overlap). We don't have to
+    // compute where the window grid lies — windows over-draw the decal
+    // naturally at every pixel they cover.
     const decalMat = new THREE.MeshBasicMaterial({
       map: tex, transparent: true, depthTest: true, depthWrite: false,
     });
     const decal = new THREE.Mesh(new THREE.PlaneGeometry(decalW, decalH), decalMat);
-    decalMat.opacity = 0.9 - Math.random() * 0.35;
+    decalMat.opacity = 0.75 + Math.random() * 0.20;             // mostly opaque — wall art, not a ghost
 
     const px = (Math.random() - 0.5) * Math.max(0, usableW - decalW);
     const py = (Math.random() - 0.5) * Math.max(0, usableH - decalH);
     if (normalAxis === 'z') {
-      const z = sign * (faceDepth / 2 + 0.051);
+      // #decal-z — z = +/- (faceDepth/2 + 0.025):
+      //   +0      = wall front surface (decal here would z-fight with wall)
+      //   +0.025  = just OUTSIDE wall, INSIDE frame inner extent (frame span [-0.02, +0.06])
+      //              — so windows occlude it
+      //   +0.05   = pane center (decal here would sit roughly atop windows)
+      //   +0.051  = OLD value, slightly outside panes (decal OVERDREW windows — bug)
+      // 0.025 lets the decal be in front of the wall but inside the windows' z
+      // volume, so frame + pane fronts always win the depth test wherever they
+      // exist.
+      const z = sign * (faceDepth / 2 + 0.025);
       decal.position.set(px, py, z);
       decal.rotation.set(0, 0, (Math.random() - 0.5) * 0.12);
     } else {
-      const x = sign * (faceDepth / 2 + 0.051);
+      const x = sign * (faceDepth / 2 + 0.025);
       decal.position.set(x, py, px);
       decal.rotation.set(0, Math.PI / 2, (Math.random() - 0.5) * 0.12);
     }

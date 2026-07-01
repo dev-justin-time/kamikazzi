@@ -4,7 +4,7 @@
 // Now: single shared geometry + per-color shared material + dispose on shrink.
 import * as THREE from 'https://esm.sh/three@0.128.0';
 import {
-  EXPLOSION_COLORS, EXPLOSION_PARTICLE_GEOMETRY,
+  EXPLOSION_COLORS, EXPLOSION_PARTICLE_GEOMETRY, EXPLOSION_PALETTES,
   getExplosionParticleMaterial, removeAndDispose,
 } from './shared.js';
 
@@ -15,9 +15,24 @@ export function createExplosionManager(scene) {
   scene.add(explosionGroup);
   const particles = [];
 
-  function spawn(pos) {
+  // Resolve the per-burst color array from spawn opts. Accepts either a raw
+  // palette array (`opts.palette`) for one-off custom bursts, or an index
+  // into the canonical EXPLOSION_PALETTES (`opts.paletteIdx`) used by the
+  // 3-stage stagger in world.js endGame. Defaults to the legacy
+  // EXPLOSION_COLORS so any existing single-shot caller keeps working.
+  function resolvePalette(opts) {
+    if (Array.isArray(opts.palette)) return opts.palette;
+    if (Number.isInteger(opts.paletteIdx) && EXPLOSION_PALETTES[opts.paletteIdx]) {
+      return EXPLOSION_PALETTES[opts.paletteIdx];
+    }
+    return EXPLOSION_COLORS;
+  }
+
+  function spawn(pos, opts = {}) {
+    const palette = resolvePalette(opts);
+    const scaleMul = Number.isFinite(opts.scale) ? opts.scale : 1.0;
     for (let i = 0; i < PARTICLES_PER_BURST; i++) {
-      const mat  = getExplosionParticleMaterial(EXPLOSION_COLORS[i % EXPLOSION_COLORS.length]);
+      const mat  = getExplosionParticleMaterial(palette[i % palette.length]);
       const mesh = new THREE.Mesh(EXPLOSION_PARTICLE_GEOMETRY, mat);
       mesh.position.copy(pos);
       mesh.userData.vel = new THREE.Vector3(
@@ -25,6 +40,7 @@ export function createExplosionManager(scene) {
         (Math.random() - 0.5) * 2.2,
         (Math.random() - 0.5) * 2.2
       );
+      mesh.scale.setScalar(scaleMul);          // per-burst scale ramp; multiplicative decay in update()
       explosionGroup.add(mesh);
       particles.push(mesh);
     }

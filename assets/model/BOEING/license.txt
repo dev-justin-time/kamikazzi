@@ -1,0 +1,11 @@
+Model Information:
+* title:	BOEING-STEARMAN MODEL 75
+* source:	https://sketchfab.com/3d-models/boeing-stearman-model-75-57035fcd89e7496aa712ca1b522700fd
+* author:	Stéphane Agullo (https://sketchfab.com/sa3d)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "BOEING-STEARMAN MODEL 75" (https://sketchfab.com/3d-models/boeing-stearman-model-75-57035fcd89e7496aa712ca1b522700fd) by Stéphane Agullo (https://sketchfab.com/sa3d) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

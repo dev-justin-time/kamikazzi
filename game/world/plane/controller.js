@@ -58,8 +58,34 @@ class ExhaustTrail {
 
 // ---------- Controller ----------
 export class PlaneController {
-  constructor(plane, scene) {
+  constructor(plane, propeller, scene) {
     this.plane = plane;
+    // Propeller is now passed in directly — it's no longer a child of
+    // `plane` (world.js re-parents it to scene for HUD-lock). The previous
+    // recursive `this.plane.getObjectByName('propeller')` lookup reachable
+    // only descendants of `plane` and would silently fail after re-parenting.
+    this.propeller = propeller || null;
+
+    // MULTI-PROPELLER SPIN: collect every `Object3D` named 'propeller' under
+    // the plane wrapper. The procedural path always has one synthesised
+    // propeller (returned to world.js as the HUD-lock target); GLB paths MAY
+    // also ship a 'propeller'-named mesh inside the loaded scene tree — the
+    // HUD-lock refactor preserved that for model integrity, but only spun
+    // the HUD prop. Now we spin them ALL in lockstep so the GLB's own rotor
+    // doesn't appear frozen while the HUD copy turns.
+    this.propellers = [];
+    if (plane && plane.traverse) {
+      plane.traverse(node => {
+        if (node && node.name === 'propeller') this.propellers.push(node);
+      });
+    }
+    // Defensive: if the HUD prop was passed in AND is parented under the
+    // plane tree (very rare — current scenes put it on `scene`), the
+    // traverse will already have caught it. If it lives at scene root it
+    // wouldn't be found, so add it explicitly and dedupe.
+    if (this.propeller && !this.propellers.includes(this.propeller)) {
+      this.propellers.push(this.propeller);
+    }
     this.scene = scene;
     this.velocity = new THREE.Vector3();
 
@@ -94,6 +120,16 @@ export class PlaneController {
     this.currentPitch = 0;
     this.leftTrail.clear();
     this.rightTrail.clear();
+    // Zero each collected propeller's spin phase. The HUD-locked one is
+    // already forced to rotation.z = 0 by world.js#syncPropellerToViewport
+    // (which writes `rotation.set(0,0,rotation.z)` each frame, preserving
+    // the spin but zeroing the no-spin baseline), so this is mostly
+    // cosmetic for the GLB-authored siblings parented to the plane
+    // wrapper — without it those would visually stick mid-spin between
+    // runs until the spin rate catches up.
+    for (const p of this.propellers) {
+      if (p && p.rotation) p.rotation.z = 0;
+    }
   }
 
   /**
@@ -127,10 +163,20 @@ export class PlaneController {
     this.currentPitch += (targetPitch - this.currentPitch) * pitchLerp;
     this.plane.rotation.x = this.currentPitch;
 
-    // Propeller spins faster when moving
-    const prop = this.plane.getObjectByName('propeller');
-    if (prop) {
-      prop.rotation.z += delta * (25 + Math.abs(this.velocity.x) * 0.8);
+    // Propeller(s) spin faster when moving. We spin EVERY 'propeller'-named
+    // node we collected at construction (see constructor) so the HUD-locked
+    // prop and any GLB-authored sibling under the plane wrapper turn in
+    // lockstep — the procedural path has one; the GLB path often has TWO
+    // (the GLB's own rotor plus the synthesised HUD copy). Verified the
+    // rate and identity-quaternion path under world.js syncPropellerToViewport
+    // — rotation.z writes stay local to each prop's frame and don't bleed
+    // the plane's bank/pitch into the HUD-locked one (which keeps a
+    // quaternion.identity() world-upright pose per the screenlock contract).
+    if (this.propellers.length > 0) {
+      const spinRate = delta * (25 + Math.abs(this.velocity.x) * 0.8);
+      for (const p of this.propellers) {
+        if (p) p.rotation.z += spinRate;
+      }
     }
 
     // Wing-tip contrails (transform local offset by plane quaternion + position)

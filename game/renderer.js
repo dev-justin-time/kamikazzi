@@ -13,7 +13,12 @@ export function createRenderer(container) {
   camera.position.set(0, 5, 15); 
   camera.lookAt(0, 0, 0);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  // alpha: true so the main scene renders transparent over the bg scene.
+  // world.js renders an ortho background picture first, then the main scene
+  // on top with autoClear=false; without alpha the main scene's color buffer
+  // would overwrite the level photo.
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setClearColor(0x87ceeb, 0);   // sky-cyan pre-load color, alpha 0 (transparent)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(width, height);
   renderer.shadowMap.enabled = true;

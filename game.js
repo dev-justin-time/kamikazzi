@@ -16,10 +16,13 @@ async function boot() {
   const rendererObj = createRenderer(container);
 
   // 2) World: lighting, ground, clouds, plane, managers, state
+  // Pass `planeModelUrl` so the GLB at /assets/model/stylized_ww1_plane.glb is
+  // attempted first; createWorld falls back to the procedural plane on failure.
   const worldObj = await createWorld({
     scene: rendererObj.scene,
     camera: rendererObj.camera,
     domElement: rendererObj.domElement,
+    planeModelUrl: '/assets/model/stylized_ww1_plane.glb',
   });
 
   // 3) Input — keep game/state.plane reference for planeController bridge inside world.js

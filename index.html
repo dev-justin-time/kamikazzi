@@ -95,7 +95,59 @@
   .btn:hover { transform: translateY(-2px) scale(1.03); }
   .btn:active { transform: scale(0.97); }
   .hint { margin-top: 18px; font-size: 14px; opacity: 0.75; line-height: 1.6; }
+  /* Level indicator inside .speed (uses same dim text treatment) */
+  .speed #levelVal { font-weight: 800; letter-spacing: 1px; }
+
+  /* Crash splash image on Game Over overlay */
+  #crashSplash {
+    display: block;
+    width: 100%;
+    max-width: clamp(280px, 56vw, 460px);
+    height: auto;
+    margin: 4px auto 14px;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(255, 60, 50, 0.45),
+                0 0 28px rgba(255, 100, 70, 0.25);
+    filter: contrast(1.05) saturate(1.1);
+  }
+
+  /* Explosion sequence — shown for ~1.7s × 3 plays before the crash splash. */
+  #explodeScreen {
+    position: fixed; inset: 0;
+    background: #000;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 25;
+  }
+  #explodeScreen img {
+    max-height: 92vh;
+    max-width: 86vw;
+    object-fit: contain;
+    /* Slight inner glow in case the GIF has a transparent frame edge */
+    filter: drop-shadow(0 0 22px rgba(255, 110, 50, 0.35));
+  }
   .hidden { display: none !important; }
+
+  /* Crash overlay FX — fired 3× in sync with each explode.gif screen play
+     (see ui.js triggerOverlayPunch()). Shake + inset-box-shadow flash on the
+     #explodeScreen overlay so the impact registers even on a frozen-frame
+     GIF. Restart-friendly: removing + force-reflow + re-adding the class
+     kicks the keyframes from t=0 each play. */
+  @keyframes crashShake {
+    0%   { transform: translate(0, 0); }
+    18%  { transform: translate(-8px, 6px); }
+    36%  { transform: translate(7px, -5px); }
+    54%  { transform: translate(-5px, 4px); }
+    72%  { transform: translate(4px, -3px); }
+    88%  { transform: translate(-2px, 2px); }
+    100% { transform: translate(0, 0); }
+  }
+  @keyframes crashFlash {
+    0%   { box-shadow: inset 0 0 240px 60px rgba(255, 110, 30, 0.0); }
+    12%  { box-shadow: inset 0 0 240px 110px rgba(255, 110, 30, 0.65); }
+    100% { box-shadow: inset 0 0 240px 60px rgba(255, 110, 30, 0.0); }
+  }
+  #explodeScreen.crash-shake { animation: crashShake 240ms ease-out; }
+  #explodeScreen.crash-flash { animation: crashFlash 240ms ease-out; }
   #burger {
     position: fixed; top: 16px; right: 18px; z-index: 15;
     font-size: 44px; line-height: 1;
@@ -111,7 +163,7 @@
 </head>
 <body>
 <div id="game"></div>
-<div id="hud"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Speed <span id="speedVal">1.0x</span></span></div></div>
+<div id="hud"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Level <span id="levelVal">1</span> · Speed <span id="speedVal">1.0x</span></span></div></div>
 <div id="burger" title="Burger!">🍔</div>
 
 <div id="startScreen" class="overlay">
@@ -123,12 +175,17 @@
   <p>Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>
   <div style="display:flex;gap:10px;align-items:center;flex-direction:column;">
     <button id="startBtn" class="btn">Start Flying</button>
-    <div class="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tap left/right or drag to steer</div>
+    <div class="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tilt your device or drag the screen<br>🕹️ Use joystick (bottom-left) for touch</div>
   </div>
+</div>
+
+<div id="explodeScreen" class="hidden" aria-hidden="true">
+  <img id="explodeImg" src="/assets/image/explode.gif" alt="" />
 </div>
 
 <div id="gameOver" class="overlay hidden">
   <h1>Game Over</h1>
+  <img id="crashSplash" src="/assets/image/1.webp" alt="" />
   <p>You flew a glorious run.</p>
   <div class="big-score">Score: <span id="finalScore">0</span></div>
   <p id="bestLine">Best: <span id="bestScore">0</span></p>
