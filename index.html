@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KAMIKAZZI 3D</title>
+
+<!-- Kamikaze theme typography: Stick No Bills for Latin signage, Noto Sans JP for the kanji sub-title. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Stick+No+Bills:wght@400;600;800&display=swap">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #87ceeb;
+    font-family: 'Stick No Bills', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  }
+  #game { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  /* Headlines & HUD use Stick No Bills — kamikaze-era signage vibe. */
+  h1, #score, .btn {
+    font-family: 'Stick No Bills', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  }
+
+  /* Kanji sub-title under the brand line. */
+  .subtitle {
+    text-align: center;
+    margin-bottom: 14px;
+    /* Hairline divider above the kanji for a signboard feel */
+    padding: 0 24px;
+  }
+  .subtitle .kanji {
+    font-family: 'Noto Sans JP', 'Yu Mincho', 'MS Mincho', serif;
+    font-size: clamp(28px, 6vw, 44px);
+    font-weight: 700;
+    letter-spacing: 4px;            /* tight on a 2-char string so 風 doesn't drift apart */
+    color: #ff9352;                /* sun-orange, picks up the title gradient */
+    opacity: 0.92;
+    display: block;
+    text-shadow: 0 4px 14px rgba(255, 80, 50, 0.35);
+    line-height: 1.1;
+  }
+  .subtitle .romaji {
+    font-family: 'Stick No Bills', sans-serif;
+    font-size: clamp(11px, 2.4vw, 14px);
+    font-weight: 400;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    opacity: 0.55;
+    display: block;
+    margin-top: 6px;
+  }
+
+  #hud {
+    position: fixed; top: 16px; left: 0; right: 0;
+    display: flex; justify-content: center; pointer-events: none;
+    z-index: 10;
+  }
+  #score {
+    background: rgba(0,0,0,0.35); color: #fff; padding: 10px 24px;
+    border-radius: 999px; font-size: 22px; font-weight: 800;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+  }
+  #score .speed { font-size: 13px; opacity: 0.85; font-weight: 400; margin-left: 12px; }
+  .overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 20;
+    background: radial-gradient(ellipse at center, rgba(20,30,60,0.55), rgba(10,15,35,0.8));
+    color: #fff; text-align: center; padding: 24px;
+  }
+  .overlay h1 {
+    font-size: clamp(48px, 11vw, 96px); margin-bottom: 8px;
+    font-weight: 800; letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 6px 24px rgba(0,0,0,0.55), 0 0 32px rgba(255,80,80,0.18);
+    /* Kamikaze-red gradient (rising sun feel) */
+    background: linear-gradient(180deg, #ffffff 0%, #ff6a3d 50%, #c01818 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .overlay p { font-size: clamp(15px, 4vw, 20px); margin-bottom: 6px; opacity: 0.92; }
+  .overlay .big-score { font-size: clamp(28px, 8vw, 48px); font-weight: 800; margin: 14px 0; color: #ffe08a; letter-spacing: 2px; }
+  .btn {
+    margin-top: 22px; padding: 14px 40px; font-size: 20px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: none; border-radius: 999px; cursor: pointer; color: #16233f;
+    background: linear-gradient(135deg, #ffe08a, #ff9ec4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35); transition: transform 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:hover { transform: translateY(-2px) scale(1.03); }
+  .btn:active { transform: scale(0.97); }
+  .hint { margin-top: 18px; font-size: 14px; opacity: 0.75; line-height: 1.6; }
+  .hidden { display: none !important; }
+  #burger {
+    position: fixed; top: 16px; right: 18px; z-index: 15;
+    font-size: 44px; line-height: 1;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+    cursor: default; user-select: none; pointer-events: none;
+    animation: burgerBob 2.2s ease-in-out infinite;
+  }
+  @keyframes burgerBob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-6px) rotate(4deg); }
+  }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="hud"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Speed <span id="speedVal">1.0x</span></span></div></div>
+<div id="burger" title="Burger!">🍔</div>
+
+<div id="startScreen" class="overlay">
+  <h1>KAMIKAZZI 3D</h1>
+  <div class="subtitle" aria-label="shin kaze">
+    <span class="kanji">神風</span>
+    <span class="romaji">shin kaze</span>
+  </div>
+  <p>Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>
+  <div style="display:flex;gap:10px;align-items:center;flex-direction:column;">
+    <button id="startBtn" class="btn">Start Flying</button>
+    <div class="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tap left/right or drag to steer</div>
+  </div>
+</div>
+
+<div id="gameOver" class="overlay hidden">
+  <h1>Game Over</h1>
+  <p>You flew a glorious run.</p>
+  <div class="big-score">Score: <span id="finalScore">0</span></div>
+  <p id="bestLine">Best: <span id="bestScore">0</span></p>
+  <button id="retryBtn" class="btn">Try Again</button>
+</div>
+
+<script type="module" src="/game.js"></script>
+<!-- removed inline game script (moved to /game.js) -->
+
+<script type="module" src="/puter-client.js"></script>
+<!-- removed inline puter integration (moved to /puter-client.js) -->
+</body>
+</html>
