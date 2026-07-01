@@ -17,12 +17,13 @@ import { PlaneController } from './world/plane/controller.js';
 import { createBuildingManager } from './world/buildings.js';
 import { createExplosionManager } from './world/explosion.js';
 import { createPowerupManager } from './world/powerups.js';
+import { createMagnetHalo } from './world/magnet_halo.js';
 import { applyIdeasConfig, applyPalette } from './world/ideas.js';
 
 import {
   TUNING, loadTexture, clamp, removeAndDispose, disposeScene,
   LEVEL_BACKGROUNDS, NUM_LEVELS, SCORE_PER_LEVEL, createBackgroundScene,
-  IMPACT_SOUND_URL, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
+  IMPACT_SOUND_URL, POWERUP_SFX_URLS, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
   EXPLOSION_PALETTES,
   FLOOR_ASSETS,
 } from './world/shared.js';
@@ -43,13 +44,16 @@ const CAMERA_HEIGHT_OFFSET = 6;
 const CAMERA_DISTANCE = 16;
 const CAMERA_TRAIL_FACTOR = 0.5;
 
-// Powerup spawn cycle — round-robin across the 5 types so each spawn in a
+// Powerup spawn cycle — round-robin across the 6 types so each spawn in a
 // run is a different visual. Ordered first→last so the first pickup the
 // player sees is always shield (the most forgiving), the second is boost
-// (the most dramatic), and the rest come in a memorable sequence. Pure
-// data, kept at module scope so resetGame (inside createWorld) reads it
-// without an extra inner-closure indirection.
-const SHIELD_BOOST_CYCLE = ['shield', 'boost', 'magnet', 'score2x', 'slowmo'];
+// (the most dramatic), then stamina at index 2 closes the
+// non-cascade "starter bundle" so the new one-shot type is reachable on
+// EVERY run (was unreachable at index 5 when powerupCount=3 covered only
+// indices 0..2). Cascade runs (powerupCount=6) sweep the full rotation.
+// Pure data, kept at module scope so resetGame (inside createWorld) reads
+// it without an extra inner-closure indirection.
+const SHIELD_BOOST_CYCLE = ['shield', 'boost', 'stamina', 'magnet', 'score2x', 'slowmo'];
 
 // Load the impact SFX buffer once at world-init. Tries the canonical
 // /assets/audio/explosion.wav first; falls back to playing the existing
@@ -80,6 +84,30 @@ async function loadImpactBuffer() {
   return null;
 }
 
+// Per-type pickup SFX preloader — mirrors the impact loader pattern.
+// Iterates POWERUP_SFX_URLS (shared.js) and decodes every WAV that
+// resolves into an AudioBufferMap keyed by type. Missing files are
+// silently skipped — ui.js#playTypeTone falls back to synthesised
+// tones (TONE_RECIPES) for any type whose key isn't in the map. This
+// keeps the SFX layer non-blocking: drop a file in /assets/audio/ and
+// the next boot uses it, no code changes required.
+async function loadPickupSfxBuffers(audioListener) {
+  const buffers = {};
+  await Promise.all(Object.entries(POWERUP_SFX_URLS).map(async ([type, url]) => {
+    try {
+      const buf = await new Promise((resolve, reject) => {
+        const loader = new THREE.AudioLoader();
+        loader.load(url, resolve, undefined, reject);
+      });
+      buffers[type] = buf;
+    } catch (_) {
+      // Asset not present yet — synthesised fallback will play this
+      // type. Don't warn every boot; it's expected pre-asset.
+    }
+  }));
+  return buffers;
+}
+
 /**
  * Compose the entire world. Returns the public API + bootstraps multiplayer.
  */
@@ -101,13 +129,16 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   camera.add(audioListener);
 
   const bg = createBackgroundScene();
-  // Pre-load all 7 level textures AND the impact SFX in parallel. Both are
-  // cheap (cached + small wav) but we kick them off together so neither blocks
-  // the user clicking Start.
-  const [bgTextures, impactBufferData, floorTextures] = await Promise.all([
+  // Pre-load all 7 level textures, the impact SFX, the per-type pickup SFX,
+  // AND the floor textures in parallel. Each is cheap but kicking them off
+  // together means none of them block the user clicking Start. Any per-type
+  // pickup URL that 404s is silently skipped — synthesised fallback plays
+  // for that type — so missing WAV files never gate game boot.
+  const [bgTextures, impactBufferData, floorTextures, pickupSfxBuffers] = await Promise.all([
     Promise.all(LEVEL_BACKGROUNDS.map(url => loadTexture(url))),
     loadImpactBuffer(),
     Promise.all(FLOOR_ASSETS.map(url => loadTexture(url))),
+    loadPickupSfxBuffers(),
   ]);
 
   // Keep ortho frustum + contain scaling in sync with the canvas so
@@ -434,6 +465,15 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   // HUD-lock refactor re-parented it out of the plane group).
   const planeController = new PlaneController(plane, propeller, scene);
 
+  // ---- Magnet halo billboard ----
+  // Camera-facing sprite (parented to the plane so translation follows,
+  // but bank/pitch rotation does NOT — Sprite auto-faces the camera).
+  // Visibility gates off state._powerups.magnetUntilMs (existing pickup
+  // window) AND state.over (crash sequence). resetGame zeroes the
+  // untilMs so the halo hides at the start of every fresh run.
+  const magnetHalo = createMagnetHalo();
+  plane.add(magnetHalo.sprite);                    // parent for translation; Sprite ignores parent rotation
+
   // ---- per-frame scratch Vec3s for the propeller HUD-lock math ----
   // Allocate ONCE at world-init; the loop mutates these each frame rather
   // than allocating new Vector3s every RAF tick (avoids GC pressure that
@@ -522,6 +562,30 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     else if (type === 'magnet') u.magnetUntilMs  = now + TUNING.POWERUP_MAGNET_MS;
     else if (type === 'score2x')u.score2xUntilMs = now + TUNING.POWERUP_SCORE2X_MS;
     else if (type === 'slowmo') u.slowmoUntilMs  = now + TUNING.POWERUP_SLOWMO_MS;
+    else if (type === 'stamina') {
+      // 6th type — ONE-SHOT. Refreshes the near-miss bullet-time state
+      // machine so the player can re-trigger or extend the slow-mo window
+      // without depending on a fresh near-miss. Three mutations:
+      //   1. timeScale = NEAR_MISS_TIME_SCALE  → instant slowmo (no slow
+      //      lerp-in; the player just collected something, the effect
+      //      should kick in NOW rather than ramp over ~120ms).
+      //   2. timeScaleTarget = NEAR_MISS_TIME_SCALE → keeps the loop's
+      //      `timeScale += (target - timeScale) × …` smooth-lerp from
+      //      drifting back to 1.0 during the window.
+      //   3. timeScaleUntilMs = max(now, currentUntil) + POWERUP_STAMINA_MS
+      //      → covers both cases:    (a) no current slow → fresh window
+      //      starts at max(now, 0) + 1200. (b) currently slow → window
+      //      extends by 1200ms on top of whatever's left. Reuses existing
+      //      release math in `if (now >= state.timeScaleUntilMs) …` so
+      //      no new per-powerup release path is needed.
+      // No `u.staminaUntilMs` is set — one-shot by design. The HUD chip
+      // strip won't render a stamina chip (ui.js POWERUP_CHIPS has no
+      // entry for the type), which is correct because there's no
+      // remaining-seconds to count down.
+      state.timeScale = TUNING.NEAR_MISS_TIME_SCALE;
+      state.timeScaleTarget = TUNING.NEAR_MISS_TIME_SCALE;
+      state.timeScaleUntilMs = Math.max(now, state.timeScaleUntilMs) + TUNING.POWERUP_STAMINA_MS;
+    }
     // Notify UI subscribers (chip pulse + future SFX hooks) without
     // coupling ui.js to gameplay state. Wrapped in try/catch so a
     // roll-back of CustomEvent on very old browsers doesn't crash the
@@ -585,6 +649,13 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         const isSlow   = !state.over && now < state._powerups.slowmoUntilMs;
         const effSpeed = state.speed * (isBoost ? TUNING.POWERUP_BOOST_MULT : 1);
         const scoreMult = is2x ? TUNING.POWERUP_SCORE2X_MULT : 1;
+
+        // Magnet halo: visible only while the magnet window is in
+        // flight AND the player is alive. Hiding on state.over keeps
+        // the halo off-camera during the 5.4s crash sequence — the
+        // 3-explosion GIF would otherwise show a magenta disk through
+        // the overlay distractingly.
+        magnetHalo.setActive(isMagnet && !state.over, now);
 
         // Slowmo composes with near-miss via min() — whichever demands the
         // slowest dt wins. Without this, a slowmo window would be silently
@@ -1012,6 +1083,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     scene, camera, plane,
     state,
     audioContext: audioListener.context,        // shared Three.js AudioContext for engine, impact, AND any consumer (ui.js powerup SFX) that wants to schedule nodes against the same graph
+    pickupSfxBuffers,                            // Map<type, AudioBuffer> — only contains entries whose canonical WAV loaded successfully. ui.js#playTypeTone reads this and falls back to TONE_RECIPES synth when a type is missing
     addIdea, sendIdeasToPuter, fetchCommentsFromPuter,
     startLoop, stopLoop,
     cancelCrashStagger: clearCrashStaggerTimers,
@@ -1026,6 +1098,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       explosion.dispose();
       buildings.clear();
       powerups.clear();
+      magnetHalo.dispose();
       disposeScene(scene);
     },
   };

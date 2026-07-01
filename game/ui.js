@@ -15,6 +15,113 @@
 */
 import { EXPLODE_GIF_URL, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS, TUNING } from './world/shared.js';
 
+// Per-type pickup tone recipes (Web Audio API synthesis). Each entry
+// drives an OscillatorNode + GainNode envelope attached to the shared
+// AudioContext (see world.js#audioListener.context). Purely procedural;
+// no .wav file dependency. Real assets can be dropped at the canonical
+// URLs in POWERUP_SFX_URLS (shared.js) and the recipes retired in a
+// one-line swap — frequency choice keeps the same "feel" today, so a
+// later swap to real WAVs preserves which-type-picked-up-by-ear.
+//
+// Recipe fields:
+//   base       start frequency in Hz
+//   slope      per-recipe multiplier at recipe.duration (set this for
+//              a sweep — up = boost, down = slowmo)
+//   type       OscillatorNode type ('sine'|'triangle'|'sawtooth'|'square')
+//   duration   total length in seconds
+//   gain       peak gain (≤ 0.4 to keep layered sounds from clipping)
+//   repeatN    schedule N copies at recipe.repeatGap intervals (magnet's
+//              double-pulse is the only recipe currently using this)
+//   repeatGap  separation between repeats in seconds
+const TONE_RECIPES = {
+  shield:  { base: 660, slope: 1.5,  type: 'triangle', duration: 0.18, gain: 0.32 },                 // rising two-tone (cyan / "ready")
+  boost:   { base: 220, slope: 4.0,  type: 'sawtooth', duration: 0.30, gain: 0.28 },                 // rumble rising to a sharp accent (amber / "vroom")
+  magnet:  { base: 440, slope: 0.0,  type: 'square',   duration: 0.10, gain: 0.30, repeatN: 2, repeatGap: 0.08 }, // double-pulse (magenta / "pull-pull")
+  score2x: { base: 880, slope: 0.0,  type: 'sine',     duration: 0.32, gain: 0.30 },                 // bell-like ding (gem / "achievement")
+  slowmo:  { base: 480, slope: 0.4,  type: 'triangle', duration: 0.42, gain: 0.26 },                 // descending slow-slide (indigo / "breathe")
+  stamina: { base: 600, slope: 0.7,  type: 'triangle', duration: 0.32, gain: 0.28 },                 // warp-up-and-down — pairs with the "refresh" feel of the near-miss bullet-time re-trigger (lime / "rebound")
+};
+
+// Build + schedule one tone instance. Returns the duration scheduled so
+// repeat-capable recipes can lay down the next copy without overshoot.
+function scheduleTone(ctx, recipe, offsetSec = 0) {
+  const t0 = ctx.currentTime + offsetSec;
+  const dur = recipe.duration;
+  const osc = ctx.createOscillator();
+  osc.type = recipe.type || 'sine';
+  osc.frequency.setValueAtTime(recipe.base, t0);
+  if (typeof recipe.slope === 'number' && recipe.slope !== 1.0) {
+    osc.frequency.linearRampToValueAtTime(recipe.base * recipe.slope, t0 + dur);
+  }
+  const gain = ctx.createGain();
+  // Quick fade-in (10ms) avoids the click-pop of an un-ramped oscillator.
+  // Exponential fade-out to silence so long tones (slowmo) don't truncate
+  // harshly and the next pickup can be scheduled back-to-back cleanly.
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.linearRampToValueAtTime(recipe.gain || 0.3, t0 + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.05);                  // 50ms tail so the exp ramp completes without a click
+  return dur;
+}
+
+// Play a preloaded AudioBuffer through the shared context. Mirrors the
+// scheduleTone envelope (10ms fade-in + linear fade-out at buffer end)
+// so back-to-back pickups don't click-pop. Loop body uses an explicit
+// `offset` rather than accumulating into a shared `cum` variable,
+// because for repeatN=3 or more the offset for iteration [i] should be
+// (sum of dur + gap of iterations [0..i-1]) not (last schedule start
+// + repeatGap) — the latter bunches items close together.
+function playLoadedBuffer(ctx, buf, repeats = 1, gap = 0, peakGain = 0.30) {
+  if (!buf) return;
+  let offset = 0;
+  for (let i = 0; i < repeats; i++) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    const dur = buf.duration;
+    // Peak gain reads from recipe.gain so a future drop of a hot sample
+    // can match the synth neighbours' calibration (recipe gain range
+    // 0.26..0.32) — not hardcoded to 0.32 like the first pass did.
+    const target = peakGain;
+    g.gain.setValueAtTime(0.0001, ctx.currentTime + offset);
+    g.gain.linearRampToValueAtTime(target, ctx.currentTime + offset + 0.01);
+    g.gain.setValueAtTime(target, ctx.currentTime + offset + dur - 0.05);
+    g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + offset + dur);
+    src.connect(g).connect(ctx.destination);
+    src.start(ctx.currentTime + offset);
+    src.stop(ctx.currentTime + offset + dur + 0.05);
+    offset += dur + (i < repeats - 1 ? gap : 0);
+  }
+}
+
+// Resolve & play a per-type pickup tone. Order of preference:
+//   1. ctx.state === 'running' (otherwise we're in autoplay-gated mode
+//      and queued nodes would stack opaquely — silent skip is safer).
+//   2. world.pickupSfxBuffers[type] → playLoadedBuffer (richer WAV).
+//   3. TONE_RECIPES[type]            → scheduleTone (synthesised fallback).
+function playTypeTone(ctx, type, world) {
+  if (!ctx || ctx.state !== 'running') return;
+  const buf = world && world.pickupSfxBuffers && world.pickupSfxBuffers[type];
+  if (buf) {
+    const recipe = TONE_RECIPES[type];
+    playLoadedBuffer(ctx, buf,
+      recipe ? (recipe.repeatN || 1) : 1,
+      recipe ? (recipe.repeatGap || 0) : 0,
+      recipe ? recipe.gain : 0.30);
+    return;
+  }
+  const recipe = TONE_RECIPES[type];
+  if (!recipe) return;
+  const repeats = recipe.repeatN || 1;
+  let offset = 0;
+  for (let i = 0; i < repeats; i++) {
+    scheduleTone(ctx, recipe, offset);
+    offset += recipe.duration + (i < repeats - 1 ? (recipe.repeatGap || 0) : 0);
+  }
+}
+
 // Powerup chip definitions — kept local to ui.js since they're a HUD
 // concern, not a gameplay one. world.js pushes expiry timestamps onto
 // state._powerups and the chip just reads them + label/duration keys.
@@ -85,12 +192,24 @@ export function setupUI({ world, rendererObj }) {
   window.addEventListener('powerupPickup', e => {
     const t = e && e.detail && e.detail.type;
     if (!t) return;
+    // 1) visual: pulse the matching chip (existing path)
     const entry = chipEls.get(t);
-    if (!entry || !entry.el) return;
-    ensurePulseStyle();
-    entry.el.classList.remove('pulse');
-    void entry.el.offsetWidth;            // force reflow so animation re-runs
-    entry.el.classList.add('pulse');
+    if (entry && entry.el) {
+      ensurePulseStyle();
+      entry.el.classList.remove('pulse');
+      void entry.el.offsetWidth;            // force reflow so animation re-runs
+      entry.el.classList.add('pulse');
+    }
+    // 2) audio: synthesize the per-type tone against the shared AudioContext.
+    //    Silently no-ops if AudioContext is suspended/closed (e.g. browser
+    //    blocked until user gesture) OR if the listener hasn't wired the
+    //    world yet. Chip pulse still reads as feedback in those cases.
+    try {
+      // playTypeTone handles WORLD ownership + suspended-state gating
+      // internally; just pass the world object and let it decide
+      // between cached WAV and synthesised fallback.
+      playTypeTone(world && world.audioContext, t, world);
+    } catch (_) { /* Web Audio failed; chip pulse still works */ }
   });
 
   // ---- explosion sequence state ----

@@ -76,6 +76,7 @@ export const TUNING = {
   POWERUP_SCORE2X_MULT: 2,
   POWERUP_SLOWMO_MS: 3000,         // composes with near-miss via Math.min(timeScaleTarget, SLOWMO_SCALE)
   POWERUP_SLOWMO_SCALE: 0.4,       // dt multiplier during the slowmo window
+  POWERUP_STAMINA_MS: 1200,        // 6th type — ONE-SHOT (no DurationKey on POWERUP_TYPES, no _powerups field, no HUD chip). Refreshes the near-miss bullet-time state machine: timeScale = NEAR_MISS_TIME_SCALE for this many ms. Defaults to NEAR_MISS_DURATION_MS but kept separate so a future "longer refresh" tweak is one place
 
   // dt convention (raw seconds * DT_HZ = "60Hz units") — used everywhere
   DT_HZ: 60,
@@ -299,6 +300,21 @@ _explodeGifPreload.src = EXPLODE_GIF_URL;
 // this canonical URL first and falls back to /assets/audio/airplane.wav
 // (played as a punchy one-shot, not a loop) if the asset isn't on disk yet.
 export const IMPACT_SOUND_URL = '/assets/audio/explosion.wav';
+
+// Per-type pickup SFX URLs (5 powerup types). Drop small WAVs at these
+// canonical paths to upgrade the synthesized tones that ui.js plays by
+// default. Until a real file is present, the synthesised recipes in
+// ui.js#TONE_RECIPES still play — so the SFX layer is non-blocking.
+// Coordinates with POWERUP_SHIELD_MS / etc. in TUNING so once dropped
+// the asset's duration can replace the synthesized envelope duration.
+export const POWERUP_SFX_URLS = {
+  shield:  '/assets/audio/powerup-shield.wav',
+  boost:   '/assets/audio/powerup-boost.wav',
+  magnet:  '/assets/audio/powerup-magnet.wav',
+  score2x: '/assets/audio/powerup-score2x.wav',
+  slowmo:  '/assets/audio/powerup-slowmo.wav',
+  stamina: '/assets/audio/powerup-stamina.wav',
+};
 
 // Crash-sequence keyframes. Single source of truth for WHAT happens at each
 // stage of the ~5.4s crash — the UI gif plays (ui.js playExplodeStep) and the

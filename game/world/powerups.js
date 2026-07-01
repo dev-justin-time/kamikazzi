@@ -1,17 +1,22 @@
 // /game/world/powerups.js
-// Powerup manager — drives the 5-type spawn/drift/spin/pickup pipeline.
+// Powerup manager — drives the 6-type spawn/drift/spin/pickup pipeline.
 //
 // Architecture (was previously just spin+drift, no pickup, so cubes just
 // floated past the plane and did nothing):
 //   - POWERUP_TYPES catalog — single source of truth for shape/colour/label
-//     and which TUNING key holds its duration. Adding a new type = add one
-//     row + a corresponding TUNING entry. No new spawn-path code.
+//     and which TUNING key holds its duration. Adding a new window-bound
+//     type = one catalog row + a TUNING entry; the spawn() / update() /
+//     checkPickup() paths in THIS file stay untouched. Adding a new
+//     ONE-SHOT type additionally requires an effect branch in
+//     `world.js#applyPowerupEffect`, an entry in `SHIELD_BOOST_CYCLE`, and
+//     wiring into `TONE_RECIPES`/`POWERUP_SFX_URLS` (stamina is the example).
 //   - Per-type geometry picker so each shape reads distinctly at a glance:
 //       shield  → cube (BoxGeometry, classic powerup cube)
 //       boost   → tall pylon (CylinderGeometry, vertical bar)
 //       magnet  → torus ring (TorusGeometry, magnetically attractor vibe)
 //       score2x → octahedron (OctahedronGeometry, gem-like)
 //       slowmo  → tetrahedron (TetrahedronGeometry, hourglass/diamond)
+//       stamina → icosahedron (IcosahedronGeometry, energy / lattice orb)
 //   - Public surface stays tiny: { clear, spawn, checkPickup, update } so
 //     world.js doesn't reach into engine internals.
 //
@@ -80,6 +85,26 @@ const POWERUP_TYPES = {
     },
     durationKey: 'POWERUP_SLOWMO_MS',
   },
+  // 6th type — ONE-SHOT. No `durationKey` (the effect is a wall-clock
+  // window, not a self-tracked `_powerups.*UntilMs`). POWERUP_TYPES rows
+  // that ARE window-bound have a durationKey; rows that aren't get the
+  // world.js `applyPowerupEffect` branch to mutate whatever state they
+  // touch (here: the bullet-time state machine). IcosahedronGeometry has
+  // 20 faces — reads as an energy / lattice orb, distinct from box/cylinder/
+  // torus/octahedron/tetrahedron. Lime #dfff66 is far enough from every
+  // other pickable's colour (cyan/amber/magenta/green/indigo) that swap-
+  // confusion at a glance is impossible.
+  stamina: {
+    label: '⚡ Stamina',
+    color: 0xdfff66,                                                  // lime / chartreuse
+    build() {
+      const g = new THREE.IcosahedronGeometry(1.5, 0);
+      return { geometry: g, halfHeight: 1.0 };
+    },
+    // No durationKey — stamina is one-shot (effect lives in world.js#applyPowerupEffect
+    // `else if (type === 'stamina')` branch and mutates the bullet-time state machine,
+    // not state._powerups).
+  },
 };
 
 export function createPowerupManager(scene) {
@@ -95,7 +120,7 @@ export function createPowerupManager(scene) {
    * gameplay corridor. Random feel is intentional — keeps the player
    * reaching into the spawn lane rather than memorizing a fixed path.
    * @param {number} z                 world Z (negative = ahead of plane)
-   * @param {keyof POWERUP_TYPES} type one of shield|boost|magnet|score2x|slowmo
+   * @param {keyof POWERUP_TYPES} type one of shield|boost|magnet|score2x|slowmo|stamina
    */
   function spawn(z, type = 'shield') {
     const def = POWERUP_TYPES[type] || POWERUP_TYPES.shield;
@@ -171,7 +196,7 @@ export function createPowerupManager(scene) {
    * responsible for translating the type into a gameplay effect.
    *
    * @param {{x:number,y:number,z:number}} planePos
-   * @returns {string|null} 'shield'|'boost'|'magnet'|'score2x'|'slowmo' or null
+   * @returns {string|null} 'shield'|'boost'|'magnet'|'score2x'|'slowmo'|'stamina' or null
    */
   function checkPickup(planePos) {
     const r = TUNING.POWERUP_PICKUP_RADIUS;
