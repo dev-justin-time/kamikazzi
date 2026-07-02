@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KAMIKAZZI 3D</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 
 <!-- Kamikaze theme typography: Stick No Bills for Latin signage, Noto Sans JP for the kanji sub-title. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -577,6 +580,8 @@
     <button id="leaderboardBtn">🏆 Leaderboard</button>
     <button id="skinLabBtn">🎨 Customize</button>
     <button id="replayGalleryBtn">📼 Replays</button>
+    <button id="runHistoryBtn">📜 History</button>
+    <button id="briefingsBtn">📡 Briefings</button>
     <div class="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tilt your device or drag the screen<br>🕹️ Use joystick (bottom-left) for touch</div>
   </div>
 </div>
@@ -731,6 +736,37 @@
       <button class="lb-close" id="replayDetailBack">Back</button>
       <button class="lb-close" id="replayDetailDelete" style="border-color:rgba(255,100,100,0.4);color:#ffb4ab;">Delete</button>
     </div>
+  </div>
+</div>
+
+<!-- Run History overlay -->
+<div id="runHistoryPanel" class="hidden">
+  <div class="lb-panel" style="max-width:520px;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>📜 Run History</h3>
+    <div class="lb-body" id="runHistoryBody" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading history...</div>
+    </div>
+    <button class="lb-close" id="runHistoryClose">Close</button>
+  </div>
+</div>
+
+<!-- Briefings overlay -->
+<div id="briefingsPanel" class="hidden">
+  <div class="lb-panel" style="max-width:520px;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>📡 Pilot Briefings</h3>
+    <div class="lb-body" id="briefingsBody" style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto;">
+      <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No briefings yet. Submit ideas and they appear here.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input id="briefingInput" type="text" placeholder="Enter briefing..." style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" />
+      <button class="lb-close" id="briefingSend" style="margin:0;">Send</button>
+      <button class="lb-close" id="briefingFetch" style="margin:0;">Fetch</button>
+    </div>
+    <button class="lb-close" id="briefingsClose" style="margin-top:10px;">Close</button>
   </div>
 </div>
 

@@ -17,6 +17,7 @@ import { EXPLODE_GIF_URL, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS, TUNING } from './w
 import {
   isPuterAvailable, getUsername, getAvatarUrl, getLeaderboard,
   setCloudSyncEnabled, generateImage, getReplays, deleteReplay,
+  getRunHistory, syncSettings, getSettings,
 } from '../puter-client.js';
 
 // Per-type pickup tone recipes (Web Audio API synthesis). Each entry
@@ -248,6 +249,21 @@ export function setupUI({ world, rendererObj }) {
   const skinLabBtn = document.getElementById('skinLabBtn');
   const skinLabPanel = document.getElementById('skinLabPanel');
   const skinLabClose = document.getElementById('skinLabClose');
+
+  // ---- Run History UI ----
+  const runHistoryBtn = document.getElementById('runHistoryBtn');
+  const runHistoryPanel = document.getElementById('runHistoryPanel');
+  const runHistoryClose = document.getElementById('runHistoryClose');
+  const runHistoryBody = document.getElementById('runHistoryBody');
+
+  // ---- Briefings UI ----
+  const briefingsBtn = document.getElementById('briefingsBtn');
+  const briefingsPanel = document.getElementById('briefingsPanel');
+  const briefingsClose = document.getElementById('briefingsClose');
+  const briefingsBody = document.getElementById('briefingsBody');
+  const briefingInput = document.getElementById('briefingInput');
+  const briefingSend = document.getElementById('briefingSend');
+  const briefingFetch = document.getElementById('briefingFetch');
   const skinPrompt = document.getElementById('skinPrompt');
   const generateSkinBtn = document.getElementById('generateSkinBtn');
   const skinPreview = document.getElementById('skinPreview');
@@ -383,6 +399,134 @@ export function setupUI({ world, rendererObj }) {
   function closeSkinLab() { if (skinLabPanel) skinLabPanel.classList.add('hidden'); }
   if (skinLabBtn) skinLabBtn.addEventListener('click', openSkinLab);
   if (skinLabClose) skinLabClose.addEventListener('click', closeSkinLab);
+
+  // ---- Run History wiring ----
+  async function openRunHistory() {
+    if (runHistoryPanel) runHistoryPanel.classList.remove('hidden');
+    if (!runHistoryBody) return;
+    runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading history...</div>';
+    try {
+      const history = await getRunHistory();
+      if (!history || !history.length) {
+        runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No runs yet. Fly a mission and your history will appear here.</div>';
+        return;
+      }
+      let html = '';
+      history.forEach((run, idx) => {
+        const date = new Date(run.timestamp || Date.now()).toLocaleString();
+        const wonBadge = run.won ? '<span style="color:#00dddd;font-weight:700;">✅ SUCCESS</span>' : '<span style="color:#ffb4ab;font-weight:700;">💥 CRASH</span>';
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;">
+          <div style="text-align:left;">
+            <div style="font-weight:700;color:#98cbff;">${Number(run.score).toLocaleString()} pts · Level ${run.level || 1}</div>
+            <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">${date}</div>
+          </div>
+          <div style="font-size:10px;">${wonBadge}</div>
+        </div>`;
+      });
+      runHistoryBody.innerHTML = html;
+    } catch (_) {
+      runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load run history.</div>';
+    }
+  }
+  function closeRunHistory() { if (runHistoryPanel) runHistoryPanel.classList.add('hidden'); }
+  if (runHistoryBtn) runHistoryBtn.addEventListener('click', openRunHistory);
+  if (runHistoryClose) runHistoryClose.addEventListener('click', closeRunHistory);
+
+  // ---- Briefings wiring ----
+  function loadBriefings() {
+    if (!briefingsBody) return;
+    try {
+      const stored = localStorage.getItem('kamikazziBriefings');
+      const list = stored ? JSON.parse(stored) : [];
+      if (!list.length) {
+        briefingsBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No briefings yet. Submit ideas and they appear here.</div>';
+        return;
+      }
+      let html = '';
+      list.slice().reverse().forEach(b => {
+        const from = escapeHtml(b.from || 'Pilot');
+        const idea = escapeHtml(b.idea || b.text || '');
+        const date = b.ts ? new Date(b.ts).toLocaleString() : '';
+        html += `<div style="padding:10px 12px;border:1px solid rgba(152,203,255,0.12);border-radius:3px;text-align:left;">
+          <div style="font-size:10px;font-weight:700;color:#00dddd;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${from}</div>
+          <div style="font-size:12px;color:#98cbff;line-height:1.45;">${idea}</div>
+          <div style="font-size:10px;color:rgba(152,203,255,0.45);margin-top:4px;">${date}</div>
+        </div>`;
+      });
+      briefingsBody.innerHTML = html;
+    } catch (_) {
+      briefingsBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Error loading briefings.</div>';
+    }
+  }
+  async function sendBriefing() {
+    if (!briefingInput || !world) return;
+    const text = briefingInput.value.trim();
+    if (!text) return;
+    world.addIdea(text, 'Pilot');
+    briefingInput.value = '';
+    loadBriefings();
+    // Also sync to Puter if available
+    try {
+      await world.sendIdeasToPuter();
+    } catch (_) {}
+  }
+  async function fetchBriefings() {
+    if (!world) return;
+    try {
+      await world.fetchCommentsFromPuter();
+      loadBriefings();
+    } catch (_) {}
+  }
+  function openBriefings() { if (briefingsPanel) { briefingsPanel.classList.remove('hidden'); loadBriefings(); } }
+  function closeBriefings() { if (briefingsPanel) briefingsPanel.classList.add('hidden'); }
+  if (briefingsBtn) briefingsBtn.addEventListener('click', openBriefings);
+  if (briefingsClose) briefingsClose.addEventListener('click', closeBriefings);
+  if (briefingSend) briefingSend.addEventListener('click', sendBriefing);
+  if (briefingFetch) briefingFetch.addEventListener('click', fetchBriefings);
+  if (briefingInput) {
+    briefingInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendBriefing(); });
+  }
+  window.addEventListener('ideasUpdated', () => {
+    if (briefingsPanel && !briefingsPanel.classList.contains('hidden')) loadBriefings();
+  });
+
+  // ---- Settings cloud sync wiring ----
+  async function saveSettingsToCloud() {
+    try {
+      const settings = {
+        overlaysEnabled: loadOverlaySetting(),
+        cloudSyncEnabled: cloudSyncEnabled,
+        lastSaved: Date.now(),
+      };
+      await syncSettings(settings);
+    } catch (_) {}
+  }
+  async function loadSettingsFromCloud() {
+    try {
+      const cloudSettings = await getSettings();
+      if (cloudSettings && typeof cloudSettings === 'object') {
+        if (typeof cloudSettings.overlaysEnabled === 'boolean') {
+          setOverlaysVisible(cloudSettings.overlaysEnabled);
+          saveOverlaySetting(cloudSettings.overlaysEnabled);
+          if (toggleOverlays) toggleOverlays.checked = cloudSettings.overlaysEnabled;
+        }
+        if (typeof cloudSettings.cloudSyncEnabled === 'boolean') {
+          cloudSyncEnabled = cloudSettings.cloudSyncEnabled;
+          setCloudSyncEnabled(cloudSyncEnabled);
+          if (toggleCloudSync) toggleCloudSync.checked = cloudSyncEnabled;
+        }
+      }
+    } catch (_) {}
+  }
+  // Load cloud settings on boot
+  loadSettingsFromCloud();
+  // Save settings to cloud when toggles change
+  if (toggleOverlays) {
+    toggleOverlays.addEventListener('change', () => { saveSettingsToCloud(); });
+  }
+  if (toggleCloudSync) {
+    toggleCloudSync.addEventListener('change', () => { saveSettingsToCloud(); });
+  }
 
   // ---- Replay Gallery wiring ----
   function openReplayGallery() {
@@ -931,6 +1075,16 @@ export function setupUI({ world, rendererObj }) {
       replayDetailPanel.classList.add('hidden');
       if (replayPanel) replayPanel.classList.remove('hidden');
       selectedReplayId = null;
+      e.preventDefault();
+      return;
+    }
+    if (runHistoryPanel && !runHistoryPanel.classList.contains('hidden')) {
+      closeRunHistory();
+      e.preventDefault();
+      return;
+    }
+    if (briefingsPanel && !briefingsPanel.classList.contains('hidden')) {
+      closeBriefings();
       e.preventDefault();
       return;
     }

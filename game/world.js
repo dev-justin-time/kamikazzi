@@ -30,7 +30,7 @@ import {
 
 import {
   syncHighScore, submitLeaderboard, getHighScore, getUsername,
-  createPuterRoom, captureScreenshot, saveReplay,
+  createMultiplayerRoom, captureScreenshot, saveReplay,
 } from '../puter-client.js';
 
 // --- internal constants (cluster/camera/sun tuning kept local; gameplay tuning lives in shared.js) ---
@@ -437,7 +437,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
   async function initMultiplayer() {
     try {
-      room = await createPuterRoom('kamikazzi-lobby');
+      room = await createMultiplayerRoom('kamikazzi-lobby');
       if (!room) return;
       pushPresence(true);
       room.startHeartbeat();
