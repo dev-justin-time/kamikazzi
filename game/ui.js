@@ -639,6 +639,23 @@ export function setupUI({ world, rendererObj }) {
     }
   });
 
+  // ---- Final Sector announcement ----
+  // Flashes a dramatic "FINAL SECTOR" HUD message when the player enters
+  // the last level. Triggered by the 'finalSector' CustomEvent dispatched
+  // from world.js when state.level reaches NUM_LEVELS.
+  const finalSectorScreen = document.getElementById('finalSectorScreen');
+  window.addEventListener('finalSector', () => {
+    if (!finalSectorScreen) return;
+    finalSectorScreen.classList.remove('hidden');
+    // Force reflow so the CSS transition plays
+    void finalSectorScreen.offsetWidth;
+    finalSectorScreen.classList.add('active');
+    setTimeout(() => {
+      finalSectorScreen.classList.remove('active');
+      setTimeout(() => finalSectorScreen.classList.add('hidden'), 800);
+    }, 2800);
+  });
+
   async function doGenerateSkin() {
     if (!puterAvailable) {
       if (skinStatus) skinStatus.textContent = 'Sign in to Puter to generate images';
@@ -723,6 +740,7 @@ export function setupUI({ world, rendererObj }) {
     if (skinLabPanel) skinLabPanel.classList.add('hidden');
     if (gameOverScreen) gameOverScreen.classList.add('hidden');
     if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
+    if (finalSectorScreen) { finalSectorScreen.classList.remove('active'); finalSectorScreen.classList.add('hidden'); }
     resetExplodeSequence();
     // Clear powerup chips and timestamps so stale buffs don't linger on the menu
     if (chipStrip) chipStrip.innerHTML = '';
@@ -1080,6 +1098,12 @@ export function setupUI({ world, rendererObj }) {
     }
     if (runHistoryPanel && !runHistoryPanel.classList.contains('hidden')) {
       closeRunHistory();
+      e.preventDefault();
+      return;
+    }
+    if (finalSectorScreen && !finalSectorScreen.classList.contains('hidden')) {
+      finalSectorScreen.classList.remove('active');
+      finalSectorScreen.classList.add('hidden');
       e.preventDefault();
       return;
     }

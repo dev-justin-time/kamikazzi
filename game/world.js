@@ -23,6 +23,7 @@ import { applyIdeasConfig, applyPalette } from './world/ideas.js';
 import {
   TUNING, loadTexture, clamp, removeAndDispose, disposeScene,
   LEVEL_BACKGROUNDS, NUM_LEVELS, SCORE_PER_LEVEL, TARGET_SUCCESS_SCORE, createBackgroundScene,
+  FINAL_LEVEL_TINT, FINAL_LEVEL_FOG,
   IMPACT_SOUND_URL, POWERUP_SFX_URLS, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
   EXPLOSION_PALETTES,
   FLOOR_ASSETS,
@@ -724,6 +725,12 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
                 state.levelStartScore = state.score;
                 if (state.level <= NUM_LEVELS) {
                   applyLevelBackground(state.levelOrder[state.level - 1]);
+                }
+                // Final sector: dramatic atmosphere + HUD announcement
+                if (state.level === NUM_LEVELS) {
+                  bg.material.color.setHex(FINAL_LEVEL_TINT);
+                  scene.fog.color.setHex(FINAL_LEVEL_FOG);
+                  try { window.dispatchEvent(new CustomEvent('finalSector')); } catch (_) {}
                 }
               }
             }

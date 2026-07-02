@@ -489,6 +489,51 @@
   /* Replay card hover */
   .replay-card:hover { background: rgba(152,203,255,0.08); border-color: rgba(152,203,255,0.25) !important; }
 
+  /* ---- Final Sector flash announcement ----
+     Triggered when the player enters the last level (state.level === NUM_LEVELS).
+     Shows "FINAL SECTOR — BOSS APPROACHING" with a dramatic red pulse, then
+     fades out over 800ms. The text uses the JetBrains Mono HUD aesthetic. */
+  #finalSectorScreen {
+    position: fixed; inset: 0; z-index: 18;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    background: radial-gradient(ellipse at center, rgba(80,0,0,0.35), rgba(20,0,0,0.65));
+  }
+  #finalSectorScreen.active { opacity: 1; }
+  #finalSectorScreen .fs-text {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    color: #ff3a3a;
+    text-shadow: 0 0 30px rgba(255, 30, 30, 0.75), 0 0 80px rgba(255, 0, 0, 0.35);
+    transform: scale(0.85);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #finalSectorScreen.active .fs-text {
+    transform: scale(1);
+  }
+  #finalSectorScreen .fs-title {
+    font-size: clamp(36px, 9vw, 72px);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    animation: finalSectorPulse 1.2s ease-in-out infinite;
+  }
+  #finalSectorScreen .fs-sub {
+    font-size: clamp(12px, 3vw, 18px);
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: #ffb4ab;
+    opacity: 0.9;
+  }
+  @keyframes finalSectorPulse {
+    0%, 100% { text-shadow: 0 0 30px rgba(255, 30, 30, 0.75), 0 0 80px rgba(255, 0, 0, 0.35); }
+    50% { text-shadow: 0 0 50px rgba(255, 30, 30, 0.95), 0 0 120px rgba(255, 0, 0, 0.55); }
+  }
+
   /* Crash overlay FX — fired 3× in sync with each explode.gif screen play
      (see ui.js triggerOverlayPunch()). Shake + inset-box-shadow flash on the
      #explodeScreen overlay so the impact registers even on a frozen-frame
@@ -528,6 +573,14 @@
 <div id="hud"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Level <span id="levelVal">1</span> · Speed <span id="speedVal">1.0x</span></span></div></div>
 <div id="burger" title="Burger!">🍔</div>
 <div id="userBadge" class="hidden"></div>
+
+<!-- Final Sector announcement overlay -->
+<div id="finalSectorScreen" class="hidden" aria-hidden="true">
+  <div class="fs-text">
+    <div class="fs-title">FINAL SECTOR</div>
+    <div class="fs-sub">BOSS APPROACHING</div>
+  </div>
+</div>
 
 <!-- Tactical overlays -->
 <div class="scanline-overlay" aria-hidden="true"></div>

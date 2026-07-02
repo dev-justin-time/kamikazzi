@@ -278,9 +278,15 @@ export const LEVEL_BACKGROUNDS = [
   '/assets/image/NEW_YORK.jpg',
   '/assets/image/NUKE.jpg',
   '/assets/image/Tokyo.jpeg',
-  { url: '/assets/image/china.jpg', mode: 'night', bgTint: 0x553366 },
+  { url: '/assets/image/china.jpg', mode: 'night' },
 ];
 export const NUM_LEVELS = LEVEL_BACKGROUNDS.length;
+
+// Final level (boss sector) atmosphere tint — applied when state.level === NUM_LEVELS.
+// Dark blood-red tint on the background photo + matching fog so the final
+// sector reads as a distinct, intense environment.
+export const FINAL_LEVEL_TINT = 0x661111;
+export const FINAL_LEVEL_FOG = 0x330505;
 // Score threshold at which the active level advances (level N runs for the
 // first (N-1)..N multiples of this constant). 7 levels × 500 = 3500 total.
 export const SCORE_PER_LEVEL = 280;
