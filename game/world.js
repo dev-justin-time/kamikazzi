@@ -363,6 +363,8 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     timeElapsedMs: 0,
     impactAlt: 0,
     impactDistance: 0,
+    distanceTraveled: 0,
+    levelStartScore: 0,
     _ideas_enablePowerups: false,
     _night: false,
     _ideas_mode: 'day',        // day|night|dusk|dawn — resolved from briefings via game/world/ideas.js#resolveMode (priority night > dusk > dawn > day)
@@ -705,24 +707,31 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           }
 
           if (state.running) {
-            state.speed += TUNING.SPEED_RAMP * dt;
-            // Score gain is multiplied by score2x while active. effSpeed
-            // already folds in the boost mult, so this line composes both
-            // multipliers at once.
-            state.score += effSpeed * dt * TUNING.SCORE_GAIN * scoreMult;
+            // Speed ramp scales per level so higher levels accelerate faster
+            const levelSpeedMult = Math.pow(TUNING.LEVEL_SPEED_MULT, state.level - 1);
+            state.speed += TUNING.SPEED_RAMP * levelSpeedMult * dt;
 
-            // Level advance: every SCORE_PER_LEVEL points bumps the active level
-            // up to a hard cap of NUM_LEVELS, then it stays put for the run.
-            const advanced = Math.min(NUM_LEVELS, Math.floor(state.score / SCORE_PER_LEVEL) + 1);
-            if (advanced > state.level) {
-              state.level = advanced;
-              if (state.level <= NUM_LEVELS) {
-                applyLevelBackground(state.levelOrder[state.level - 1]);
+            // Score is explicitly distance-based: higher point system tied to game distance
+            const frameDistance = effSpeed * dt;
+            state.distanceTraveled += frameDistance;
+            state.score += frameDistance * TUNING.SCORE_GAIN * scoreMult;
+
+            // Level advance: each level requires 10% more score than the previous
+            if (state.level < NUM_LEVELS) {
+              const needed = TUNING.SCORE_PER_LEVEL * Math.pow(TUNING.LEVEL_LENGTH_MULT, state.level - 1);
+              if (state.score - state.levelStartScore >= needed) {
+                state.level++;
+                state.levelStartScore = state.score;
+                if (state.level <= NUM_LEVELS) {
+                  applyLevelBackground(state.levelOrder[state.level - 1]);
+                }
               }
             }
 
-            // Mission Success trigger: reached max level OR target score
-            if (!state.won && !state.over && (state.level >= NUM_LEVELS || state.score >= TARGET_SUCCESS_SCORE)) {
+            // Mission Success trigger: completed max level quota OR reached target score
+            const neededForMax = TUNING.SCORE_PER_LEVEL * Math.pow(TUNING.LEVEL_LENGTH_MULT, NUM_LEVELS - 1);
+            const maxLevelCompleted = state.level >= NUM_LEVELS && (state.score - state.levelStartScore) >= neededForMax;
+            if (!state.won && !state.over && (maxLevelCompleted || state.score >= TARGET_SUCCESS_SCORE)) {
               winGame();
             }
 
@@ -888,6 +897,8 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     state.timeElapsedMs = 0;
     state.impactAlt = 0;
     state.impactDistance = 0;
+    state.distanceTraveled = 0;
+    state.levelStartScore = 0;
 
     // Reset near-miss time-slow so the new run starts at full speed and
     // every building's per-building cooldown map is cleared (previous-run
@@ -988,6 +999,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           best: state.best,
           level: state.level,
           distance: state.impactDistance,
+          distanceTraveled: state.distanceTraveled,
           altitude: state.impactAlt,
           throttle: (state.speed / (state.baseSpeed || 1)).toFixed(1),
           timeElapsedMs: state.timeElapsedMs,

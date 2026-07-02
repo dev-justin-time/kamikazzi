@@ -26,12 +26,14 @@ export const TUNING = {
 
   // Gameplay
   SPEED_RAMP: 0.00035,            // dt-multiplied per-frame speed increase
-  SCORE_GAIN: 0.6,                // dt-multiplied per-frame score
-  BASE_SPEED: 0.5,
-  STARTING_SPEED: 0.9,
+  SCORE_GAIN: 1.0,                // dt-multiplied per-frame score (higher point system tied to distance)
+  BASE_SPEED: 0.25,
+  STARTING_SPEED: 0.25,            // 2× slower than the previous 0.5 base
   SPAWN_INTERVAL: 26,
   MIN_SPAWN_INTERVAL: 10,         // clamp on dynamic interval
   SPAWN_SPEED_PRESSURE: 4,        // speed term that tightens interval
+  LEVEL_SPEED_MULT: 1.1,           // each level ramps 10% faster
+  LEVEL_LENGTH_MULT: 1.1,          // each level requires 10% more score
   BUILD_PASS_BONUS: 5,
   BUILD_DRIFT_FACTOR: 2.2,        // multiplier on `speed` for building drift
   GENERATION_END_Z: 30,
@@ -281,9 +283,9 @@ export const LEVEL_BACKGROUNDS = [
 export const NUM_LEVELS = LEVEL_BACKGROUNDS.length;
 // Score threshold at which the active level advances (level N runs for the
 // first (N-1)..N multiples of this constant). 7 levels × 500 = 3500 total.
-export const SCORE_PER_LEVEL = 500;
+export const SCORE_PER_LEVEL = 280;
 // Target score that triggers the Mission Success screen (in addition to max level).
-export const TARGET_SUCCESS_SCORE = 5000;
+export const TARGET_SUCCESS_SCORE = 3000;
 
 // Explosion GIF shown 3 sequential times during the crash sequence
 // (see ui.js playExplodeStep). Path under assets/image/ so all visual
