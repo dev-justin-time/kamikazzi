@@ -14,6 +14,10 @@
    Sequence state is reset by start()/retry() so subsequent crashes re-trigger.
 */
 import { EXPLODE_GIF_URL, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS, TUNING } from './world/shared.js';
+import {
+  isPuterAvailable, getUsername, getAvatarUrl, getLeaderboard,
+  setCloudSyncEnabled, generateImage, getReplays, deleteReplay,
+} from '../puter-client.js';
 
 // Per-type pickup tone recipes (Web Audio API synthesis). Each entry
 // drives an OscillatorNode + GainNode envelope attached to the shared
@@ -143,10 +147,457 @@ export function setupUI({ world, rendererObj }) {
   const explodeScreen = document.getElementById('explodeScreen');
   const explodeImg = document.getElementById('explodeImg');
   const gameOverScreen = document.getElementById('gameOver');
-  const finalScoreEl = document.getElementById('finalScore');
-  const bestScoreEl = document.getElementById('bestScore');
   const startBtn = document.getElementById('startBtn');
   const retryBtn = document.getElementById('retryBtn');
+
+  // Mission Terminated telemetry fields
+  const mtScore = document.getElementById('mtScore');
+  const mtBest = document.getElementById('mtBest');
+  const mtSector = document.getElementById('mtSector');
+  const mtDistance = document.getElementById('mtDistance');
+  const mtAlt = document.getElementById('mtAlt');
+  const mtThrottle = document.getElementById('mtThrottle');
+  const mtReason = document.getElementById('mtReason');
+  const mtElapsed = document.getElementById('mtElapsed');
+  const abortBtn = document.getElementById('abortBtn');
+
+  // Mission Success telemetry fields
+  const missionSuccessScreen = document.getElementById('missionSuccess');
+  const msScore = document.getElementById('msScore');
+  const msBest = document.getElementById('msBest');
+  const msSector = document.getElementById('msSector');
+  const msDistance = document.getElementById('msDistance');
+  const msAlt = document.getElementById('msAlt');
+  const msThrottle = document.getElementById('msThrottle');
+  const msStatus = document.getElementById('msStatus');
+  const msElapsed = document.getElementById('msElapsed');
+  const msGrade = document.getElementById('msGrade');
+  const successRetryBtn = document.getElementById('successRetryBtn');
+  const successQuitBtn = document.getElementById('successQuitBtn');
+
+  // ---- Boot sequence (New folder integration) ----
+  const bootScreen = document.getElementById('bootScreen');
+  const bootStatus = document.getElementById('bootStatus');
+  const bootBar = document.getElementById('bootBar');
+  const bootPct = document.getElementById('bootPct');
+  const BOOT_SEGMENTS = 16;
+  const bootSteps = [
+    'Initializing kernel...',
+    'Loading nav mesh...',
+    'Encrypting telemetry...',
+    'Synchronizing grid...',
+    'Establishing uplink...',
+    'Verifying pilot ID...',
+    'Systems ready.',
+  ];
+  if (bootBar) {
+    for (let i = 0; i < BOOT_SEGMENTS; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'boot-seg';
+      bootBar.appendChild(seg);
+    }
+  }
+  function runBootSequence() {
+    if (!bootScreen) return;
+    let progress = 0;
+    function tick() {
+      progress += Math.floor(Math.random() * 3) + 1;
+      if (progress > 100) progress = 100;
+      const active = Math.floor((progress / 100) * BOOT_SEGMENTS);
+      const segs = bootBar ? bootBar.querySelectorAll('.boot-seg') : [];
+      segs.forEach((s, i) => s.classList.toggle('on', i < active));
+      if (bootPct) bootPct.textContent = progress.toString().padStart(3, '0') + '%';
+      const stepIdx = Math.min(Math.floor((progress / 100) * bootSteps.length), bootSteps.length - 1);
+      if (bootStatus) bootStatus.textContent = bootSteps[stepIdx];
+      if (progress < 100) {
+        setTimeout(tick, Math.random() * 120 + 40);
+      } else {
+        setTimeout(() => {
+          if (bootScreen) {
+            bootScreen.style.opacity = '0';
+            setTimeout(() => bootScreen.classList.add('hidden'), 600);
+          }
+        }, 400);
+      }
+    }
+    tick();
+  }
+  runBootSequence();
+
+  // ---- Pause menu (New folder integration) ----
+  const pauseScreen = document.getElementById('pauseScreen');
+  const resumeBtn = document.getElementById('resumeBtn');
+  const pauseRetryBtn = document.getElementById('pauseRetryBtn');
+  const quitBtn = document.getElementById('quitBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const toggleOverlays = document.getElementById('toggleOverlays');
+  const scanlineOverlay = document.querySelector('.scanline-overlay');
+  const gridOverlay = document.querySelector('.grid-overlay');
+
+  // ---- Puter cloud integration UI ----
+  const userBadge = document.getElementById('userBadge');
+  const leaderboardBtn = document.getElementById('leaderboardBtn');
+  const leaderboardPanel = document.getElementById('leaderboardPanel');
+  const leaderboardClose = document.getElementById('leaderboardClose');
+  const leaderboardBody = document.getElementById('leaderboardBody');
+  const toggleCloudSync = document.getElementById('toggleCloudSync');
+  const puterAvailable = isPuterAvailable();
+
+  // ---- Skin Lab UI ----
+  const skinLabBtn = document.getElementById('skinLabBtn');
+  const skinLabPanel = document.getElementById('skinLabPanel');
+  const skinLabClose = document.getElementById('skinLabClose');
+  const skinPrompt = document.getElementById('skinPrompt');
+  const generateSkinBtn = document.getElementById('generateSkinBtn');
+  const skinPreview = document.getElementById('skinPreview');
+  const skinStatus = document.getElementById('skinStatus');
+  const portraitPrompt = document.getElementById('portraitPrompt');
+  const generatePortraitBtn = document.getElementById('generatePortraitBtn');
+  const portraitPreview = document.getElementById('portraitPreview');
+  const portraitStatus = document.getElementById('portraitStatus');
+
+  // ---- Replay Gallery UI ----
+  const replayGalleryBtn = document.getElementById('replayGalleryBtn');
+  const replayPanel = document.getElementById('replayPanel');
+  const replayClose = document.getElementById('replayClose');
+  const replayBody = document.getElementById('replayBody');
+  const replayDetailPanel = document.getElementById('replayDetailPanel');
+  const replayDetailBack = document.getElementById('replayDetailBack');
+  const replayDetailDelete = document.getElementById('replayDetailDelete');
+  const replayDetailTitle = document.getElementById('replayDetailTitle');
+  const replayDetailImage = document.getElementById('replayDetailImage');
+  const replayDetailMeta = document.getElementById('replayDetailMeta');
+  let currentReplays = [];
+  let selectedReplayId = null;
+
+  // Overlay toggle persistence
+  const OVERLAYS_KEY = 'kamikazzi_overlays_enabled';
+  function loadOverlaySetting() {
+    try {
+      const saved = localStorage.getItem(OVERLAYS_KEY);
+      return saved === null ? true : saved === 'true';
+    } catch (_) { return true; }
+  }
+  function saveOverlaySetting(enabled) {
+    try { localStorage.setItem(OVERLAYS_KEY, String(enabled)); } catch (_) {}
+  }
+  function setOverlaysVisible(visible) {
+    if (scanlineOverlay) scanlineOverlay.style.display = visible ? '' : 'none';
+    if (gridOverlay) gridOverlay.style.display = visible ? '' : 'none';
+  }
+  const overlaysEnabled = loadOverlaySetting();
+  setOverlaysVisible(overlaysEnabled);
+  if (toggleOverlays) toggleOverlays.checked = overlaysEnabled;
+
+  // Cloud sync toggle persistence
+  const CLOUD_SYNC_KEY = 'kamikazzi_cloud_sync_enabled';
+  let cloudSyncEnabled = (() => {
+    try {
+      const saved = localStorage.getItem(CLOUD_SYNC_KEY);
+      return saved === null ? puterAvailable : saved === 'true';
+    } catch (_) { return puterAvailable; }
+  })();
+  if (toggleCloudSync) toggleCloudSync.checked = cloudSyncEnabled;
+  if (toggleCloudSync) {
+    toggleCloudSync.addEventListener('change', () => {
+      cloudSyncEnabled = toggleCloudSync.checked;
+      setCloudSyncEnabled(cloudSyncEnabled);
+      try { localStorage.setItem(CLOUD_SYNC_KEY, String(cloudSyncEnabled)); } catch (_) {}
+    });
+  }
+
+  if (settingsBtn && settingsPanel) {
+    settingsBtn.addEventListener('click', () => {
+      settingsPanel.classList.toggle('hidden');
+      settingsBtn.textContent = settingsPanel.classList.contains('hidden') ? 'Settings' : 'Close Settings';
+    });
+  }
+  if (toggleOverlays) {
+    toggleOverlays.addEventListener('change', () => {
+      const enabled = toggleOverlays.checked;
+      setOverlaysVisible(enabled);
+      saveOverlaySetting(enabled);
+    });
+  }
+
+  // ---- User badge ----
+  async function refreshUserBadge() {
+    if (!userBadge) return;
+    const username = await getUsername();
+    if (username) {
+      const avatar = await getAvatarUrl();
+      userBadge.innerHTML = (avatar
+        ? `<img src="${avatar}" alt="" style="width:22px;height:22px;border-radius:50%;margin-right:6px;object-fit:cover;" />`
+        : `<span style="font-size:16px;margin-right:4px;">👤</span>`
+      ) + `<span style="font-weight:700;">${escapeHtml(username)}</span>`;
+      userBadge.classList.remove('hidden');
+    } else {
+      userBadge.classList.add('hidden');
+    }
+  }
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+  }
+  refreshUserBadge();
+  window.addEventListener('puterUserReady', () => refreshUserBadge());
+
+  // ---- Leaderboard ----
+  async function renderLeaderboard() {
+    if (!leaderboardBody) return;
+    leaderboardBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading...</div>';
+    try {
+      const board = await getLeaderboard(10);
+      if (!board || !board.length) {
+        leaderboardBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No scores yet. Be the first!</div>';
+        return;
+      }
+      let html = '';
+      board.forEach((entry, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span style="display:inline-block;width:22px;text-align:center;">${idx + 1}</span>`;
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:14px;">${medal}</span>
+            <span style="font-weight:600;color:#98cbff;">${escapeHtml(entry.username || 'Pilot')}</span>
+          </div>
+          <span style="font-weight:800;color:#00dddd;">${Number(entry.score).toLocaleString()}</span>
+        </div>`;
+      });
+      leaderboardBody.innerHTML = html;
+    } catch (_) {
+      leaderboardBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load leaderboard.</div>';
+    }
+  }
+  if (leaderboardBtn && leaderboardPanel) {
+    leaderboardBtn.addEventListener('click', () => {
+      leaderboardPanel.classList.remove('hidden');
+      renderLeaderboard();
+    });
+  }
+  if (leaderboardClose && leaderboardPanel) {
+    leaderboardClose.addEventListener('click', () => leaderboardPanel.classList.add('hidden'));
+  }
+
+  // ---- Skin Lab wiring ----
+  function openSkinLab() { if (skinLabPanel) skinLabPanel.classList.remove('hidden'); }
+  function closeSkinLab() { if (skinLabPanel) skinLabPanel.classList.add('hidden'); }
+  if (skinLabBtn) skinLabBtn.addEventListener('click', openSkinLab);
+  if (skinLabClose) skinLabClose.addEventListener('click', closeSkinLab);
+
+  // ---- Replay Gallery wiring ----
+  function openReplayGallery() {
+    if (replayPanel) replayPanel.classList.remove('hidden');
+    renderReplays();
+  }
+  function closeReplayGallery() {
+    if (replayPanel) replayPanel.classList.add('hidden');
+    if (replayDetailPanel) replayDetailPanel.classList.add('hidden');
+    selectedReplayId = null;
+  }
+  function openReplayDetail(replay) {
+    selectedReplayId = replay.id;
+    if (replayDetailPanel) replayDetailPanel.classList.remove('hidden');
+    if (replayPanel) replayPanel.classList.add('hidden');
+    if (replayDetailTitle) replayDetailTitle.textContent = replay.won ? '✅ Mission Success' : '💥 Mission Terminated';
+    if (replayDetailImage) {
+      if (replay._screenshotDataUrl) {
+        replayDetailImage.style.backgroundImage = `url(${replay._screenshotDataUrl})`;
+      } else {
+        replayDetailImage.style.backgroundImage = 'none';
+        replayDetailImage.textContent = 'No screenshot';
+        replayDetailImage.style.display = 'flex';
+        replayDetailImage.style.alignItems = 'center';
+        replayDetailImage.style.justifyContent = 'center';
+        replayDetailImage.style.color = 'rgba(152,203,255,0.4)';
+      }
+    }
+    if (replayDetailMeta) {
+      const date = new Date(replay.timestamp).toLocaleString();
+      replayDetailMeta.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;">
+          <div><span style="color:rgba(152,203,255,0.55)">SCORE</span> <strong style="color:#00dddd">${Number(replay.score).toLocaleString()}</strong></div>
+          <div><span style="color:rgba(152,203,255,0.55)">GRADE</span> <strong style="color:#ffe08a">${replay.grade || '?'}</strong></div>
+          <div><span style="color:rgba(152,203,255,0.55)">LEVEL</span> ${replay.level || 1}</div>
+          <div><span style="color:rgba(152,203,255,0.55)">DIST</span> ${((replay.distance || 0) / 1000).toFixed(2)} km</div>
+          <div><span style="color:rgba(152,203,255,0.55)">ALT</span> ${(replay.altitude || 0).toFixed(1)}m</div>
+          <div><span style="color:rgba(152,203,255,0.55)">THROTTLE</span> ${replay.throttle || '1.0'}x</div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(152,203,255,0.1);">
+          <span style="color:rgba(152,203,255,0.55)">PILOT</span> ${escapeHtml(replay.username || 'Pilot')} ·
+          <span style="color:rgba(152,203,255,0.55)">DATE</span> ${date} ·
+          <span style="color:rgba(152,203,255,0.55)">SOURCE</span> ${replay._source === 'cloud' ? '☁️ Cloud' : '💾 Local'}
+        </div>
+      `;
+    }
+  }
+  async function renderReplays() {
+    if (!replayBody) return;
+    replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading replays...</div>';
+    try {
+      currentReplays = await getReplays();
+      if (!currentReplays.length) {
+        replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No replays yet. Notable runs (new best, mission success, or score ≥ 3000) are saved automatically.</div>';
+        return;
+      }
+      let html = '';
+      currentReplays.forEach(r => {
+        const date = new Date(r.timestamp).toLocaleDateString();
+        const badge = r.notableReason === 'new-best' ? '⭐ NEW BEST'
+          : r.won ? '✅ SUCCESS'
+          : r.notableReason === 'high-score' ? '🔥 HIGH SCORE'
+          : '';
+        const thumb = r._screenshotDataUrl
+          ? `background-image:url(${r._screenshotDataUrl});`
+          : 'background:rgba(0,0,0,0.3);';
+        html += `<div class="replay-card" data-id="${r.id}" style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid rgba(152,203,255,0.12);border-radius:4px;cursor:pointer;transition:background 0.15s;">
+          <div style="width:64px;height:40px;border-radius:3px;${thumb}background-size:cover;background-position:center;flex-shrink:0;border:1px solid rgba(152,203,255,0.15);"></div>
+          <div style="flex:1;text-align:left;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#98cbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${Number(r.score).toLocaleString()} pts · Grade ${r.grade || '?'}</div>
+            <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">${escapeHtml(r.username || 'Pilot')} · ${date} · Level ${r.level || 1}</div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:#00dddd;white-space:nowrap;">${badge}</div>
+        </div>`;
+      });
+      replayBody.innerHTML = html;
+      replayBody.querySelectorAll('.replay-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = card.getAttribute('data-id');
+          const replay = currentReplays.find(r => r.id === id);
+          if (replay) openReplayDetail(replay);
+        });
+      });
+    } catch (_) {
+      replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load replays.</div>';
+    }
+  }
+  async function doDeleteReplay() {
+    if (!selectedReplayId) return;
+    try {
+      await deleteReplay(selectedReplayId);
+      selectedReplayId = null;
+      if (replayDetailPanel) replayDetailPanel.classList.add('hidden');
+      renderReplays();
+      if (replayPanel) replayPanel.classList.remove('hidden');
+    } catch (e) { console.warn('deleteReplay failed', e); }
+  }
+  if (replayGalleryBtn) replayGalleryBtn.addEventListener('click', openReplayGallery);
+  if (replayClose) replayClose.addEventListener('click', closeReplayGallery);
+  if (replayDetailBack) replayDetailBack.addEventListener('click', () => {
+    if (replayDetailPanel) replayDetailPanel.classList.add('hidden');
+    if (replayPanel) replayPanel.classList.remove('hidden');
+    selectedReplayId = null;
+  });
+  if (replayDetailDelete) replayDetailDelete.addEventListener('click', doDeleteReplay);
+  // Auto-refresh when a new replay is saved
+  window.addEventListener('replaySaved', () => {
+    if (replayPanel && !replayPanel.classList.contains('hidden')) {
+      renderReplays();
+    }
+  });
+
+  async function doGenerateSkin() {
+    if (!puterAvailable) {
+      if (skinStatus) skinStatus.textContent = 'Sign in to Puter to generate images';
+      return;
+    }
+    if (!skinPrompt) return;
+    const prompt = skinPrompt.value.trim();
+    if (!prompt) { if (skinStatus) skinStatus.textContent = 'Enter a prompt'; return; }
+    if (skinStatus) skinStatus.textContent = 'Generating…';
+    if (generateSkinBtn) generateSkinBtn.disabled = true;
+    const url = await generateImage(prompt, { size: '512x512' });
+    if (generateSkinBtn) generateSkinBtn.disabled = false;
+    if (!url) { if (skinStatus) skinStatus.textContent = 'Failed. Try again.'; return; }
+    if (skinPreview) skinPreview.style.backgroundImage = `url(${url})`;
+    if (skinStatus) skinStatus.textContent = 'Applied!';
+    try { localStorage.setItem('kamikazziPlaneSkin', url); } catch (_) {}
+    if (world && world.applyPlaneSkin) world.applyPlaneSkin(url);
+  }
+
+  async function doGeneratePortrait() {
+    if (!puterAvailable) {
+      if (portraitStatus) portraitStatus.textContent = 'Sign in to Puter to generate images';
+      return;
+    }
+    if (!portraitPrompt) return;
+    const prompt = portraitPrompt.value.trim();
+    if (!prompt) { if (portraitStatus) portraitStatus.textContent = 'Enter a prompt'; return; }
+    if (portraitStatus) portraitStatus.textContent = 'Generating…';
+    if (generatePortraitBtn) generatePortraitBtn.disabled = true;
+    const url = await generateImage(prompt, { size: '512x512' });
+    if (generatePortraitBtn) generatePortraitBtn.disabled = false;
+    if (!url) { if (portraitStatus) portraitStatus.textContent = 'Failed. Try again.'; return; }
+    if (portraitPreview) portraitPreview.style.backgroundImage = `url(${url})`;
+    if (portraitStatus) portraitStatus.textContent = 'Saved!';
+    try { localStorage.setItem('kamikazziPilotPortrait', url); } catch (_) {}
+  }
+
+  if (generateSkinBtn) generateSkinBtn.addEventListener('click', doGenerateSkin);
+  if (generatePortraitBtn) generatePortraitBtn.addEventListener('click', doGeneratePortrait);
+
+  // Restore saved skin / portrait on load
+  (function restoreCustomizations() {
+    try {
+      const savedSkin = localStorage.getItem('kamikazziPlaneSkin');
+      if (savedSkin) {
+        if (skinPreview) skinPreview.style.backgroundImage = `url(${savedSkin})`;
+        if (world && world.applyPlaneSkin) world.applyPlaneSkin(savedSkin);
+      }
+      const savedPortrait = localStorage.getItem('kamikazziPilotPortrait');
+      if (savedPortrait && portraitPreview) portraitPreview.style.backgroundImage = `url(${savedPortrait})`;
+    } catch (_) {}
+  })();
+
+  function resetSettingsPanel() {
+    if (settingsPanel) settingsPanel.classList.add('hidden');
+    if (settingsBtn) settingsBtn.textContent = 'Settings';
+  }
+  function togglePause() {
+    if (!world || !world.state) return;
+    if (world.state.over) return;           // don't pause during crash / game over
+    if (!world.state.running) return;        // don't pause on start screen
+    world.state.paused = !world.state.paused;
+    if (world.state.paused) {
+      if (pauseScreen) pauseScreen.classList.remove('hidden');
+    } else {
+      if (pauseScreen) pauseScreen.classList.add('hidden');
+      resetSettingsPanel();
+    }
+  }
+  function resumeGame() {
+    if (!world || !world.state) return;
+    world.state.paused = false;
+    if (pauseScreen) pauseScreen.classList.add('hidden');
+    resetSettingsPanel();
+  }
+  function quitToMenu() {
+    if (!world || !world.state) return;
+    world.state.paused = false;
+    if (pauseScreen) pauseScreen.classList.add('hidden');
+    resetSettingsPanel();
+    if (leaderboardPanel) leaderboardPanel.classList.add('hidden');
+    if (skinLabPanel) skinLabPanel.classList.add('hidden');
+    if (gameOverScreen) gameOverScreen.classList.add('hidden');
+    if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
+    resetExplodeSequence();
+    // Clear powerup chips and timestamps so stale buffs don't linger on the menu
+    if (chipStrip) chipStrip.innerHTML = '';
+    chipEls.clear();
+    if (world.state._powerups) {
+      Object.keys(world.state._powerups).forEach(k => world.state._powerups[k] = 0);
+    }
+    // Stop loop and return to start screen without resetting game
+    if (world.stopLoop) world.stopLoop();
+    if (startScreen) startScreen.classList.remove('hidden');
+    if (bootScreen) { bootScreen.classList.add('hidden'); bootScreen.style.opacity = ''; }
+    world.state.running = false;
+    world.state.over = false;
+    world.state.won = false;
+  }
+  if (resumeBtn) resumeBtn.addEventListener('click', resumeGame);
+  if (pauseRetryBtn) pauseRetryBtn.addEventListener('click', () => { resumeGame(); retry(); });
+  if (quitBtn) quitBtn.addEventListener('click', quitToMenu);
+
 
   // ---- active powerups HUD chip strip ----
   // position:fixed (NOT a flex sibling of #score) so a row of chips never
@@ -218,9 +669,36 @@ export function setupUI({ world, rendererObj }) {
   // Cadence table imported from shared.js so the GIF plays and the world.js
   // 3D-burst stagger stay locked on the same anchors.
   let prevOver = false;
+  let prevWon = false;
   let explodePlays = 0;
   let explodeDone = false;
   let explodeTimer = null;
+
+  // Compute performance grade for Mission Success screen.
+  function computeGrade(score) {
+    if (score >= 10000) return 'S';
+    if (score >= 7000) return 'A';
+    if (score >= 5000) return 'B';
+    if (score >= 3000) return 'C';
+    return 'D';
+  }
+
+  // Populate shared telemetry fields for both Terminated and Success screens.
+  function populateTelemetry(scoreEl, bestEl, sectorEl, distanceEl, altEl, throttleEl, elapsedEl) {
+    if (scoreEl) scoreEl.textContent = Math.floor(world.state.score).toLocaleString();
+    if (bestEl) bestEl.textContent = world.state.best.toLocaleString();
+    if (sectorEl) sectorEl.textContent = 'SECTOR_' + String(world.state.level || 1).padStart(2, '0');
+    if (distanceEl) distanceEl.textContent = ((world.state.impactDistance || 0) / 1000).toFixed(2);
+    if (altEl) altEl.textContent = (world.state.impactAlt || 0).toFixed(2) + 'm';
+    if (throttleEl) throttleEl.textContent = (world.state.speed / (world.state.baseSpeed || 1)).toFixed(1) + 'x';
+    if (elapsedEl) {
+      const ms = world.state.timeElapsedMs || 0;
+      const secs = Math.floor(ms / 1000);
+      const mins = Math.floor(secs / 60);
+      const rem = secs % 60;
+      elapsedEl.textContent = 'TIME_ELAPSED: ' + String(mins).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
+    }
+  }
 
   function resetExplodeSequence() {
     if (explodeTimer) { clearTimeout(explodeTimer); explodeTimer = null; }
@@ -289,7 +767,20 @@ export function setupUI({ world, rendererObj }) {
       scoreVal.textContent = Math.floor(world.state.score);
       speedVal.textContent = (world.state.speed / world.state.baseSpeed).toFixed(1) + 'x';
       if (levelVal && Number.isInteger(world.state.level)) levelVal.textContent = world.state.level;
-      bestScoreEl.textContent = world.state.best;
+
+      const isOver = !!world.state.over;
+      const isWon = !!world.state.won;
+
+      // Update Mission Terminated telemetry when game over becomes active
+      if (isOver && explodeDone) {
+        populateTelemetry(mtScore, mtBest, mtSector, mtDistance, mtAlt, mtThrottle, mtElapsed);
+      }
+
+      // Update Mission Success telemetry when won becomes active
+      if (isWon && !prevWon) {
+        populateTelemetry(msScore, msBest, msSector, msDistance, msAlt, msThrottle, msElapsed);
+        if (msGrade) msGrade.textContent = computeGrade(Math.floor(world.state.score));
+      }
 
       // ---- powerup chip refresh ----
       // Walk the chip catalog; for each entry, check whether its
@@ -335,14 +826,18 @@ export function setupUI({ world, rendererObj }) {
         }
       }
 
-      const isOver = !!world.state.over;
-
       // Detect the FALSE -> TRUE edge on state.over: kick off the X3 explosion.
       if (isOver && !prevOver) startExplodeSequence();
 
-      if (isOver) {
-        finalScoreEl.textContent = Math.floor(world.state.score);
+      if (isWon) {
         startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        if (missionSuccessScreen) missionSuccessScreen.classList.remove('hidden');
+      } else if (isOver) {
+        // Legacy final score element removed; telemetry populated above in the
+        // isOver && explodeDone block via mtScore / mtBest.
+        startScreen.classList.add('hidden');
+        if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
         // Only reveal the splash + Try Again after the 3-play sequence.
         if (explodeDone) {
           gameOverScreen.classList.remove('hidden');
@@ -356,20 +851,25 @@ export function setupUI({ world, rendererObj }) {
           startScreen.classList.add('hidden');
         }
         gameOverScreen.classList.add('hidden');
+        if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
         // If the player retries mid-sequence, the next start() also calls
         // resetExplodeSequence() so this is a belt-and-suspenders cleanup.
         if (prevOver) resetExplodeSequence();
       }
 
       prevOver = isOver;
+      prevWon = isWon;
     }
     requestAnimationFrame(uiLoop);
   }
   requestAnimationFrame(uiLoop);
 
   function start() {
+    if (bootScreen) { bootScreen.classList.add('hidden'); bootScreen.style.opacity = ''; }
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
+    if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
+    if (leaderboardPanel) leaderboardPanel.classList.add('hidden');
     resetExplodeSequence();
     if (world && world.startLoop && rendererObj) {
       try {
@@ -381,11 +881,15 @@ export function setupUI({ world, rendererObj }) {
   }
 
   function retry() {
+    if (bootScreen) { bootScreen.classList.add('hidden'); bootScreen.style.opacity = ''; }
     start();
   }
 
   if (startBtn) startBtn.addEventListener('click', start);
   if (retryBtn) retryBtn.addEventListener('click', retry);
+  if (abortBtn) abortBtn.addEventListener('click', quitToMenu);
+  if (successRetryBtn) successRetryBtn.addEventListener('click', retry);
+  if (successQuitBtn) successQuitBtn.addEventListener('click', quitToMenu);
 
   // ---- ESC: fast-forward the 3-play explode sequence ----
   // While the explosion GIF is actively playing (sequence in progress), press
@@ -407,10 +911,45 @@ export function setupUI({ world, rendererObj }) {
   }
   window.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    // preventDefault only when we actually skip, so ESC during gameplay
-    // (or before/after the sequence) leaves browser-default ESC behavior
-    // (e.g., exit fullscreen) intact.
-    if (skipExplodeIfRunning()) e.preventDefault();
+    // Priority 0: close panels if open
+    if (leaderboardPanel && !leaderboardPanel.classList.contains('hidden')) {
+      leaderboardPanel.classList.add('hidden');
+      e.preventDefault();
+      return;
+    }
+    if (skinLabPanel && !skinLabPanel.classList.contains('hidden')) {
+      skinLabPanel.classList.add('hidden');
+      e.preventDefault();
+      return;
+    }
+    if (replayPanel && !replayPanel.classList.contains('hidden')) {
+      closeReplayGallery();
+      e.preventDefault();
+      return;
+    }
+    if (replayDetailPanel && !replayDetailPanel.classList.contains('hidden')) {
+      replayDetailPanel.classList.add('hidden');
+      if (replayPanel) replayPanel.classList.remove('hidden');
+      selectedReplayId = null;
+      e.preventDefault();
+      return;
+    }
+    // Priority 1: skip explosion sequence if active
+    if (skipExplodeIfRunning()) { e.preventDefault(); return; }
+    // Priority 2: toggle pause during gameplay
+    if (world && world.state && world.state.running && !world.state.over) {
+      togglePause();
+      e.preventDefault();
+      return;
+    }
+  });
+
+  // Auto-pause when tab hidden (New folder integration)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && world && world.state && world.state.running && !world.state.over && !world.state.paused) {
+      world.state.paused = true;
+      if (pauseScreen) pauseScreen.classList.remove('hidden');
+    }
   });
 
   return { start, retry };

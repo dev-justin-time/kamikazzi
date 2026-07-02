@@ -276,11 +276,14 @@ export const LEVEL_BACKGROUNDS = [
   '/assets/image/NEW_YORK.jpg',
   '/assets/image/NUKE.jpg',
   '/assets/image/Tokyo.jpeg',
+  { url: '/assets/image/china.jpg', mode: 'night', bgTint: 0x553366 },
 ];
 export const NUM_LEVELS = LEVEL_BACKGROUNDS.length;
 // Score threshold at which the active level advances (level N runs for the
 // first (N-1)..N multiples of this constant). 7 levels × 500 = 3500 total.
 export const SCORE_PER_LEVEL = 500;
+// Target score that triggers the Mission Success screen (in addition to max level).
+export const TARGET_SUCCESS_SCORE = 5000;
 
 // Explosion GIF shown 3 sequential times during the crash sequence
 // (see ui.js playExplodeStep). Path under assets/image/ so all visual

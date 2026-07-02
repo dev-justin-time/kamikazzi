@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AERO_COMMAND_v4.2 | SYSTEM_SUSPENDED</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #001525;
+            color: #cde5fe;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 100;
+            background: linear-gradient(0deg, rgba(0, 255, 255, 0) 0%, rgba(0, 255, 255, 0.05) 50%, rgba(0, 255, 255, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+
+        .hud-grid {
+            background-image: 
+                linear-gradient(to right, rgba(152, 203, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(152, 203, 255, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .bracket-tl { border-top: 2px solid #00ffff; border-left: 2px solid #00ffff; }
+        .bracket-tr { border-top: 2px solid #00ffff; border-right: 2px solid #00ffff; }
+        .bracket-bl { border-bottom: 2px solid #00ffff; border-left: 2px solid #00ffff; }
+        .bracket-br { border-bottom: 2px solid #00ffff; border-right: 2px solid #00ffff; }
+
+        .flicker {
+            animation: flicker 0.2s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.95; }
+        }
+
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            top: 0;
+            color: #00ffff;
+            background: transparent;
+            overflow: hidden;
+            clip: rect(0, 900px, 0, 0);
+            animation: noise-anim 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes noise-anim {
+            0% { clip: rect(10px, 9999px, 20px, 0); }
+            100% { clip: rect(30px, 9999px, 60px, 0); }
+        }
+    </style>
+</head>
+<body class="bg-surface-dim selection:bg-tertiary selection:text-on-tertiary h-screen w-screen relative">
+<!-- GAME BACKGROUND (PAUSED STATE) -->
+<div class="fixed inset-0 z-0 brightness-[0.2] saturate-[0.5] contrast-125">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A cinematic, high-altitude 3D flight perspective from a futuristic cockpit, looking out over a neon-lit cyber-city at night. The view is blurred and desaturated, showing trailing lights of other aircraft and complex geometric skyscraper structures. The overall color palette is dominated by deep navy blues and muted cyan, with very high contrast and a slight technical grain effect." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8_HPggZVwT-XRSjaFSdaoysB590wnjFQ7q2spfjY4E3wJuFPU8GVBoWAXyCnqevwtDDgnQGcM1hCa2ggqwIwVT0BbOleyggAUl0sTGQsxt2PjfZTa41umuLMAjsYEejzkH_YciQ_juFJgP19TRday6anlZD7qU-trhn5t4udxSPyb8khk_715Um0uQvarHeg-BrBt-jbUwVegzhY9UzN8H6JzZNF62ahv-t19JeMi_6NsKbQ0nGm5ZFfydyXP_0VTGayPPen8qMM')"></div>
+<div class="absolute inset-0 hud-grid"></div>
+</div>
+<!-- SHARED COMPONENT: TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-dim/80 backdrop-blur-md border-b border-primary/30 drop-shadow-[0_0_4px_#00ffff] flex justify-between items-center px-safe-area py-grid-unit">
+<div class="flex items-center gap-4">
+<h1 class="font-display-lg text-display-lg text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]">AERO_COMMAND_v4.2</h1>
+<div class="hidden md:flex gap-6 items-center ml-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-tertiary hover:bg-surface-bright/20 transition-colors active:scale-95 duration-75" href="#">STATUS</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-tertiary hover:bg-surface-bright/20 transition-colors active:scale-95 duration-75" href="#">TELEMETRY</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-tertiary hover:bg-surface-bright/20 transition-colors active:scale-95 duration-75" href="#">LOGS</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:text-tertiary transition-colors active:scale-95" data-icon="settings">settings</button>
+<button class="material-symbols-outlined text-primary hover:text-tertiary transition-colors active:scale-95" data-icon="power_settings_new">power_settings_new</button>
+</div>
+</header>
+<!-- SCANLINE ANIMATION -->
+<div class="scanline"></div>
+<!-- MAIN PAUSE OVERLAY -->
+<main class="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
+<!-- CENTRAL MENU -->
+<div class="flex flex-col items-center gap-12 pointer-events-auto">
+<!-- SYSTEM SUSPENDED HEADER -->
+<div class="text-center">
+<h2 class="font-display-lg text-display-lg text-tertiary uppercase tracking-[0.2em] flicker relative" data-text="SYSTEM SUSPENDED">
+                    SYSTEM SUSPENDED
+                </h2>
+<p class="font-label-caps text-label-caps text-primary mt-2">KERNEL_PAUSE_SIGNAL_ACTIVE // PID: 8821</p>
+</div>
+<!-- MENU BUTTONS -->
+<nav class="flex flex-col gap-4 w-80">
+<button class="group relative px-6 py-4 border border-primary/50 bg-surface-container-low hover:bg-tertiary transition-all duration-200 text-left overflow-hidden">
+<div class="absolute top-0 left-0 w-2 h-2 bracket-tl"></div>
+<div class="absolute top-0 right-0 w-2 h-2 bracket-tr"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 bracket-bl"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 bracket-br"></div>
+<span class="font-headline-md text-headline-md text-primary group-hover:text-surface-dim transition-colors block">RESUME FLIGHT</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant group-hover:text-surface-dim/70">RETURN TO COCKPIT</span>
+</button>
+<button class="group relative px-6 py-4 border border-primary/50 bg-surface-container-low hover:bg-tertiary transition-all duration-200 text-left overflow-hidden">
+<div class="absolute top-0 left-0 w-2 h-2 bracket-tl"></div>
+<div class="absolute top-0 right-0 w-2 h-2 bracket-tr"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 bracket-bl"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 bracket-br"></div>
+<span class="font-headline-md text-headline-md text-primary group-hover:text-surface-dim transition-colors block">RESTART MISSION</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant group-hover:text-surface-dim/70">RESET FLIGHT PARAMETERS</span>
+</button>
+<button class="group relative px-6 py-4 border border-primary/50 bg-surface-container-low hover:bg-tertiary transition-all duration-200 text-left overflow-hidden">
+<div class="absolute top-0 left-0 w-2 h-2 bracket-tl"></div>
+<div class="absolute top-0 right-0 w-2 h-2 bracket-tr"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 bracket-bl"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 bracket-br"></div>
+<span class="font-headline-md text-headline-md text-primary group-hover:text-surface-dim transition-colors block">SYSTEM SETTINGS</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant group-hover:text-surface-dim/70">ADJUST HUD &amp; AUDIO</span>
+</button>
+<button class="group relative px-6 py-4 border border-error/50 bg-error-container/20 hover:bg-error transition-all duration-200 text-left overflow-hidden">
+<div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-error"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-error"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-error"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-error"></div>
+<span class="font-headline-md text-headline-md text-error group-hover:text-surface-dim transition-colors block">QUIT TO MAIN MENU</span>
+<span class="font-label-caps text-[10px] text-error group-hover:text-surface-dim/70">ABORT MISSION</span>
+</button>
+</nav>
+</div>
+<!-- LEFT SIDEBAR: MISSION OBJECTIVES -->
+<aside class="absolute left-safe-area top-1/2 -translate-y-1/2 w-64 pointer-events-auto">
+<div class="relative p-4 bg-surface-container-lowest/60 border border-primary/20 backdrop-blur-sm">
+<div class="absolute top-0 left-0 w-4 h-4 bracket-tl"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 bracket-br"></div>
+<h3 class="font-label-caps text-label-caps text-tertiary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="assignment">assignment</span>
+                    OBJECTIVES
+                </h3>
+<ul class="space-y-4">
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-label-caps text-[10px] text-on-surface">BREACH_OUTER_PERIMETER</p>
+<p class="font-label-caps text-[8px] text-primary">COMPLETE</p>
+</div>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+<div>
+<p class="font-label-caps text-[10px] text-on-surface">NEUTRALIZE_UP-LINK_04</p>
+<p class="font-label-caps text-[8px] text-tertiary/60 italic">IN_PROGRESS</p>
+</div>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="lock">lock</span>
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant">INITIATE_CORE_MELTDOWN</p>
+<p class="font-label-caps text-[8px] text-on-surface-variant/40">LOCKED</p>
+</div>
+</li>
+</ul>
+</div>
+</aside>
+<!-- RIGHT SIDEBAR: TELEMETRY -->
+<aside class="absolute right-safe-area top-1/2 -translate-y-1/2 w-64 pointer-events-auto">
+<div class="relative p-4 bg-surface-container-lowest/60 border border-primary/20 backdrop-blur-sm">
+<div class="absolute top-0 right-0 w-4 h-4 bracket-tr"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 bracket-bl"></div>
+<h3 class="font-label-caps text-label-caps text-tertiary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="monitoring">monitoring</span>
+                    LAST_READOUT
+                </h3>
+<div class="space-y-6">
+<div class="flex justify-between items-end border-b border-primary/10 pb-1">
+<span class="font-label-caps text-[10px] text-on-secondary-container">ALTITUDE</span>
+<span class="font-telemetry-num text-telemetry-num text-primary">12,440<span class="text-[10px] ml-1">FT</span></span>
+</div>
+<div class="flex justify-between items-end border-b border-primary/10 pb-1">
+<span class="font-label-caps text-[10px] text-on-secondary-container">VELOCITY</span>
+<span class="font-telemetry-num text-telemetry-num text-primary">1,120<span class="text-[10px] ml-1">KNOTS</span></span>
+</div>
+<div class="flex justify-between items-end border-b border-primary/10 pb-1">
+<span class="font-label-caps text-[10px] text-on-secondary-container">THRUST</span>
+<div class="flex flex-col items-end">
+<div class="flex gap-1 mb-1">
+<div class="w-2 h-3 bg-tertiary"></div>
+<div class="w-2 h-3 bg-tertiary"></div>
+<div class="w-2 h-3 bg-tertiary"></div>
+<div class="w-2 h-3 bg-tertiary/20"></div>
+<div class="w-2 h-3 bg-tertiary/20"></div>
+</div>
+<span class="font-telemetry-num text-[14px] text-tertiary">60%</span>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-[10px] text-on-secondary-container">FUEL_CAP</span>
+<span class="font-telemetry-num text-telemetry-num text-error">14.2<span class="text-[10px] ml-1">%</span></span>
+</div>
+</div>
+</div>
+</aside>
+<!-- CENTER RETICLE (STYLIZED) -->
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20">
+<div class="w-64 h-64 border border-tertiary/30 rounded-full flex items-center justify-center relative">
+<div class="absolute w-full h-[1px] bg-tertiary/30"></div>
+<div class="absolute h-full w-[1px] bg-tertiary/30"></div>
+<div class="w-16 h-16 border-2 border-tertiary rounded-full animate-ping"></div>
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 font-label-caps text-[8px] text-tertiary">NAV_LOCKED</div>
+</div>
+</div>
+</main>
+<!-- SHARED COMPONENT: Footer -->
+<footer class="fixed bottom-0 w-full z-50 bg-surface-dim/90 border-t border-primary/20 flex justify-between items-center px-safe-area py-2 text-[10px]">
+<div class="font-label-caps text-label-caps text-secondary">
+            SYS_COORD: 34.0522 N, 118.2437 W | KERNEL_STABLE_v9
+        </div>
+<div class="flex gap-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">DIAGNOSTICS</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">COORDS</a>
+<a class="font-label-caps text-label-caps text-tertiary" href="#">SYSTEM_STAT</a>
+</div>
+</footer>
+<!-- INTERACTION SCRIPTS -->
+<script>
+        // Simple micro-interaction for hover sound effects (simulated with console for demonstration)
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                // Potential integration for technical beep sound
+            });
+            btn.addEventListener('click', () => {
+                btn.style.transform = 'scale(0.98)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+            });
+        });
+
+        // Dynamic coordinate simulation
+        const coordElement = document.querySelector('footer div:first-child');
+        setInterval(() => {
+            const lat = (34.0522 + (Math.random() * 0.0001)).toFixed(4);
+            const lng = (118.2437 + (Math.random() * 0.0001)).toFixed(4);
+            coordElement.textContent = `SYS_COORD: ${lat} N, ${lng} W | KERNEL_STABLE_v9`;
+        }, 3000);
+    </script>
+</body></html>

@@ -1,0 +1,64 @@
+<html lang="en"><head></head><body>```html
+
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>KAMIKAZZI 3D - TACTICAL HUD</title>
+<!-- Technical Typography: JetBrains Mono for telemetry, Noto Sans JP for secondary kanji. -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #000b1a; /* Midnight Blue */
+    font-family: 'JetBrains Mono', monospace;
+    color: #00e5ff; /* Cyan telemetry color */
+  }
+  
+  #game { position: fixed; inset: 0; z-index: 1; }
+  
+  /* Tinted Overlay to make the 3D scene feel like a blueprint display */
+  #game::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(0, 229, 255, 0.05), rgba(0, 11, 26, 0.6));
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Grid Overlay */
+  .grid-overlay {
+    position: fixed; inset: 0;
+    background-image: 
+      linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.5;
+  }
+
+  /* Target Acquisition Brackets */
+  .crosshair {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 240px; height: 160px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .bracket {
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 2px solid #00e5ff;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+  }
+  .bracket-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+  .bracket-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+  .bracket-bl { bottom: 0; left: 0; border-right</style></body></html>

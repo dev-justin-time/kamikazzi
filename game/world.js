@@ -22,11 +22,16 @@ import { applyIdeasConfig, applyPalette } from './world/ideas.js';
 
 import {
   TUNING, loadTexture, clamp, removeAndDispose, disposeScene,
-  LEVEL_BACKGROUNDS, NUM_LEVELS, SCORE_PER_LEVEL, createBackgroundScene,
+  LEVEL_BACKGROUNDS, NUM_LEVELS, SCORE_PER_LEVEL, TARGET_SUCCESS_SCORE, createBackgroundScene,
   IMPACT_SOUND_URL, POWERUP_SFX_URLS, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
   EXPLOSION_PALETTES,
   FLOOR_ASSETS,
 } from './world/shared.js';
+
+import {
+  syncHighScore, submitLeaderboard, getHighScore, getUsername,
+  createPuterRoom, captureScreenshot, saveReplay,
+} from '../puter-client.js';
 
 // --- internal constants (cluster/camera/sun tuning kept local; gameplay tuning lives in shared.js) ---
 const PEER_LERP = 0.2;
@@ -134,8 +139,9 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   // together means none of them block the user clicking Start. Any per-type
   // pickup URL that 404s is silently skipped — synthesised fallback plays
   // for that type — so missing WAV files never gate game boot.
+  const bgUrls = LEVEL_BACKGROUNDS.map(entry => typeof entry === 'string' ? entry : entry.url);
   const [bgTextures, impactBufferData, floorTextures, pickupSfxBuffers] = await Promise.all([
-    Promise.all(LEVEL_BACKGROUNDS.map(url => loadTexture(url))),
+    Promise.all(bgUrls.map(url => loadTexture(url))),
     loadImpactBuffer(),
     Promise.all(FLOOR_ASSETS.map(url => loadTexture(url))),
     loadPickupSfxBuffers(),
@@ -162,10 +168,20 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     return arr;
   };
   const applyLevelBackground = idx => {
+    const entry = LEVEL_BACKGROUNDS[idx];
     const tex = bgTextures[idx];
     if (!tex) return;
     bg.setTexture(tex);
     bg.updateContain(tex);
+
+    if (entry && typeof entry === 'object' && (entry.mode || entry.tint || entry.bgTint !== undefined)) {
+      applyPalette({ scene, ground, mode: entry.mode || state._ideas_mode, tint: entry.tint || state._ideas_tint, bgMaterial: bg.material });
+      if (entry.bgTint !== undefined) {
+        bg.material.color.setHex(entry.bgTint);
+      }
+    } else {
+      applyPalette({ scene, ground, mode: state._ideas_mode, tint: state._ideas_tint, bgMaterial: bg.material });
+    }
   };
 
   // ---- lights ----
@@ -334,6 +350,8 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   const state = {
     running: false,
     over: false,
+    won: false,
+    paused: false,
     score: 0,
     speed: TUNING.STARTING_SPEED,
     baseSpeed: TUNING.BASE_SPEED,
@@ -341,6 +359,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     spawnInterval: TUNING.SPAWN_INTERVAL,
     target: { x: 0, y: 2 },
     best: Number(localStorage.getItem('kamikazziHiScore') || 0),
+    startTimeMs: 0,
+    timeElapsedMs: 0,
+    impactAlt: 0,
+    impactDistance: 0,
     _ideas_enablePowerups: false,
     _night: false,
     _ideas_mode: 'day',        // day|night|dusk|dawn — resolved from briefings via game/world/ideas.js#resolveMode (priority night > dusk > dawn > day)
@@ -384,7 +406,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   state.levelOrder = shuffle(Array.from({ length: NUM_LEVELS }, (_, i) => i));
   applyLevelBackground(state.levelOrder[0]);
 
-  // ---- multiplayer (best-effort) ----
+  // ---- multiplayer (Puter KV-based presence) ----
   let room = null;
   const peersMeshes = {};
   let presenceAccumulator = 0;
@@ -402,22 +424,23 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   }
 
   function pushPresence(force = false) {
-    try {
-      if (!room || typeof room.updatePresence !== 'function') return;
-      room.updatePresence({
-        x: plane.position.x, y: plane.position.y, z: plane.position.z,
-        score: Math.floor(state.score), running: !!state.running,
-      });
+    if (!room || typeof room.updatePresence !== 'function') return;
+    room.updatePresence({
+      x: plane.position.x, y: plane.position.y, z: plane.position.z,
+      score: Math.floor(state.score), running: !!state.running,
+    }).then(() => {
       presenceAccumulator = 0;
-    } catch (e) { if (force) console.warn('pushPresence failed', e); }
+    }).catch(e => {
+      if (force) console.warn('pushPresence failed', e);
+    });
   }
 
   async function initMultiplayer() {
     try {
-      if (typeof WebsimSocket === 'undefined') return;
-      room = new WebsimSocket();
-      await room.initialize();
+      room = await createPuterRoom('kamikazzi-lobby');
+      if (!room) return;
       pushPresence(true);
+      room.startHeartbeat();
 
       room.subscribePresence(currentPresence => {
         Object.keys(currentPresence).forEach(clientId => {
@@ -426,10 +449,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           if (!p) return;
           if (!peersMeshes[clientId]) {
             const m = makePeerMarker();
-            const info = room.peers && room.peers[clientId];
-            if (info && info.username) {
+            const peerUsername = p.username;
+            if (peerUsername) {
               let h = 0;
-              for (let i = 0; i < info.username.length; i++) h = (h << 5) - h + info.username.charCodeAt(i);
+              for (let i = 0; i < peerUsername.length; i++) h = (h << 5) - h + peerUsername.charCodeAt(i);
               const col = 0x444444 + (Math.abs(h) % 0xdddddd);
               m.traverse(n => { if (n.isMesh) n.material.color.setHex(col); });
             }
@@ -597,9 +620,11 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
   // ---- loop control ----
   let raf = null;
+  let _rendererObj = null;
   const clock = new THREE.Clock();
 
   function startLoop(rendererObj) {
+    _rendererObj = rendererObj;
     if (!rendererObj || !rendererObj.renderer) {
       console.warn('startLoop: rendererObj missing; aborting', rendererObj);
       return;
@@ -626,15 +651,17 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         // timeScale = 1.0 so the 3-explosion GIF sequence + 3D burst
         // stagger play at real wall-clock and don't drag out.
         const clockDelta = Math.min(clock.getDelta(), TUNING.MAX_DT_RAW);
-        if (!state.over) {
+        if (state.over) {
+          state.timeScale = 1.0;
+        } else if (!state.paused) {
           state.timeScale += (state.timeScaleTarget - state.timeScale) * (1 - Math.exp(-8 * clockDelta));
           if (performance.now() >= state.timeScaleUntilMs) state.timeScaleTarget = 1.0;
-        } else {
-          state.timeScale = 1.0;
         }
-        const dt = clockDelta * TUNING.DT_HZ * state.timeScale;
+        const dt = state.paused ? 0 : clockDelta * TUNING.DT_HZ * state.timeScale;
 
-        explosion.update(dt);
+        if (!state.paused) {
+          explosion.update(dt);
+        }
 
         // Per-frame gates + multipliers for active powerups (composed once
         // per RAF so the dt-multiplied terms below share them). effSpeed
@@ -646,7 +673,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         const isBoost  = now < state._powerups.boostUntilMs;
         const isMagnet = now < state._powerups.magnetUntilMs;
         const is2x     = now < state._powerups.score2xUntilMs;
-        const isSlow   = !state.over && now < state._powerups.slowmoUntilMs;
+        const isSlow   = !state.over && !state.paused && now < state._powerups.slowmoUntilMs;
         const effSpeed = state.speed * (isBoost ? TUNING.POWERUP_BOOST_MULT : 1);
         const scoreMult = is2x ? TUNING.POWERUP_SCORE2X_MULT : 1;
 
@@ -655,129 +682,140 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         // the halo off-camera during the 5.4s crash sequence — the
         // 3-explosion GIF would otherwise show a magenta disk through
         // the overlay distractingly.
-        magnetHalo.setActive(isMagnet && !state.over, now);
+        magnetHalo.setActive(isMagnet && !state.over && !state.paused, now);
 
-        // Slowmo composes with near-miss via min() — whichever demands the
-        // slowest dt wins. Without this, a slowmo window would be silently
-        // overwritten by a near-miss's release (timeScaleTarget=1.0) at the
-        // exact end of NEAR_MISS_DURATION_MS — the bullet-time AND the
-        // slowmo both want dt < 1.0.
-        if (isSlow) {
-          state.timeScaleTarget = Math.min(state.timeScaleTarget, TUNING.POWERUP_SLOWMO_SCALE);
-        }
-
-        powerups.update(effSpeed, dt, state.running ? plane.position.z : null, isMagnet, plane.position.x);
-
-        // Pickup detection — cheap O(N) over the small powerup pool. On hit
-        // the mesh is disposed inside powerups.checkPickup; we just translate
-        // the type into a gameplay effect (state mutation + window event).
-        if (state.running) {
-          const picked = powerups.checkPickup(plane.position);
-          if (picked) applyPowerupEffect(picked, now);
-        }
-
-        if (state.running) {
-          state.speed += TUNING.SPEED_RAMP * dt;
-          // Score gain is multiplied by score2x while active. effSpeed
-          // already folds in the boost mult, so this line composes both
-          // multipliers at once.
-          state.score += effSpeed * dt * TUNING.SCORE_GAIN * scoreMult;
-
-          // Level advance: every SCORE_PER_LEVEL points bumps the active level
-          // up to a hard cap of NUM_LEVELS, then it stays put for the run.
-          const advanced = Math.min(NUM_LEVELS, Math.floor(state.score / SCORE_PER_LEVEL) + 1);
-          if (advanced > state.level) {
-            state.level = advanced;
-            if (state.level <= NUM_LEVELS) {
-              applyLevelBackground(state.levelOrder[state.level - 1]);
-            }
+        if (!state.paused) {
+          // Slowmo composes with near-miss via min() — whichever demands the
+          // slowest dt wins. Without this, a slowmo window would be silently
+          // overwritten by a near-miss's release (timeScaleTarget=1.0) at the
+          // exact end of NEAR_MISS_DURATION_MS — the bullet-time AND the
+          // slowmo both want dt < 1.0.
+          if (isSlow) {
+            state.timeScaleTarget = Math.min(state.timeScaleTarget, TUNING.POWERUP_SLOWMO_SCALE);
           }
 
-          // Clamp target so the steering input is bounded
-          state.target.x = clamp(state.target.x, -TUNING.BOUND_X, TUNING.BOUND_X);
-          state.target.y = clamp(state.target.y, TUNING.BOUND_Y_MIN, TUNING.BOUND_Y_MAX);
+          powerups.update(effSpeed, dt, state.running ? plane.position.z : null, isMagnet, plane.position.x);
 
-          // Bridge (target.x/y) -> normalized steering input -> PlaneController
-          const boundYRange = TUNING.BOUND_Y_MAX - TUNING.BOUND_Y_MIN;
-          const inputX = clamp((state.target.x - plane.position.x) / TUNING.BOUND_X, -1, 1);
-          const inputY = clamp((state.target.y - plane.position.y) / boundYRange, -1, 1);
-          planeController.update(dt, { x: inputX, y: inputY });
+          // Pickup detection — cheap O(N) over the small powerup pool. On hit
+          // the mesh is disposed inside powerups.checkPickup; we just translate
+          // the type into a gameplay effect (state mutation + window event).
+          if (state.running) {
+            const picked = powerups.checkPickup(plane.position);
+            if (picked) applyPowerupEffect(picked, now);
+          }
 
-          // Buildings drift + per-building callbacks (passing + score, collision + endGame)
-          buildings.updateForSpeed(effSpeed, dt, plane.position.z, b => {
-            if (!b.userData.passed && b.position.z > plane.position.z + 4) {
-              b.userData.passed = true;
-              state.score += TUNING.BUILD_PASS_BONUS;
-            }
-            // Shield: while active, skip collision checks so the plane
-            // sails through one full building before the window expires.
-            // Frame-gate is on state.running + !state.over so crashes
-            // still register past the shield window (a building already
-            // overlapping at the moment of pickup is one example).
-            if (!isShield && !state.over && checkCollision(b)) {
-              endGame();
-            } else if (state.running && !state.over && checkNearMiss(b)) {
-              // Plane is inside the 0.5m shell around the +1.2 collision
-              // AABB but not inside the collision AABB itself ("almost
-              // crashed"). Per-building cooldown: each building tracks its own
-              // last-trigger timestamp in state.lastNearMissByBuilding, so
-              // (a) skimming past N distinct buildings in quick succession
-              // fires N independent bullet-time windows, and (b) grazing
-              // along ONE building for >NEAR_MISS_DURATION_MS refires at
-              // most once per window — no sustained slow-mo.
-              const now = performance.now();
-              const lastForBuilding = state.lastNearMissByBuilding.get(b) || 0;
-              if (now - lastForBuilding > TUNING.NEAR_MISS_DURATION_MS) {
-                state.lastNearMissByBuilding.set(b, now);
-                state.timeScaleTarget = TUNING.NEAR_MISS_TIME_SCALE;
-                state.timeScaleUntilMs = now + TUNING.NEAR_MISS_DURATION_MS;
+          if (state.running) {
+            state.speed += TUNING.SPEED_RAMP * dt;
+            // Score gain is multiplied by score2x while active. effSpeed
+            // already folds in the boost mult, so this line composes both
+            // multipliers at once.
+            state.score += effSpeed * dt * TUNING.SCORE_GAIN * scoreMult;
+
+            // Level advance: every SCORE_PER_LEVEL points bumps the active level
+            // up to a hard cap of NUM_LEVELS, then it stays put for the run.
+            const advanced = Math.min(NUM_LEVELS, Math.floor(state.score / SCORE_PER_LEVEL) + 1);
+            if (advanced > state.level) {
+              state.level = advanced;
+              if (state.level <= NUM_LEVELS) {
+                applyLevelBackground(state.levelOrder[state.level - 1]);
               }
             }
-          });
 
-          // Spawn cadence (uses effSpeed so boost compresses the spacing)
-          state.spawnTimer += dt;
-          const interval = Math.max(
-            TUNING.MIN_SPAWN_INTERVAL,
-            state.spawnInterval - effSpeed * TUNING.SPAWN_SPEED_PRESSURE
-          );
-          if (state.spawnTimer >= interval) {
-            state.spawnTimer = 0;
-            buildings.spawn(TUNING.GENERATION_START_Z - Math.random() * 30);
-          }
+            // Mission Success trigger: reached max level OR target score
+            if (!state.won && !state.over && (state.level >= NUM_LEVELS || state.score >= TARGET_SUCCESS_SCORE)) {
+              winGame();
+            }
 
-          // Ground strip scroll (effSpeed so boost speeds visual flow)
-          for (const s of strips) {
-            s.position.z += effSpeed * TUNING.BUILD_DRIFT_FACTOR * dt;
-            if (s.position.z > TUNING.GENERATION_END_Z) {
-              s.position.z -= TUNING.STRIP_COUNT * TUNING.STRIP_SPACING;
+            // Clamp target so the steering input is bounded
+            state.target.x = clamp(state.target.x, -TUNING.BOUND_X, TUNING.BOUND_X);
+            state.target.y = clamp(state.target.y, TUNING.BOUND_Y_MIN, TUNING.BOUND_Y_MAX);
+
+            // Bridge (target.x/y) -> normalized steering input -> PlaneController
+            const boundYRange = TUNING.BOUND_Y_MAX - TUNING.BOUND_Y_MIN;
+            const inputX = clamp((state.target.x - plane.position.x) / TUNING.BOUND_X, -1, 1);
+            const inputY = clamp((state.target.y - plane.position.y) / boundYRange, -1, 1);
+            planeController.update(dt, { x: inputX, y: inputY });
+
+            // Buildings drift + per-building callbacks (passing + score, collision + endGame)
+            buildings.updateForSpeed(effSpeed, dt, plane.position.z, b => {
+              if (!b.userData.passed && b.position.z > plane.position.z + 4) {
+                b.userData.passed = true;
+                state.score += TUNING.BUILD_PASS_BONUS;
+              }
+              // Shield: while active, skip collision checks so the plane
+              // sails through one full building before the window expires.
+              // Frame-gate is on state.running + !state.over so crashes
+              // still register past the shield window (a building already
+              // overlapping at the moment of pickup is one example).
+              if (!isShield && !state.over && !state.won && checkCollision(b)) {
+                endGame();
+              } else if (state.running && !state.over && !state.won && checkNearMiss(b)) {
+                // Plane is inside the 0.5m shell around the +1.2 collision
+                // AABB but not inside the collision AABB itself ("almost
+                // crashed"). Per-building cooldown: each building tracks its own
+                // last-trigger timestamp in state.lastNearMissByBuilding, so
+                // (a) skimming past N distinct buildings in quick succession
+                // fires N independent bullet-time windows, and (b) grazing
+                // along ONE building for >NEAR_MISS_DURATION_MS refires at
+                // most once per window — no sustained slow-mo.
+                const now = performance.now();
+                const lastForBuilding = state.lastNearMissByBuilding.get(b) || 0;
+                if (now - lastForBuilding > TUNING.NEAR_MISS_DURATION_MS) {
+                  state.lastNearMissByBuilding.set(b, now);
+                  state.timeScaleTarget = TUNING.NEAR_MISS_TIME_SCALE;
+                  state.timeScaleUntilMs = now + TUNING.NEAR_MISS_DURATION_MS;
+                }
+              }
+            });
+
+            // Spawn cadence (uses effSpeed so boost compresses the spacing)
+            state.spawnTimer += dt;
+            const interval = Math.max(
+              TUNING.MIN_SPAWN_INTERVAL,
+              state.spawnInterval - effSpeed * TUNING.SPAWN_SPEED_PRESSURE
+            );
+            if (state.spawnTimer >= interval) {
+              state.spawnTimer = 0;
+              buildings.spawn(TUNING.GENERATION_START_Z - Math.random() * 30);
+            }
+
+            // Ground strip scroll (effSpeed so boost speeds visual flow)
+            for (const s of strips) {
+              s.position.z += effSpeed * TUNING.BUILD_DRIFT_FACTOR * dt;
+              if (s.position.z > TUNING.GENERATION_END_Z) {
+                s.position.z -= TUNING.STRIP_COUNT * TUNING.STRIP_SPACING;
+              }
             }
           }
-        }
 
-        // Clouds drift regardless of running (so the start screen is alive)
-        for (const c of clouds) {
-          c.position.z += (state.running ? effSpeed * TUNING.CLOUD_DRIFT : 0.3) * dt;
-          if (c.position.z > 60) {
-            c.position.z = -560 - Math.random() * 40;
-            c.position.x = (Math.random() - 0.5) * 200;
-            c.position.y = 20 + Math.random() * 40;
+          // Clouds drift regardless of running (so the start screen is alive)
+          for (const c of clouds) {
+            c.position.z += (state.running ? effSpeed * TUNING.CLOUD_DRIFT : 0.3) * dt;
+            if (c.position.z > 60) {
+              c.position.z = -560 - Math.random() * 40;
+              c.position.x = (Math.random() - 0.5) * 200;
+              c.position.y = 20 + Math.random() * 40;
+            }
           }
+
+          // Camera follow (lerp + chase ahead)
+          const camTargetX = plane.position.x * CAMERA_TRAIL_FACTOR;
+          const camTargetY = plane.position.y + CAMERA_HEIGHT_OFFSET;
+          camera.position.x += (camTargetX - camera.position.x) * CAMERA_LERP * dt;
+          camera.position.y += (camTargetY - camera.position.y) * CAMERA_LERP * dt;
+          camera.position.z = plane.position.z + CAMERA_DISTANCE;
+          camera.lookAt(plane.position.x * CAMERA_TRAIL_FACTOR, plane.position.y, plane.position.z - CAMERA_LOOK_AHEAD);
+
+          // Propeller HUD lock — runs every frame BEFORE render so the prop
+          // lands at viewport-bottom reflecting THIS frame's camera state.
+          // The function uses hoisted scratch Vec3s allocated at world-init
+          // so we don't churn the GC inside the requestAnimationFrame loop.
+          syncPropellerToViewport();
+
+          // Periodic presence push (only every PRESENCE_INTERVAL_S)
+          presenceAccumulator += dt / TUNING.DT_HZ;
+          if (presenceAccumulator >= TUNING.PRESENCE_INTERVAL_S) pushPresence(false);
         }
-
-        // Camera follow (lerp + chase ahead)
-        const camTargetX = plane.position.x * CAMERA_TRAIL_FACTOR;
-        const camTargetY = plane.position.y + CAMERA_HEIGHT_OFFSET;
-        camera.position.x += (camTargetX - camera.position.x) * CAMERA_LERP * dt;
-        camera.position.y += (camTargetY - camera.position.y) * CAMERA_LERP * dt;
-        camera.position.z = plane.position.z + CAMERA_DISTANCE;
-        camera.lookAt(plane.position.x * CAMERA_TRAIL_FACTOR, plane.position.y, plane.position.z - CAMERA_LOOK_AHEAD);
-
-        // Propeller HUD lock — runs every frame BEFORE render so the prop
-        // lands at viewport-bottom reflecting THIS frame's camera state.
-        // The function uses hoisted scratch Vec3s allocated at world-init
-        // so we don't churn the GC inside the requestAnimationFrame loop.
-        syncPropellerToViewport();
 
         // bg scene first (full-screen photo), then clear depth and render the
         // main scene on top. The main scene has scene.background=null and the
@@ -786,10 +824,6 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         renderer.render(bg.bgScene, bg.bgCamera);
         renderer.clearDepth();
         renderer.render(scene, camera);
-
-        // Periodic presence push (only every PRESENCE_INTERVAL_S)
-        presenceAccumulator += dt / TUNING.DT_HZ;
-        if (presenceAccumulator >= TUNING.PRESENCE_INTERVAL_S) pushPresence(false);
       } catch (err) {
         console.error('world loop error:', err);
         if (raf) { cancelAnimationFrame(raf); raf = null; }
@@ -843,12 +877,17 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
     state.running = true;
     state.over = false;
+    state.won = false;
     state.score = 0;
     state.speed = state.baseSpeed;
     state.spawnTimer = 0;
     state.spawnInterval = TUNING.SPAWN_INTERVAL;
     state.target.x = 0;
     state.target.y = 2;
+    state.startTimeMs = performance.now();
+    state.timeElapsedMs = 0;
+    state.impactAlt = 0;
+    state.impactDistance = 0;
 
     // Reset near-miss time-slow so the new run starts at full speed and
     // every building's per-building cooldown map is cleared (previous-run
@@ -903,10 +942,111 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     tryStartEngineSound();
   }
 
+  // Shared score finalization used by both winGame() and endGame().
+  async function finalizeScore() {
+    const final = Math.floor(state.score);
+    const isNewBest = final > state.best;
+    if (isNewBest) {
+      state.best = final;
+      localStorage.setItem('kamikazziHiScore', String(final));
+    }
+    // Cloud sync: best score + leaderboard entry + run history
+    try {
+      await syncHighScore(final);
+      await submitLeaderboard(final, {
+        level: state.level,
+        distance: state.impactDistance,
+        timeMs: state.timeElapsedMs,
+        won: state.won,
+        timestamp: Date.now(),
+      });
+    } catch (e) { console.warn('cloud score sync failed', e); }
+    try {
+      if (room && room.collection) {
+        await room.collection('score').create({
+          score: final,
+          x: plane.position.x, y: plane.position.y, z: plane.position.z,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } catch (e) { console.warn('persisting score failed', e); }
+
+    // ---- Replay Save for notable runs ----
+    // Notable = new personal best, mission success, or score >= 3000.
+    const notableReason = isNewBest ? 'new-best' : state.won ? 'mission-success' : final >= 3000 ? 'high-score' : null;
+    if (notableReason) {
+      try {
+        const grade = computeGrade(final);
+        const username = await getUsername() || 'Pilot';
+        const screenshotDataUrl = _rendererObj && _rendererObj.renderer
+          ? await captureScreenshot(_rendererObj.renderer)
+          : null;
+        const replay = {
+          id: undefined, // filled by saveReplay
+          timestamp: Date.now(),
+          score: final,
+          best: state.best,
+          level: state.level,
+          distance: state.impactDistance,
+          altitude: state.impactAlt,
+          throttle: (state.speed / (state.baseSpeed || 1)).toFixed(1),
+          timeElapsedMs: state.timeElapsedMs,
+          won: state.won,
+          grade,
+          username,
+          notableReason,
+        };
+        await saveReplay(replay, screenshotDataUrl);
+        // Notify UI that a new replay was saved
+        try { window.dispatchEvent(new CustomEvent('replaySaved', { detail: replay })); } catch (_) {}
+      } catch (e) { console.warn('replay save failed', e); }
+    }
+
+    pushPresence(true);
+    stopEngineSound();
+  }
+
+  // Compute performance grade (also used by replay save)
+  function computeGrade(score) {
+    if (score >= 10000) return 'S';
+    if (score >= 7000) return 'A';
+    if (score >= 5000) return 'B';
+    if (score >= 3000) return 'C';
+    return 'D';
+  }
+
+  // Boot-time cloud sync: pull the freshest high score from Puter
+  (async function bootCloudSync() {
+    try {
+      const cloudBest = await getHighScore();
+      if (typeof cloudBest === 'number' && cloudBest > state.best) {
+        state.best = cloudBest;
+        localStorage.setItem('kamikazziHiScore', String(cloudBest));
+      }
+      const username = await getUsername();
+      if (username) {
+        try { window.dispatchEvent(new CustomEvent('puterUserReady', { detail: { username } })); } catch (_) {}
+      }
+    } catch (_) {}
+  })();
+
+  async function winGame() {
+    state.running = false;
+    state.won = true;
+    plane.visible = false;
+    state.impactAlt = plane.position.y;
+    state.impactDistance = Math.max(0, -plane.position.z);
+    state.timeElapsedMs = performance.now() - state.startTimeMs;
+    await finalizeScore();
+  }
+
   async function endGame() {
     state.running = false;
     state.over = true;
     plane.visible = false;
+    state.impactAlt = plane.position.y;
+    state.impactDistance = Math.max(0, -plane.position.z);
+    state.timeElapsedMs = performance.now() - state.startTimeMs;
 
     // Stagger the 3D burst across the 5.4s crash sequence so the on-canvas
     // particles fire at t=0, t=1.8s, t=3.6s in lockstep with the GIF plays in
@@ -950,25 +1090,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       runningMs += kf.intervalMs;
     }
     playImpact();                          // crash SFX (fires once per crash)
-
-    const final = Math.floor(state.score);
-    if (final > state.best) {
-      state.best = final;
-      localStorage.setItem('kamikazziHiScore', String(final));
-    }
-
-    try {
-      if (room && room.collection) {
-        await room.collection('score').create({
-          score: final,
-          x: plane.position.x, y: plane.position.y, z: plane.position.z,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (e) { console.warn('persisting score failed', e); }
-
-    pushPresence(true);
-    stopEngineSound();
+    await finalizeScore();
   }
 
   // ---- engine sound: only play after a user gesture ----
@@ -1078,6 +1200,38 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     } catch (err) { console.warn('ideasUpdated handler error', err); }
   });
 
+  // ---- plane skin applier ----
+  // Applies a generated image texture to the plane's body and wing meshes.
+  // Skips transparent materials (cockpit glass) and very-dark materials
+  // (propeller / accent) so only the main fuselage and wings are skinned.
+  let _currentSkinTexture = null;
+  function applyPlaneSkin(imageUrl) {
+    if (!imageUrl || !plane) return;
+    const loader = new THREE.TextureLoader();
+    loader.load(imageUrl, tex => {
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = 4;
+      // Dispose previous skin texture to avoid GPU memory leak
+      if (_currentSkinTexture) {
+        _currentSkinTexture.dispose();
+      }
+      _currentSkinTexture = tex;
+      plane.traverse(node => {
+        if (!node.isMesh || !node.material) return;
+        const mats = Array.isArray(node.material) ? node.material : [node.material];
+        mats.forEach(m => {
+          // Skip transparent (cockpit) and very-dark / nearly-black (prop, accent)
+          if (m.transparent) return;
+          const col = m.color || new THREE.Color();
+          const brightness = (col.r + col.g + col.b) / 3;
+          if (brightness < 0.15) return; // skip propeller / very dark accent
+          m.map = tex;
+          m.needsUpdate = true;
+        });
+      });
+    }, undefined, err => console.warn('applyPlaneSkin failed', err));
+  }
+
   // ---- expose API ----
   return {
     scene, camera, plane,
@@ -1086,6 +1240,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     pickupSfxBuffers,                            // Map<type, AudioBuffer> — only contains entries whose canonical WAV loaded successfully. ui.js#playTypeTone reads this and falls back to TONE_RECIPES synth when a type is missing
     addIdea, sendIdeasToPuter, fetchCommentsFromPuter,
     startLoop, stopLoop,
+    applyPlaneSkin,
     cancelCrashStagger: clearCrashStaggerTimers,
     ensureEngineSound: tryStartEngineSound,
     dispose() {
@@ -1093,6 +1248,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       stopEngineSound();
       stopImpact();
       clearCrashStaggerTimers();
+      if (room && typeof room.dispose === 'function') {
+        try { room.dispose(); } catch (_) {}
+      }
+      Object.values(peersMeshes).forEach(m => removeAndDispose(m));
       window.removeEventListener('resize', syncBgAspect);
       bg.dispose();
       explosion.dispose();
