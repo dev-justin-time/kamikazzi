@@ -33,7 +33,7 @@ export const TUNING = {
   MIN_SPAWN_INTERVAL: 10,         // clamp on dynamic interval
   SPAWN_SPEED_PRESSURE: 4,        // speed term that tightens interval
   LEVEL_SPEED_MULT: 1.1,           // each level ramps 10% faster
-  LEVEL_LENGTH_MULT: 1.1,          // each level requires 10% more score
+  LEVEL_LENGTH_MULT: 1.12,         // each level requires 12% more score (steeper late-game ramp)
   BUILD_PASS_BONUS: 5,
   BUILD_DRIFT_FACTOR: 2.2,        // multiplier on `speed` for building drift
   GENERATION_END_Z: 30,
@@ -289,7 +289,7 @@ export const FINAL_LEVEL_TINT = 0x661111;
 export const FINAL_LEVEL_FOG = 0x330505;
 // Score threshold at which the active level advances (level N runs for the
 // first (N-1)..N multiples of this constant). 7 levels × 500 = 3500 total.
-export const SCORE_PER_LEVEL = 280;
+export const SCORE_PER_LEVEL = 240;
 // Target score that triggers the Mission Success screen (in addition to max level).
 export const TARGET_SUCCESS_SCORE = 3000;
 
