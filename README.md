@@ -1,9 +1,11 @@
 # Kamikazzi 3D
 
-A lightweight browser-based 3D endless flyer built with Three.js — dodge buildings, collect powerups, and compete via simple multiplayer presence. This repo contains a modular renderer, world logic, UI, input handling, and optional Puter/AI integration for collecting and applying player "briefings".
+A lightweight browser-based 3D endless flyer built with Three.js — dodge buildings, collect powerups, generate AI plane skins, save replay screenshots, and compete via cloud leaderboard and real-time multiplayer presence. This repo contains a modular renderer, world logic, UI, input handling, and deep Puter.js integration for cloud sync, AI image generation, replay storage, and live room presence.
 
 ## Live
 Open `index.html` in a modern browser (Chrome/Edge/Firefox). For best results run from a local static server (e.g. `npx http-server` or `python -m http.server`) to avoid GLB and audio CORS/autoplay issues. The sky/photographic background expects the project root to be the served root, with assets under `/assets/...` and `%20`-encoded filenames where needed.
+
+**Puter hosting:** The game is designed to run inside [Puter](https://puter.com) — a free, open-source internet OS. When hosted on Puter, cloud save, AI image generation, leaderboards, replay storage, and multiplayer presence activate automatically via the Puter.js SDK.
 
 ## Controls
 
@@ -18,6 +20,46 @@ Four input sources feed `world.state.target.{x,y}`, which `world.js#loop()` clam
 | `touch` (👆 Touch) | Pointer / touch drag on canvas | **RELATIVE**: at `pointerdown` capture the finger position + current target as anchor; `pointermove` applies a delta scaled by `(BOUND_X × 2.5, Y_RANGE × 1.5)` so a full-width drag ≈ full bound range. The plane no longer teleports to the touch spot — drag feels like a smartphone flight joystick. |
 | `joystick` (🕹 Joystick) | Bottom-left touchscreen knob | Direct knob-to-target: drag-to-edge ⇒ full bound range in X, ~60 % of Y. |
 | `gyro` (📱 Tilt) | `DeviceOrientationEvent` | **AUTO-CALIBRATION** (median of first 5 events after each fresh run = neutral pose) + **2° dead-zone** + **exponential smoothing** (`target += (raw − target) × 0.18`) so iOS orientation-event jitter doesn't yank the plane. Engagement threshold 4° of net tilt (otherwise small jitter leaves mode at `'none'` so the player can still pick another input). |
+
+## Puter Integration
+
+When the page runs inside Puter (or any environment where `puter.js` is available), the game unlocks a full suite of cloud-native features. All features are **best-effort** — if Puter is absent or the user is not signed in, the game falls back gracefully to localStorage or disables the feature silently.
+
+### Cloud Save (`puter.kv`)
+- **High score** — synced across devices via `puter.kv` with `localStorage` fallback.
+- **Run history** — last 50 runs stored with score, grade, level, distance, and duration.
+- **Settings** — cloud-persisted game settings merged with local values at boot.
+
+### Leaderboard
+A shared KV key (`kamikazzi3d_global_leaderboard`) stores the top-10 scores across all players. Entries include username, avatar, score, and timestamp. Submit happens automatically at the end of notable runs (new personal best, mission success, or score ≥ 3000).
+
+### AI Image Generation — Skin Lab
+Click **🎨 Customize** on the start screen to open the **Skin Lab**:
+- **Plane Skin** — type a prompt (e.g. `"flaming skull decals"`) and the game calls `puter.ai.txt2img()` to generate a texture. The image is applied to the fuselage and wings (skipping transparent cockpit glass and dark propeller parts). Skins persist in `localStorage` and are re-applied on every load.
+- **Pilot Portrait** — generate a circular portrait avatar that appears next to your score in the HUD.
+- File responses from Puter are converted to base64 data URLs so they survive page reloads.
+
+### Replay Gallery
+Notable runs (personal best, mission success, or score ≥ 3000) are auto-saved as **replays**:
+- **Cloud storage** — `puter.fs.write()` saves `screenshot.png` + `replay.json` under `/kamikazzi3d/replays/<id>/`.
+- **Telemetry** — each replay captures score, grade, level, distance, altitude, throttle, duration, and outcome.
+- **Fallback** — when `puter.fs` is unavailable, replay JSON is stored in `localStorage` (screenshots skipped to stay under the ~5 MB quota).
+- Click **📼 Replays** on the start screen to browse, view detail screenshots, and delete old runs.
+
+### Real-Time Multiplayer Presence
+Replaces the legacy `WebsimSocket` with a **shared KV room** (`createPuterRoom()`):
+- Each client writes its position, score, and state to a shared KV key every 2.5 seconds.
+- Peers are visualized as coloured marker meshes drifting alongside your plane.
+- Entries expire after 15 seconds of inactivity so stale players auto-vanish.
+- No invite codes required — all players in the same room name auto-join.
+
+### AI Game Config Chat
+The legacy `generateFromComment()` function sends player text to `puter.ai.chat.completions` (model `gpt-5-mini`) and returns structured JSON to tweak game parameters (`spawnInterval`, `baseSpeed`, `night mode`, `enablePowerups`, etc.).
+
+### Authentication
+- `getUser()` / `getUsername()` / `getAvatarUrl()` — display the signed-in Puter user's identity in the HUD.
+- `refreshUser()` — re-fetch identity after sign-in events.
+- Legacy API-key auth (`window.setPuterApiKey`) is preserved for backward compatibility.
 
 ### Mode-lock semantics
 
@@ -61,12 +103,12 @@ When a pickup lands, `world.js#applyPowerupEffect(type)` pushes the expiry times
 - game/world/explosion.js — explosion particle manager (shared geometry/material pool).
 - game/world/powerups.js — powerup spawn/drift/reap; finally reaps past camera. **Five types (shield / boost / magnet / score2x / slowmo)** with per-type shape + colour, AABB pickup via `checkPickup(plane)`, and magnet-pull inside `update(...)` while `state._powerups.magnetUntilMs` is in the future.
 - game/world/magnet_halo.js — magenta additive Sprite billboard + procedural CanvasTexture radial gradient under the plane, driven by `world.js#loop()` from `state._powerups.magnetUntilMs` so the player sees the magnet window even when the chip strip is offscreen.
-- game/world/ideas.js — small "briefings" config applied from local storage.
+- game/world/ideas.js — small "briefings" config applied from local storage. *(Note: `ideas.js` and `powerups.js` at repo root were removed; their functionality lives in `game/world/`.)*
 - game/world/shared.js — centralized `TUNING` constants, `loadTexture` cache, `removeAndDispose` helpers, skip-shared dispose registry.
 - game/input.js — keyboard, pointer, joystick, and gyroscope steering.
 - game/ui.js — HUD wiring, start/retry buttons, score display.
 - The crash-overlay image slot in `game/ui.js` and the graffiti decal list in `game/world/shared.js` (`GRAFFITI_ASSETS`) currently point at surrogate assets under `/assets/image/...` because the originals (`/Clipboard0E2.webp`, `/KKKKKKK.webp`, `/Clipboard0EDD2.webp`) are no longer in the repo. Swap them for real assets and the rest of the code already handles them.
-- puter-client.js — optional integration via the `kamikazzi-radio` service for sending/fetching briefings and generating AI game changes.
+- puter-client.js — **Puter integration layer**: cloud sync (KV), user identity, leaderboard, AI chat config, AI image generation (`generateImage`), real-time room presence (`createPuterRoom`), replay save/load via `puter.fs`, and legacy API-key compatibility.
 - assets: models (GLB), images (PNG/WebP/JPG), audio (airplane.wav). Files with `(1)` in their name are original browser-downloaded copies; the canonical URLs point at root-level or `assets/image/...`.
 
 ## Plane & Propeller
@@ -155,10 +197,10 @@ Two `ExhaustTrail` instances (left + right) attached during controller construct
 
 ## Notable behaviors & implementation notes
 - The Game Over overlay no longer renders a crash decoration — the previous source file (`/Clipboard0E2.webp`) is no longer in the repo. Drop a replacement under `/assets/image/...` and re-add a `<img>` inside `#gameOver` in index.html to bring it back.
-- Multiplayer presence uses `WebsimSocket` if available; presence is updated each run and peers are visualized as simple markers.
+- Multiplayer presence uses Puter's shared KV room (`createPuterRoom()`); presence is updated every 2.5s and peers are visualized as simple coloured markers.
 - The game attempts to load `/assets/model/stylized_ww1_plane.glb` (wired up in `game.js`) and falls back to the procedural plane in `game/world/plane/factory.js#buildPlane` if loading fails.
 - Audio is positional and best-effort; autoplay may be blocked until a user gesture. Engine sound loads `/assets/audio/airplane.wav` (`THREE.AudioLoader`) and starts inside the Start-button click handler.
-- Puter integration is optional and best-effort: set an API key with `window.setPuterApiKey(key)` to enable remote saving/fetching of briefings and runs.
+- Puter integration is automatic when hosted inside Puter (via `puter.js` SDK). For legacy use, set an API key with `window.setPuterApiKey(key)`.
 - Disposal: every domain manager exposes a teardown; the safe-default disposal walks the tree skipping resources the shared WeakSet registered.
 - Near-miss bullet-time: when the plane AABB enters a 0.5m shell around the `+1.2` collision AABB, `state.timeScale` smoothly drops from 1.0 → 0.4 for ~1.2s, then eases back to 1.0. World dt is multiplied by `state.timeScale` so clouds, ground strips, plane motion, propeller spin, and building drift all slow together (Matrix-style). On `state.over` (post-crash) `timeScale` is forced to 1.0 so the 3-explosion GIF + 3D burst stagger keeps its real wall-clock cadence. Cooldown is **per-building** (`state.lastNearMissByBuilding: Map<building, lastFireMs>`): skimming past N distinct buildings in quick succession fires N independent bullet-time windows, while grazing along ONE building for more than 1.2s refires at most once per window (no sustained slow-mo from a single long shell-graze). Tunables in `game/world/shared.js#TUNING` (`NEAR_MISS_TIME_SCALE`, `NEAR_MISS_DURATION_MS`); helpers in `game/world.js#checkNearMiss` and the per-frame `buildings.updateForSpeed` callback.
 
