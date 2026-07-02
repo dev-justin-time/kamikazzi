@@ -1,0 +1,3131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jackpot Wallet - Desktop Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.0/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0/dist/chartjs-adapter-luxon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <link rel="stylesheet" href="ui/styles/desktop-styles.css">
+    <link rel="stylesheet" href="ui/styles/style.css">
+    <link rel="stylesheet" href="ui/styles/csv-styles.css">
+    <link rel="stylesheet" href="ui/styles/enhanced-trading-styles.css">
+    <link rel="stylesheet" href="ui/styles/slots-styles.css">
+    <link rel="stylesheet" href="ui/styles/page-style.css">
+    <link rel="stylesheet" href="ui/styles/testnet-styles.css" id="testnet-styles" disabled="">
+    console.log('To toggle testnet mode, use: toggleTestnet() in console or add ?testnet=true to URL');
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Word-Reel Slot Wallet + 🪔 Aladdin's Lamp</h1>
+            <p>Generate 12-word mnemonic phrases with magical slot reels!</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('slots')">🎰 Word Slots</div>
+            <div class="tab" onclick="switchTab('wallet')">👛 Wallet</div>
+            <div class="tab" onclick="switchTab('trader')">📊 Trading Dashboard</div>
+            <div class="tab" onclick="switchTab('lamp')">🪔 Aladdin's Lamp</div>
+        </div>
+
+        <!-- Word Slots Tab -->
+        <div id="slots-tab" class="tab-content active">
+            <div class="slot-machine">
+                <h2>🎰 12-Reel Word Generator</h2>
+
+                <div class="reels-container" id="reelsContainer">
+                    <!-- 12 reels will be generated here -->
+                </div>
+
+                <div class="spin-controls">
+                    <button id="spinButton" class="spin-button" onclick="spinReels()">
+                        🎰 SPIN TO GENERATE PHRASE
+                    </button>
+                    <button id="mixerButton" class="mixer-button" onclick="spinWithWordMixer()">
+                        🎲 WORD MIXER SPIN
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalSpins">0</div>
+                        <div class="stat-label">Total Spins</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="uniquePhrases">0</div>
+                        <div class="stat-label">Unique Phrases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="rarityScore">0%</div>
+                        <div class="stat-label">Rarity Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="magicLevel">0</div>
+                        <div class="stat-label">Magic Level</div>
+                    </div>
+                </div>
+
+                <div class="word-mixer-info" id="wordMixerInfo">
+                    <h4>🎲 Word Mixer Strategy</h4>
+                    <div class="word-mixer-strategy">
+                        <div>
+                            <div class="strategy-indicator common-first"></div>
+                            <span>Words 1-3: Common First (1-500)</span>
+                        </div>
+                        <div>
+                            <div class="strategy-indicator middle-range"></div>
+                            <span>Words 4-6: Middle Range (500-1500)</span>
+                        </div>
+                        <div>
+                            <div class="strategy-indicator last-range"></div>
+                            <span>Words 7-9: Last Range (1500-2048)</span>
+                        </div>
+                        <div>
+                            <div class="strategy-indicator random"></div>
+                            <span>Words 10-12: Random (Full Range)</span>
+                        </div>
+                    </div>
+                    <div class="entropy-display" id="entropyDisplay">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="secondary-button" onclick="autoGenerate()">🔄 Auto Generate</button>
+                    <button class="secondary-button" onclick="savePhrase()">💾 Save Phrase</button>
+                    <button class="secondary-button" onclick="exportPhrases()">📤 Export All</button>
+                    <button class="secondary-button" onclick="resetStats()">🔄 Reset Stats</button>
+                    <button class="secondary-button" onclick="importBIP32CSV()">Import BIP32 CSV</button>
+                    <button class="secondary-button" id="soundToggle" onclick="toggleSound()">Sound: ON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Tab -->
+        <div id="wallet-tab" class="tab-content">
+            <div class="wallet-section">
+                <h3>👛 Generated Mnemonic Phrase</h3>
+                <div class="mnemonic-display" id="mnemonicDisplay">
+                    Click "SPIN TO GENERATE PHRASE" to create your 12-word mnemonic
+                </div>
+
+                <div class="wallet-info">
+                    <div class="info-card">
+                        <h4>Security Level</h4>
+                        <p id="securityLevel">Not Generated</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Derivation Path</h4>
+                        <p id="derivationPath">m/44'/60'/0'/0/0</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Wallet Address</h4>
+                        <p id="walletAddress">Not Generated</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Network</h4>
+                        <p id="networkInfo">Not Connected</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Balance</h4>
+                        <p id="walletBalance">0 ETH</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Private Key</h4>
+                        <p id="privateKey">Hidden (Click to reveal)</p>
+                    </div>
+                </div>
+
+                <div class="wallet-operations">
+                    <h3>Wallet Operations</h3>
+                    <div class="operation-section">
+                        <h4>Send Transaction</h4>
+                        <div>
+                            <input type="text" id="recipientAddress" placeholder="Recipient Address (0x...)">
+                            <input type="number" id="sendAmount" placeholder="Amount (ETH)" step="0.001">
+                            <button onclick="sendTransaction()">Send Transaction</button>
+                        </div>
+                    </div>
+
+                    <div class="operation-section">
+                        <h4>Network Selection</h4>
+                        <select id="networkSelect" onchange="switchNetwork()">
+                            <option value="1">Ethereum Mainnet</option>
+                            <option value="137">Polygon</option>
+                            <option value="56">BSC</option>
+                            <option value="42161">Arbitrum</option>
+                            <option value="10">Optimism</option>
+                        </select>
+                    </div>
+
+                    <div class="operation-section">
+                        <h4>Wallet Actions</h4>
+                        <div>
+                            <button onclick="revealPrivateKey()">Reveal Private Key</button>
+                            <button onclick="exportWallet()">Export Wallet</button>
+                            <button onclick="refreshBalance()">Refresh Balance</button>
+                            <button onclick="showTransactionHistory()">Transaction History</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="saved-slot-wallets">
+                    <h3>Slot-Generated Wallets</h3>
+                    <div id="savedWalletsList">
+                        <p>No slot-generated wallets yet. Spin the slots to create wallets!</p>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="secondary-button" onclick="connectWallet()">Connect Wallet</button>
+                    <button class="secondary-button" onclick="copyMnemonic()">Copy Phrase</button>
+                    <button class="secondary-button" onclick="verifyPhrase()">Verify Phrase</button>
+                    <button class="secondary-button" onclick="importPhrase()">Import Phrase</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aladdin's Lamp Tab -->
+        <div id="lamp-tab" class="tab-content">
+            <div class="wishes-section">
+                <div class="lamp-container">
+                    <div class="magic-lamp">
+                        <div class="magic-smoke"></div>
+                    </div>
+                    <h2 style="color: var(--secondary); margin-bottom: 20px;">Make Your Magical Wish</h2>
+                </div>
+
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <textarea class="wish-input" id="wishInput"
+                        placeholder="Type your wish here... The lamp will grant you magical mnemonic phrases!"
+                        rows="4"></textarea>
+
+                    <div style="text-align: center;">
+                        <button class="make-wish-button" onclick="makeWish()">
+                            ✨ Make a Wish
+                        </button>
+                    </div>
+
+                    <div class="wishes-display" id="wishesDisplay">
+                        <h3 style="margin-bottom: 15px; color: var(--secondary);">🧞 Granted Wishes</h3>
+                        <div id="wishesList">
+                            <p style="opacity: 0.6; text-align: center;">No wishes granted yet...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Dashboard Tab -->
+        <div id="trader-tab" class="tab-content">
+            <div class="container">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <div class="logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5z" />
+                            <path d="M2 17h20" />
+                            <path d="M2 12h20" />
+                        </svg>
+                        TokenMonster
+                    </div>
+
+                    <div class="nav-item active" onclick="showPage('arbitrage')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z" />
+                            <path d="M13 5l7 7-7 7" />
+                        </svg>
+                        Arbitrage
+                    </div>
+
+                    <div class="nav-item" onclick="showPage('trading')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3h18M3 12h18M3 21h18" />
+                            <path d="M8 3l-4 9 4 9M16 3l4 9-4 9" />
+                        </svg>
+                        Trading Bot
+                    </div>
+
+                    <div class="nav-item" onclick="showPage('simulation')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l9-12z" />
+                            <path d="M13 2v7l9 9-9-9" />
+                        </svg>
+                        Simulation
+                    </div>
+                </div>
+
+                <!-- Top Bar -->
+                <div class="topbar">
+                    <div class="bot-status">
+                        <div class="status-indicator running"></div>
+                        <span>Bot Running</span>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="main-content">
+                    <!-- Arbitrage Page -->
+                    <div id="arbitrage-page" class="page-content active">
+                        <div class="card">
+                            <h2>FlashLoan Arbitrage Scanner</h2>
+
+                            <div class="table-controls">
+                                <h3>Filters</h3>
+                                <select class="filter-dropdown" id="minProfit">
+                                    <option value="0">Min Profit: $0</option>
+                                    <option value="10">Min Profit: $10</option>
+                                    <option value="50">Min Profit: $50</option>
+                                    <option value="100">Min Profit: $100</option>
+                                </select>
+
+                                <select class="filter-dropdown" id="maxGas">
+                                    <option value="50">Max Gas: $50</option>
+                                    <option value="100">Max Gas: $100</option>
+                                    <option value="200">Max Gas: $200</option>
+                                </select>
+
+                                <button class="sim-button" onclick="scanArbitrage()">Scan Opportunities</button>
+                            </div>
+
+                            <table class="arb-table" id="arbTable">
+                                <thead>
+                                    <tr>
+                                        <th>Token A</th>
+                                        <th>Exchange A</th>
+                                        <th>Price A</th>
+                                        <th>Token B</th>
+                                        <th>Exchange B</th>
+                                        <th>Price B</th>
+                                        <th>Profit</th>
+                                        <th>Gas Cost</th>
+                                        <th>Net Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="arbTableBody">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; color: #888;">Click "Scan
+                                            Opportunities" to find arbitrage trades</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Trading Bot Page -->
+                    <div id="trading-page" class="page-content">
+                        <div class="card">
+                            <h2>Automated Trading Bot</h2>
+
+                            <div class="bot-controls">
+                                <h3>Trading Parameters</h3>
+                                <div class="control-buttons">
+                                    <button class="control-btn start" onclick="startTradingBot()">Start Bot</button>
+                                    <button class="control-btn" onclick="stopTradingBot()">Stop Bot</button>
+                                </div>
+                            </div>
+
+                            <div class="trading-chart-card">
+                                <canvas id="tradingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Page -->
+                    <div id="simulation-page" class="page-content">
+                        <div class="card">
+                            <h2>Backtesting Simulation</h2>
+
+                            <div class="bot-controls">
+                                <h3>Simulation Settings</h3>
+                                <div style="margin-bottom: 1rem;">
+                                    <label>DEX Selection:</label>
+                                    <select id="simDexs" multiple style="width: 100%; margin-top: 0.5rem;">
+                                        <option value="uniswap">Uniswap</option>
+                                        <option value="sushiswap">SushiSwap</option>
+                                        <option value="pancakeswap">PancakeSwap</option>
+                                    </select>
+                                </div>
+
+                                <div class="control-buttons">
+                                    <button class="control-btn" onclick="runSimulation()">Run Simulation</button>
+                                    <button class="control-btn" onclick="resetSimulation()">Reset</button>
+                                </div>
+                            </div>
+
+                            <div class="results-summary" id="simResults">
+                                <div class="summary-item">
+                                    <label>Total Trades</label>
+                                    <span id="totalTrades">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <label>Win Rate</label>
+                                    <span id="winRate">0%</span>
+                                </div>
+                                <div class="summary-item">
+                                    <label>Total Profit</label>
+                                    <span id="totalProfit">$0</span>
+                                </div>
+                            </div>
+
+                            <div class="trading-chart-card">
+                                <canvas id="simProfitChart"></canvas>
+                            </div>
+
+                            <div class="trade-history-card">
+                                <h3>Trade History</h3>
+                                <div id="tradeHistory"></div>
+                                <button class="download-btn" onclick="downloadTradeHistory()">Download History</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Full BIP39 Word List (2048 words)
+        const bip39Words = [
+            'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse',
+            'access', 'accident', 'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act',
+            'action', 'actor', 'actress', 'actual', 'adapt', 'add', 'addict', 'address', 'adjust', 'admit',
+            'adult', 'advance', 'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent',
+            'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album', 'alcohol', 'alert',
+            'alien', 'all', 'alley', 'allow', 'almost', 'alone', 'alpha', 'already', 'also', 'alter',
+            'always', 'amateur', 'amazing', 'among', 'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger',
+            'angle', 'angry', 'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique',
+            'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april', 'arch', 'arctic',
+            'area', 'arena', 'argue', 'arm', 'armed', 'armor', 'army', 'around', 'arrange', 'arrest',
+            'arrive', 'arrow', 'art', 'artefact', 'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset',
+            'assist', 'assume', 'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction',
+            'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado', 'avoid', 'awake',
+            'aware', 'away', 'awesome', 'awful', 'awkward', 'axis', 'baby', 'bachelor', 'bacon', 'badge',
+            'bag', 'balance', 'balcony', 'ball', 'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain',
+            'barrel', 'base', 'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become',
+            'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt', 'bench', 'benefit',
+            'best', 'betray', 'better', 'between', 'beyond', 'bicycle', 'bid', 'bike', 'bind', 'biology',
+            'bird', 'birth', 'bitter', 'black', 'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless',
+            'blind', 'blood', 'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body',
+            'boil', 'bomb', 'bond', 'bone', 'bonus', 'book', 'boost', 'border', 'boring', 'borrow',
+            'boss', 'bottom', 'box', 'boy', 'brain', 'brave', 'bread', 'break', 'breed', 'brick',
+            'bride', 'brief', 'bring', 'brisk', 'broad', 'broken', 'brother', 'brown', 'brush', 'budget',
+            'buffer', 'buffalo', 'build', 'bulb', 'bulk', 'bullet', 'bundle', 'bunker', 'burden', 'burst',
+            'bus', 'business', 'busy', 'butter', 'buyer', 'buzz', 'cabbage', 'cabin', 'cable', 'calm',
+            'campus', 'candle', 'cannon', 'canvas', 'capitol', 'captain', 'carbon', 'cargo', 'carry', 'carve',
+            'case', 'cash', 'casino', 'castle', 'casual', 'catch', 'cater', 'cause', 'caution', 'cave',
+            'ceiling', 'celery', 'cement', 'century', 'cereal', 'certain', 'chair', 'chalk', 'champagne',
+            'champion', 'change', 'chaos', 'charge', 'chase', 'cheap', 'check', 'cheese', 'cherry', 'chest',
+            'chicken', 'chief', 'child', 'china', 'choice', 'choose', 'chosen', 'chunk', 'churn', 'cigar',
+            'cinnamon', 'circle', 'citizen', 'city', 'claim', 'clap', 'clarify', 'clash', 'class', 'classic',
+            'clean', 'clear', 'clerk', 'clever', 'click', 'client', 'cliff', 'climb', 'clinic', 'clock',
+            'clone', 'close', 'cloth', 'cloud', 'clown', 'club', 'clump', 'cluster', 'coach', 'coast',
+            'coconut', 'code', 'coffee', 'coil', 'coin', 'collect', 'color', 'column', 'combine', 'comfort',
+            'comic', 'common', 'company', 'concert', 'conduct', 'confirm', 'congress', 'connect', 'consider',
+            'consist', 'constant', 'contain', 'content', 'contest', 'context', 'continue', 'contract', 'control',
+            'convert', 'cook', 'cool', 'copper', 'copy', 'coral', 'core', 'corn', 'correct', 'cost',
+            'cotton', 'couch', 'country', 'couple', 'course', 'cousin', 'cover', 'crack', 'craft', 'crash',
+            'crazy', 'cream', 'creek', 'crew', 'crop', 'cross', 'crowd', 'crown', 'crucial', 'cruel',
+            'cruise', 'crush', 'cry', 'crystal', 'cube', 'culture', 'cupboard', 'curious', 'current', 'curtain',
+            'curve', 'cushion', 'custom', 'cute', 'cycle', 'dad', 'damage', 'dance', 'danger', 'daring',
+            'dash', 'data', 'date', 'dawn', 'day', 'deal', 'deaf', 'debate', 'debris', 'decade',
+            'decorate', 'decrease', 'dedicate', 'deep', 'deer', 'define', 'defy', 'delay', 'delegate',
+            'delicate', 'deliver', 'demand', 'denial', 'dentist', 'deny', 'depart', 'depend', 'deposit',
+            'depth', 'derive', 'describe', 'desert', 'design', 'desk', 'despair', 'destroy', 'detail',
+            'detect', 'device', 'devote', 'diagram', 'dial', 'diamond', 'diary', 'dice', 'diet', 'differ',
+            'digital', 'dilemma', 'dinner', 'dinosaur', 'direct', 'dirt', 'disagree', 'disappear', 'disaster',
+            'discipline', 'discover', 'disguise', 'dish', 'disorder', 'display', 'distance', 'divert', 'divide',
+            'divorce', 'dizzy', 'doctor', 'document', 'doll', 'dolphin', 'domain', 'donate', 'donkey',
+            'donor', 'door', 'dose', 'double', 'dove', 'draft', 'dragon', 'drama', 'drastic', 'draw',
+            'dream', 'dress', 'drift', 'drill', 'drink', 'drive', 'drop', 'drum', 'dry', 'duck',
+            'dumb', 'dune', 'during', 'dust', 'duty', 'dwarf', 'dynamic', 'eager', 'eagle', 'early',
+            'earn', 'earth', 'easily', 'east', 'easy', 'echo', 'ecology', 'economy', 'edge', 'edit',
+            'educate', 'effort', 'eight', 'either', 'elaborate', 'elder', 'elect', 'elegant', 'element',
+            'elephant', 'elite', 'else', 'embark', 'embody', 'embrace', 'emerge', 'emotion', 'emphasize',
+            'empire', 'enable', 'encounter', 'encourage', 'endless', 'endorse', 'enemy', 'energy', 'enforce',
+            'engage', 'enhance', 'enjoy', 'enlist', 'enough', 'enrich', 'enroll', 'ensure', 'enter',
+            'entire', 'entry', 'envelope', 'episode', 'equal', 'equip', 'era', 'erase', 'erode', 'error',
+            'erupt', 'essay', 'essence', 'estate', 'eternal', 'ethics', 'ethnic', 'evade', 'even', 'event',
+            'every', 'evidence', 'evolve', 'exact', 'example', 'excess', 'exchange', 'excite', 'exclude',
+            'excuse', 'execute', 'exercise', 'exhaust', 'exhibit', 'exile', 'exist', 'exit', 'expand',
+            'expect', 'expense', 'experience', 'expert', 'explain', 'explode', 'export', 'expose', 'express',
+            'extend', 'exterior', 'extra', 'exuberant', 'fabric', 'face', 'faculty', 'fade', 'faint',
+            'faith', 'fall', 'false', 'fame', 'family', 'famous', 'fan', 'fancy', 'fantastic', 'far',
+            'farm', 'fashion', 'fat', 'fatal', 'father', 'fault', 'favor', 'favorite', 'feature',
+            'federal', 'feel', 'female', 'fence', 'festival', 'fetch', 'fever', 'few', 'fiber',
+            'fiction', 'field', 'figure', 'file', 'film', 'filter', 'final', 'find', 'fine',
+            'finger', 'finish', 'fire', 'firm', 'first', 'fiscal', 'fish', 'fit', 'fitness',
+            'fix', 'flag', 'flame', 'flat', 'flavor', 'flee', 'flight', 'flip', 'float', 'flock',
+            'floor', 'flower', 'fluid', 'flush', 'flute', 'fly', 'foam', 'focus', 'fog', 'foil',
+            'fold', 'follow', 'food', 'foot', 'force', 'forest', 'forget', 'fork', 'fortune', 'forum',
+            'forward', 'fossil', 'foster', 'foul', 'found', 'fox', 'fragile', 'frame', 'frequent',
+            'fresh', 'friend', 'fringe', 'frog', 'front', 'frost', 'frozen', 'fruit', 'fuel', 'fun',
+            'funny', 'furniture', 'future', 'gadget', 'gain', 'galaxy', 'gallery', 'game', 'garage',
+            'garbage', 'garden', 'garlic', 'garment', 'gas', 'gasp', 'gate', 'gather', 'gauge',
+            'gaze', 'general', 'genius', 'gentle', 'genuine', 'gesture', 'ghost', 'giant', 'gift',
+            'giggle', 'ginger', 'giraffe', 'girl', 'give', 'glad', 'glance', 'glare', 'glass',
+            'glide', 'glimpse', 'globe', 'gloom', 'glory', 'glove', 'glow', 'glue', 'goat',
+            'goddess', 'gold', 'good', 'goose', 'gorilla', 'government', 'gown', 'grab', 'grace',
+            'grain', 'grant', 'grape', 'graph', 'grasp', 'grass', 'grateful', 'grave', 'gravity',
+            'gray', 'great', 'green', 'grid', 'grief', 'grind', 'grocery', 'group', 'grow', 'grunt',
+            'guard', 'guess', 'guide', 'guilt', 'guitar', 'gun', 'gym', 'habit', 'hair', 'half',
+            'hammer', 'hamster', 'hand', 'happy', 'harbor', 'hard', 'harsh', 'harvest', 'hat',
+            'have', 'hawk', 'hazard', 'head', 'health', 'heart', 'heavy', 'hedgehog', 'height',
+            'helmet', 'help', 'hen', 'hero', 'hidden', 'high', 'hill', 'hint', 'hip', 'hire',
+            'history', 'hobby', 'hold', 'hole', 'holiday', 'hollow', 'home', 'honey', 'hope',
+            'horn', 'horse', 'hospital', 'host', 'hotel', 'hour', 'hover', 'huge', 'human',
+            'humble', 'humor', 'hundred', 'hungry', 'hunt', 'hurdle', 'hurry', 'hurt', 'husband',
+            'hybrid', 'ice', 'icon', 'idea', 'identify', 'idle', 'ill', 'illegal', 'illness',
+            'image', 'imitate', 'immense', 'immune', 'impact', 'impose', 'improve', 'impulse', 'inch',
+            'include', 'income', 'increase', 'index', 'indicate', 'indoor', 'industry', 'infant', 'inflict',
+            'inform', 'inhale', 'inherit', 'initial', 'inject', 'injury', 'inmate', 'inner', 'innocent',
+            'input', 'inquiry', 'insane', 'insect', 'inspire', 'install', 'intact', 'interest', 'into',
+            'invest', 'invite', 'involve', 'iron', 'island', 'isolate', 'issue', 'item', 'ivory',
+            'jacket', 'jaguar', 'jar', 'jazz', 'jeans', 'jelly', 'jewel', 'job', 'join',
+            'joke', 'journey', 'judge', 'juice', 'jump', 'jungle', 'junior', 'junk', 'just',
+            'kangaroo', 'keen', 'keep', 'kettle', 'key', 'kid', 'kidney', 'kind', 'kingdom',
+            'kiss', 'kit', 'kitchen', 'kite', 'kitten', 'kiwi', 'knee', 'knife', 'knock',
+            'know', 'lab', 'label', 'labor', 'ladder', 'lady', 'lake', 'lamp', 'language',
+            'large', 'laser', 'late', 'laugh', 'laundry', 'lava', 'law', 'lawn', 'layer',
+            'lazy', 'leader', 'leaf', 'learn', 'lease', 'least', 'leather', 'leave', 'lecture',
+            'left', 'leg', 'legal', 'lemon', 'length', 'lesson', 'letter', 'level', 'liar',
+            'license', 'life', 'lift', 'light', 'like', 'limb', 'limit', 'link', 'lion',
+            'liquid', 'list', 'little', 'live', 'lizard', 'load', 'loan', 'lobster', 'local',
+            'logic', 'logical', 'lonely', 'long', 'loop', 'lottery', 'loud', 'lounge', 'love',
+            'loyal', 'lucky', 'luggage', 'lumber', 'lunar', 'lunch', 'luxury', 'machine', 'mad',
+            'magic', 'magnet', 'maid', 'mail', 'main', 'major', 'make', 'mammal', 'man',
+            'manage', 'mandate', 'mango', 'mansion', 'manual', 'maple', 'marble', 'march', 'margin',
+            'marine', 'market', 'marriage', 'mask', 'mass', 'master', 'match', 'material', 'math',
+            'matrix', 'matter', 'maximum', 'maze', 'meadow', 'mean', 'measure', 'meat', 'mechanic',
+            'medal', 'media', 'melody', 'melt', 'member', 'memory', 'mention', 'menu', 'mercy',
+            'merge', 'merit', 'merry', 'mesh', 'message', 'metal', 'method', 'middle', 'midnight',
+            'milk', 'million', 'mind', 'minimum', 'minor', 'minute', 'miracle', 'mirror', 'miss',
+            'mistake', 'mix', 'mixed', 'mixture', 'mobile', 'model', 'modify', 'mom', 'moment',
+            'monitor', 'monkey', 'month', 'moral', 'more', 'morning', 'mosquito', 'mother', 'motion',
+            'motor', 'mountain', 'mouse', 'mouth', 'move', 'movie', 'much', 'muffin', 'mule',
+            'multiply', 'muscle', 'museum', 'mushroom', 'music', 'must', 'mutual', 'myself', 'mystery',
+            'myth', 'naive', 'name', 'napkin', 'narrow', 'nasty', 'nation', 'nature', 'near',
+            'neck', 'need', 'negative', 'negotiate', 'neither', 'nephew', 'nerve', 'nest', 'net',
+            'network', 'neutral', 'never', 'news', 'next', 'nice', 'night', 'noble', 'noise',
+            'nominee', 'noodle', 'normal', 'north', 'notable', 'note', 'nothing', 'notice', 'noun',
+            'novel', 'nurse', 'nut', 'obey', 'object', 'obscure', 'observe', 'obstacle', 'obtain',
+            'obvious', 'ocean', 'offer', 'often', 'order', 'organ', 'orient', 'original', 'ornament',
+            'orphan', 'ostrich', 'other', 'outdoor', 'outer', 'output', 'outside', 'oval', 'oven',
+            'own', 'owner', 'oxygen', 'oyster', 'ozone', 'pact', 'paddle', 'page', 'pair', 'palace',
+            'palm', 'panda', 'panel', 'panic', 'paper', 'parade', 'parent', 'park', 'parrot',
+            'party', 'pass', 'patch', 'path', 'patient', 'patrol', 'pattern', 'pause', 'peace',
+            'pen', 'pencil', 'people', 'pepper', 'percent', 'perfect', 'period', 'person', 'pet',
+            'phone', 'photo', 'piano', 'picnic', 'picture', 'piece', 'pig', 'pigeon', 'pillow',
+            'pilot', 'pink', 'pioneer', 'pipe', 'pistol', 'pitch', 'pizza', 'place', 'planet',
+            'plastic', 'plate', 'play', 'please', 'pledge', 'pluck', 'plug', 'plunge', 'poem',
+            'poet', 'point', 'polar', 'pole', 'police', 'pond', 'pony', 'pool', 'popular',
+            'portion', 'position', 'possess', 'possible', 'post', 'potato', 'pottery', 'poverty',
+            'powder', 'power', 'practice', 'praise', 'predict', 'prefer', 'prepare', 'present',
+            'pretty', 'prevent', 'price', 'pride', 'primary', 'print', 'priority', 'prison',
+            'private', 'prize', 'problem', 'process', 'produce', 'profile', 'program', 'project',
+            'promote', 'proof', 'property', 'prosper', 'protect', 'proud', 'provide', 'public',
+            'pudding', 'pull', 'pulp', 'pulse', 'pumpkin', 'punch', 'pupil', 'puppy', 'purchase',
+            'purity', 'purpose', 'purse', 'push', 'put', 'puzzle', 'quality', 'quantum', 'quarter',
+            'question', 'quick', 'quiet', 'quit', 'quite', 'quote', 'rabbit', 'race', 'rack',
+            'radar', 'radiation', 'radio', 'rain', 'raise', 'rally', 'ramp', 'ranch', 'random',
+            'range', 'rapid', 'rare', 'rate', 'rather', 'raven', 'raw', 'razor', 'ready',
+            'real', 'reason', 'rebel', 'rebuild', 'recall', 'receive', 'recipe', 'record', 'recycle',
+            'reduce', 'reflect', 'reform', 'refuse', 'region', 'regret', 'regular', 'reject',
+            'relax', 'release', 'relief', 'remain', 'remember', 'remind', 'remove', 'render',
+            'renew', 'rent', 'reopen', 'repair', 'repeat', 'replace', 'report', 'require',
+            'rescue', 'resist', 'resource', 'response', 'result', 'retire', 'return', 'reunion',
+            'reveal', 'review', 'reward', 'rhythm', 'rib', 'ribbon', 'rice', 'rich', 'ride',
+            'ridge', 'rifle', 'right', 'rigid', 'ring', 'riot', 'ripple', 'risk', 'ritual',
+            'rival', 'river', 'road', 'roast', 'robot', 'robust', 'rocket', 'romance', 'roof',
+            'rookie', 'room', 'rose', 'rotate', 'rough', 'round', 'route', 'royal', 'rubber',
+            'rude', 'rug', 'rule', 'run', 'rural', 'sad', 'saddle', 'safe', 'sail',
+            'salad', 'salmon', 'salon', 'salt', 'salute', 'same', 'sample', 'sand', 'satisfy',
+            'savage', 'save', 'scale', 'scan', 'scare', 'scatter', 'scene', 'scheme', 'school',
+            'science', 'scissors', 'scorpion', 'scout', 'screen', 'script', 'scrub', 'search',
+            'season', 'seat', 'second', 'secret', 'section', 'seed', 'seek', 'segment', 'select',
+            'sell', 'send', 'senior', 'sense', 'sentence', 'series', 'service', 'session', 'settle',
+            'seven', 'several', 'shadow', 'shake', 'shallow', 'share', 'shark', 'sharp',
+            'shatter', 'shed', 'sheep', 'sheet', 'shelf', 'shell', 'shield', 'shift', 'shine',
+            'ship', 'shiver', 'shock', 'shoe', 'shoot', 'shop', 'shore', 'short', 'shoulder',
+            'shove', 'shrimp', 'shrug', 'shuffle', 'shy', 'sibling', 'side', 'siege', 'sight',
+            'sign', 'silent', 'silk', 'silly', 'silver', 'similar', 'simple', 'since', 'sing',
+            'siren', 'sister', 'site', 'situate', 'six', 'size', 'skill', 'skin', 'skip',
+            'slab', 'slave', 'sleep', 'slice', 'slide', 'slight', 'slim', 'slogan', 'slot',
+            'slow', 'small', 'smart', 'smile', 'smoke', 'smooth', 'snake', 'snap', 'sniff',
+            'snow', 'soap', 'soccer', 'social', 'soda', 'sofa', 'soft', 'solid', 'solve',
+            'some', 'song', 'soon', 'sorry', 'sort', 'sound', 'source', 'space', 'spare',
+            'spark', 'speak', 'special', 'speed', 'spell', 'spend', 'sphere', 'spice',
+            'spider', 'spike', 'spin', 'spirit', 'split', 'spoil', 'sponsor', 'spoon',
+            'sport', 'spot', 'spray', 'spread', 'spring', 'spy', 'square', 'squeeze', 'squirrel',
+            'stable', 'stadium', 'staff', 'stage', 'stairs', 'stamp', 'stand', 'start', 'state',
+            'stay', 'steak', 'steel', 'stem', 'step', 'stick', 'still', 'stock', 'stomach',
+            'stone', 'stop', 'store', 'story', 'storm', 'strategy', 'street', 'strike', 'strong',
+            'struggle', 'student', 'stuff', 'stumble', 'style', 'subject', 'submit', 'subway',
+            'success', 'such', 'sudden', 'suffer', 'sugar', 'suggest', 'suit', 'summer',
+            'sunny', 'super', 'supply', 'support', 'sure', 'surface', 'surge', 'surprise',
+            'surround', 'survey', 'suspect', 'sustain', 'swallow', 'swap', 'swarm', 'swear',
+            'sweet', 'swift', 'swim', 'swing', 'switch', 'sword', 'symbol', 'symptom',
+            'syrup', 'system', 'table', 'tackle', 'tag', 'tail', 'talent', 'talk', 'tank',
+            'tape', 'target', 'task', 'taste', 'taxi', 'teach', 'team', 'teeth', 'tell',
+            'temple', 'tennis', 'tent', 'term', 'test', 'text', 'thank', 'that', 'theme',
+            'then', 'theory', 'there', 'they', 'thing', 'this', 'thought', 'three', 'thrive',
+            'throw', 'thumb', 'thunder', 'ticket', 'tide', 'tiger', 'tilt', 'timber', 'time',
+            'tiny', 'tip', 'tired', 'tissue', 'title', 'toast', 'today', 'toddler', 'toe',
+            'together', 'token', 'tomato', 'tomorrow', 'tone', 'tongue', 'tonight', 'tool',
+            'tooth', 'top', 'topic', 'toss', 'total', 'tourist', 'toward', 'tower', 'town',
+            'toy', 'track', 'trade', 'traffic', 'tragic', 'train', 'transfer', 'trap', 'trash',
+            'travel', 'tray', 'treat', 'tree', 'trend', 'trial', 'tribe', 'trick', 'trigger',
+            'trim', 'trip', 'trophy', 'trouble', 'truck', 'true', 'truly', 'trunk', 'trust',
+            'truth', 'try', 'tube', 'tuition', 'tumble', 'tuna', 'turkey', 'turn', 'turtle',
+            'twelve', 'twenty', 'twice', 'twin', 'twist', 'two', 'type', 'typical', 'ugly',
+            'umbrella', 'unable', 'unusual', 'unveil', 'update', 'upgrade', 'uphold', 'upon',
+            'upper', 'upset', 'urban', 'urge', 'usage', 'use', 'used', 'useful', 'usual',
+            'utility', 'vacuum', 'vague', 'valid', 'valley', 'valve', 'van', 'vanish',
+            'vapor', 'various', 'vast', 'vault', 'vehicle', 'velvet', 'vendor', 'venture',
+            'venue', 'verb', 'verify', 'version', 'very', 'vessel', 'veteran', 'viable',
+            'vibrant', 'vicious', 'victory', 'video', 'view', 'village', 'vintage', 'violin',
+            'virtual', 'virus', 'visa', 'visit', 'visual', 'vital', 'vivid', 'vocal',
+            'voice', 'void', 'volcano', 'volume', 'vote', 'voyage', 'wage', 'wagon', 'wait',
+            'walk', 'wall', 'walnut', 'want', 'warfare', 'warm', 'warrior', 'wash', 'wasp',
+            'waste', 'water', 'wave', 'way', 'wealth', 'weapon', 'wear', 'weasel', 'weather',
+            'web', 'wedding', 'weekend', 'weird', 'welcome', 'west', 'wet', 'whale', 'what',
+            'wheat', 'wheel', 'when', 'whenever', 'where', 'whisper', 'wide', 'wild', 'will',
+            'winner', 'winter', 'wire', 'wisdom', 'wise', 'wish', 'witness', 'wolf', 'woman',
+            'wonder', 'wood', 'wool', 'word', 'work', 'world', 'worry', 'worth', 'wrap',
+            'wreck', 'wrestle', 'wrist', 'write', 'wrong', 'yard', 'year', 'yellow', 'you',
+            'young', 'youth', 'zebra', 'zero', 'zoo', 'zombie', 'zone'
+        ];
+
+        // Game State
+        let gameState = {
+            isSpinning: false,
+            currentPhrase: [],
+            totalSpins: 0,
+            uniquePhrases: new Set(),
+            savedPhrases: [],
+            wishes: [],
+            magicLevel: 0,
+            autoGenerating: false,
+            wallet: null,
+            web3: null,
+            currentNetwork: null,
+            balance: '0',
+            connectedAddress: null
+        };
+
+        // Wallet Manager will be loaded from external file
+
+        // Mnemonic validation
+        function validateMnemonic(mnemonic) {
+            const words = mnemonic.trim().split(/\s+/);
+
+            // Check if exactly 12 words
+            if (words.length !== 12) {
+                return { valid: false, error: 'Mnemonic must contain exactly 12 words' };
+            }
+
+            // Check if all words are valid BIP39 words
+            const invalidWords = words.filter(word => !bip39Words.includes(word.toLowerCase()));
+            if (invalidWords.length > 0) {
+                return {
+                    valid: false,
+                    error: `Invalid words found: ${invalidWords.join(', ')}`
+                };
+            }
+
+            return { valid: true };
+        }
+
+        // Generate random mnemonic
+        function generateRandomMnemonic() {
+            const mnemonic = [];
+            for (let i = 0; i < 12; i++) {
+                const randomIndex = Math.floor(Math.random() * bip39Words.length);
+                mnemonic.push(bip39Words[randomIndex]);
+            }
+            return mnemonic.join(' ');
+        }
+
+        // Import BIP32 word list from CSV
+        async function importBIP32CSV() {
+            try {
+                showNotification('info', 'Importing CSV', 'Loading BIP32 word list from CSV file...');
+
+                // Fetch the CSV file
+                const response = await fetch('bip32_wordlist.csv');
+                if (!response.ok) {
+                    throw new Error('Failed to load CSV file');
+                }
+
+                const csvText = await response.text();
+                const lines = csvText.split('\n');
+
+                // Parse CSV (skip header, extract words)
+                const importedWords = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        const parts = line.split(',');
+                        if (parts.length >= 2) {
+                            const word = parts[1].trim().replace(/"/g, '');
+                            if (word) {
+                                importedWords.push(word.toLowerCase());
+                            }
+                        }
+                    }
+                }
+
+                if (importedWords.length === 0) {
+                    throw new Error('No words found in CSV file');
+                }
+
+                // Validate that we have the expected number of words (2048 for BIP39)
+                if (importedWords.length < 1000) {
+                    showNotification('warning', 'Limited Word List', `Imported ${importedWords.length} words. BIP39 standard requires 2048 words.`);
+                } else {
+                    showNotification('success', 'Import Successful', `Successfully imported ${importedWords.length} BIP39 words!`);
+                }
+
+                // Replace the current word list
+                bip39Words.length = 0; // Clear existing array
+                bip39Words.push(...importedWords);
+
+                // Update the reels with a sample of imported words
+                updateReelsWithImportedWords();
+
+                // Save to localStorage for persistence
+                localStorage.setItem('bip39Words', JSON.stringify(bip39Words));
+
+                // Update stats
+                updateStats();
+
+                showNotification('success', 'Word List Updated', 'The slot machine now uses the imported BIP32 word list!');
+
+            } catch (error) {
+                console.error('Failed to import CSV:', error);
+                showNotification('error', 'Import Failed', error.message);
+            }
+        }
+
+        // Update reels with imported words (sample display)
+        function updateReelsWithImportedWords() {
+            const container = DOMCache.get('reelsContainer');
+            if (!container) return;
+
+            const reels = container.querySelectorAll('.reel');
+            reels.forEach((reel, index) => {
+                if (index < bip39Words.length) {
+                    reel.innerHTML = `<div class="reel-word">${bip39Words[index]}</div>`;
+                    reel.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+                }
+            });
+
+            // Clear the current phrase
+            gameState.currentPhrase = [];
+            updateMnemonicDisplay();
+        }
+
+        // Load BIP32 words from localStorage if available
+        function loadBIP32WordsFromStorage() {
+            try {
+                const stored = localStorage.getItem('bip39Words');
+                if (stored) {
+                    const words = JSON.parse(stored);
+                    if (Array.isArray(words) && words.length > 1000) {
+                        bip39Words.length = 0;
+                        bip39Words.push(...words);
+                        showNotification('info', 'Word List Loaded', `Loaded ${words.length} words from storage`);
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load words from storage:', error);
+            }
+            return false;
+        }
+
+        // Word Mixer - Select 12 random words with standard placement
+        function wordMixer() {
+            if (bip39Words.length < 12) {
+                showNotification('error', 'Insufficient Words', 'Need at least 12 Words in word list');
+                return [];
+            }
+
+            // Standard BIP39 word placement strategy
+            // First few words often come from specific ranges for better entropy distribution
+            const selectedWords = [];
+            const usedIndices = new Set();
+
+            // Strategy: Mix of standard placement and random selection
+            // 1-3: From first 500 words (common first words in mnemonics)
+            // 4-6: From middle 1000 words (500-1500)
+            // 7-9: From last 500 words (1500-2048)
+            // 10-12: Completely random from entire list
+
+            // Words 1-3: Common first words (indices 0-499)
+            for (let i = 0; i < 3; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * 500);
+                } while (usedIndices.has(randomIndex));
+
+                usedIndices.add(randomIndex);
+                selectedWords.push({
+                    word: bip39Words[randomIndex],
+                    index: randomIndex + 1,
+                    position: i + 1,
+                    category: 'common_first'
+                });
+            }
+
+            // Words 4-6: Middle range words (indices 500-1499)
+            for (let i = 3; i < 6; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = 500 + Math.floor(Math.random() * 1000);
+                } while (usedIndices.has(randomIndex));
+
+                usedIndices.add(randomIndex);
+                selectedWords.push({
+                    word: bip39Words[randomIndex],
+                    index: randomIndex + 1,
+                    position: i + 1,
+                    category: 'middle_range'
+                });
+            }
+
+            // Words 7-9: Last range words (indices 1500-2047)
+            for (let i = 6; i < 9; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = 1500 + Math.floor(Math.random() * 548);
+                } while (usedIndices.has(randomIndex));
+
+                usedIndices.add(randomIndex);
+                selectedWords.push({
+                    word: bip39Words[randomIndex],
+                    index: randomIndex + 1,
+                    position: i + 1,
+                    category: 'last_range'
+                });
+            }
+
+            // Words 10-12: Completely random from entire list
+            for (let i = 9; i < 12; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * bip39Words.length);
+                } while (usedIndices.has(randomIndex));
+
+                usedIndices.add(randomIndex);
+                selectedWords.push({
+                    word: bip39Words[randomIndex],
+                    index: randomIndex + 1,
+                    position: i + 1,
+                    category: 'random'
+                });
+            }
+
+            // Sort by position for proper slot display
+            selectedWords.sort((a, b) => a.position - b.position);
+
+            // Log the selection details for debugging
+            console.log('Word Mixer Selection:', {
+                totalWords: bip39Words.length,
+                selectedWords: selectedWords.map(w => ({
+                    position: w.position,
+                    word: w.word,
+                    index: w.index,
+                    category: w.category
+                })),
+                entropy: calculateEntropy(selectedWords)
+            });
+
+            return selectedWords;
+
+            if (mixerInfo && entropyDisplay) {
+                mixerInfo.style.display = 'block';
+                entropyDisplay.innerHTML = `
+                                <strong>Entropy Analysis:</strong><br>
+                                Range: ${entropy.range} | Average: ${entropy.average}<br>
+                                Distribution: [${entropy.distribution.join(', ')}]<br>
+                                Entropy Score: ${entropy.score}%
+                            `;
+            }
+
+            showNotification('success', 'Word Mixer Active',
+                `Generated phrase using strategic word placement: ${mixedWords.filter(w => w.category === 'common_first').length} common, ${mixedWords.filter(w => w.category === 'middle_range').length} middle, ${mixedWords.filter(w => w.category === 'last_range').length} late, ${mixedWords.filter(w => w.category === 'random').length} random words`);
+        };
+
+
+        // Enhanced reel animation with category-based styling
+        function animateReel(reel, finalWord, category) {
+
+            if (progress < 1) {
+                // Show random words during animation
+                const randomIndex = Math.floor(Math.random() * totalWords);
+                reel.innerHTML = `<div class="reel-word">${bip39Words[randomIndex]}</div>`;
+                reel.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+                requestAnimationFrame(animate);
+            } else {
+                // Show final word with category color
+                reel.innerHTML = `<div class="reel-word">${finalWord}</div>`;
+                reel.style.background = categoryColors[category] || categoryColors['random'];
+
+                // Play reel stop sound with different frequency based on category
+                const frequencies = {
+                    'common_first': 800,
+                    'middle_range': 1000,
+                    'last_range': 1200,
+                    'random': 600
+                };
+                soundManager.createReelStopSound(frequencies[category] || 800);
+
+                resolve();
+            }
+        }
+
+        animate();
+        ;
+
+
+        // Initialize the game
+        function initializeGame() {
+            // Try to load BIP32 words from storage first
+            const loadedFromStorage = loadBIP32WordsFromStorage();
+
+            createReels();
+            loadGameState();
+            updateStats();
+
+            if (!loadedFromStorage) {
+                showNotification('info', 'Default Word List', 'Using built-in BIP39 word list. Click "Import BIP32 CSV" to load custom word list.');
+            }
+        }
+
+        // Create 12 reels
+        async function createReels() {
+            const container = DOMCache.get('reelsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let index = 0; index < 12; index++) {
+                const reel = document.createElement('div');
+                reel.className = 'reel';
+                reel.id = `reel-${index}`;
+                // Play reel stop sound with different frequency based on category
+                const frequencies = {
+                    'common_first': 800,
+                    'middle_range': 1000,
+                    'last_range': 1200,
+                    'random': 600
+                };
+                soundManager.createReelStopSound(frequencies['common_first']);
+                container.appendChild(reel);
+            }
+
+            // Generate random words with delays for dramatic effect
+            for (let i = 0; i < 12; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200 * i));
+
+                const randomWord = bip39Words[Math.floor(Math.random() * bip39Words.length)];
+                gameState.currentPhrase.push(randomWord);
+
+                const reel = document.getElementById(`reel-${i}`);
+                reel.classList.remove('spinning');
+                reel.innerHTML = `<div class="reel-word">${randomWord}</div>`;
+
+                // Create particle effect
+                createParticle(reel);
+            }
+
+            // Update displays
+            updateMnemonicDisplay();
+            gameState.totalSpins++;
+            gameState.uniquePhrases.add(gameState.currentPhrase.join(' '));
+            gameState.magicLevel = Math.min(100, gameState.magicLevel + 5);
+
+            updateStats();
+            saveGameState();
+
+            gameState.isSpinning = false;
+            document.getElementById('spinButton').disabled = false;
+
+            // Celebration effect
+            if (gameState.totalSpins % 10 === 0) {
+                celebrate();
+            }
+        }
+
+        // Update mnemonic display
+        function updateMnemonicDisplay() {
+            const display = document.getElementById('mnemonicDisplay');
+            const phrase = gameState.currentPhrase.join(' ');
+            display.textContent = phrase || 'Click "SPIN TO GENERATE PHRASE" to create your 12-word mnemonic';
+
+            // Auto-import wallet when 12 words are generated
+            if (gameState.currentPhrase.length === 12) {
+                document.getElementById('securityLevel').textContent = 'High (12 words)';
+
+                // Auto-generate and import wallet from slot output
+                setTimeout(() => {
+                    autoImportFromSlot();
+                }, 1000); // Delay for dramatic effect
+            }
+        }
+
+        // Auto-import wallet from slot machine output
+        function autoImportFromSlot() {
+            try {
+                const mnemonic = gameState.currentPhrase.join(' ');
+
+                // Play coin sound for wallet creation
+                soundManager.play('coin');
+
+                // Generate wallet from the slot-generated phrase
+                const wallet = walletManager.generateWalletFromMnemonic(mnemonic);
+
+                // Store wallet in game state
+                gameState.wallet = wallet;
+                gameState.connectedAddress = wallet.address;
+
+                // Save phrase with metadata
+                const phraseData = {
+                    phrase: mnemonic,
+                    timestamp: Date.now(),
+                    address: wallet.address,
+                    source: 'slot_machine',
+                    magicLevel: gameState.magicLevel
+                };
+
+                gameState.savedPhrases.push(phraseData);
+
+                // Update UI with wallet info
+                document.getElementById('mnemonicDisplay').textContent = mnemonic;
+                document.getElementById('walletAddress').textContent = wallet.address;
+                document.getElementById('securityLevel').textContent = 'High (12 words)';
+                document.getElementById('privateKey').textContent = 'Hidden (Click to reveal)';
+
+                saveGameState();
+
+                // Play wallet created sound
+                setTimeout(() => {
+                    soundManager.createWalletCreatedSound();
+                }, 500);
+
+                // Switch to wallet tab to show the imported wallet
+                setTimeout(() => {
+                    switchToWalletTab();
+                    showNotification('success', 'Wallet Auto-Imported',
+                        `Successfully imported wallet from slot: ${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`);
+
+                }, 1000); // Delay for dramatic effect
+            } catch (error) {
+                console.error('Auto-import failed:', error);
+                showNotification('error', 'Import Failed', error.message);
+            }
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            soundManager.play('click');
+
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Activate selected tab
+            const selectedTab = Array.from(tabs).find(tab => tab.textContent.includes(tabName.charAt(0).toUpperCase() + tabName.slice(1)));
+            const selectedContent = document.getElementById(tabName + '-tab');
+
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedContent) selectedContent.classList.add('active');
+
+            // Initialize trading dashboard if trader tab is selected
+            if (tabName === 'trader') {
+                initializeTradingDashboard();
+            }
+        }
+
+        // Initialize trading dashboard charts
+        function initializeTradingDashboard() {
+            // Initialize trading chart
+            const ctx = document.getElementById('tradingChart');
+            if (ctx && !window.tradingChart) {
+                window.tradingChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'ETH Price',
+                            data: [],
+                            borderColor: '#8b5cf6',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#e5e7eb',
+                                    callback: value => '$' + value.toFixed(2)
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Start real-time price updates
+            startRealTimePriceUpdates();
+        }
+
+        // Real-time price feed system
+        function startRealTimePriceUpdates() {
+            // Update prices every 5 seconds
+            setInterval(async () => {
+                await updateRealTimePrices();
+            }, 5000);
+
+            // Initial price update
+            updateRealTimePrices();
+        }
+
+        async function updateRealTimePrices() {
+            try {
+                const prices = await tradingEngine.fetchTokenPrices();
+                updatePriceDisplay(prices);
+                updateTradingChart(prices);
+            } catch (error) {
+                console.error('Failed to update prices:', error);
+            }
+        }
+
+        function updatePriceDisplay(prices) {
+            // Create or update price ticker display
+            let priceTicker = document.getElementById('priceTicker');
+            if (!priceTicker) {
+                priceTicker = document.createElement('div');
+                priceTicker.id = 'priceTicker';
+                priceTicker.style.cssText = `
+                            background: rgba(139, 92, 246, 0.1);
+                            border: 1px solid rgba(139, 92, 246, 0.3);
+                            border-radius: 8px;
+                            padding: 10px;
+                            margin-bottom: 15px;
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                            gap: 10px;
+                            font-size: 0.9em;
+                        `;
+
+                const tradingPage = document.getElementById('trading-page');
+                const firstCard = tradingPage.querySelector('.card');
+                if (firstCard) {
+                    firstCard.insertBefore(priceTicker, firstCard.firstChild);
+                }
+            }
+
+            // Update price display
+            let priceHTML = '';
+            prices.forEach((data, token) => {
+                const changeColor = data.change24h >= 0 ? '#10b981' : '#ef4444';
+                const changeIcon = data.change24h >= 0 ? '+' : '';
+
+                priceHTML += `
+                            <div style="text-align: center;">
+                                <div style="font-weight: bold; color: #8b5cf6;">${token}</div>
+                                <div style="color: #e5e7eb;">$${data.price.toFixed(2)}</div>
+                                <div style="color: ${changeColor}; font-size: 0.8em;">
+                                    ${changeIcon}${data.change24h.toFixed(2)}%
+                                </div>
+                            </div>
+                        `;
+            });
+
+            priceTicker.innerHTML = priceHTML;
+        }
+
+        function updateTradingChart(prices) {
+            if (!window.tradingChart) return;
+
+            // Add new ETH price point to chart
+            const ethPrice = prices.get('ETH');
+            if (ethPrice) {
+                const now = new Date().toLocaleTimeString();
+
+                // Keep only last 20 data points
+                if (window.tradingChart.data.labels.length >= 20) {
+                    window.tradingChart.data.labels.shift();
+                    window.tradingChart.data.datasets[0].data.shift();
+                }
+
+                window.tradingChart.data.labels.push(now);
+                window.tradingChart.data.datasets[0].data.push(ethPrice.price);
+                window.tradingChart.update('none'); // Update without animation for smooth real-time updates
+            }
+        }
+
+        // Switch to wallet tab
+        function switchToWalletTab() {
+            // Play click sound
+            soundManager.play('click');
+
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Activate wallet tab
+            const walletTab = Array.from(tabs).find(tab => tab.textContent.includes('Wallet'));
+            const walletContent = document.getElementById('wallet-tab');
+
+            if (walletTab) walletTab.classList.add('active');
+            if (walletContent) walletContent.classList.add('active');
+
+            // Update saved wallets display
+            updateSavedWalletsDisplay();
+        }
+
+        // Update saved slot wallets display
+        function updateSavedWalletsDisplay() {
+            const savedWalletsList = document.getElementById('savedWalletsList');
+            if (!savedWalletsList) return;
+
+            const slotWallets = gameState.savedPhrases.filter(p => p.source === 'slot_machine');
+
+            if (slotWallets.length === 0) {
+                savedWalletsList.innerHTML = '<p style="opacity: 0.6; text-align: center;">No slot-generated wallets yet. Spin the slots to create wallets!</p>';
+                return;
+            }
+
+            let walletsHTML = '';
+            slotWallets.forEach((wallet, index) => {
+                const date = new Date(wallet.timestamp).toLocaleDateString();
+                const time = new Date(wallet.timestamp).toLocaleTimeString();
+                const isCurrentWallet = gameState.wallet && gameState.wallet.address === wallet.address;
+
+                walletsHTML += `
+                            <div class="saved-wallet-item" style="
+                                background: ${isCurrentWallet ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+                                border: ${isCurrentWallet ? '2px solid var(--success)' : '1px solid rgba(255, 215, 0, 0.3)'};
+                                padding: 15px; margin: 10px 0; border-radius: 10px; cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onclick="selectSlotPhrase(${index})">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div>
+                                        <div style="font-weight: bold; color: var(--secondary);">Wallet #${index + 1}</div>
+                                        <div style="font-size: 0.8em; opacity: 0.7;">${date} ${time}</div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        ${isCurrentWallet ? '<span style="color: var(--success);"> Active</span>' : ''}
+                                        <span style="background: ${wallet.magicLevel > 50 ? 'var(--success)' : 'var(--warning)'}; 
+                                </div>
+                                <div class="wallet-stats">
+                                    ${isCurrentWallet ? '<span class="active-badge">Active</span>' : ''}
+                                    <span class="magic-level" style="background: ${wallet.magicLevel > 50 ? 'var(--success)' : 'var(--warning)'};">Magic: ${wallet.magicLevel}</span>
+                                </div>
+                                <div class="wallet-phrase">
+                                    ${wallet.phrase}
+                                </div>
+                                <div class="wallet-address">
+                                    <span class="address-text">${wallet.address.slice(0, 8)}...${wallet.address.slice(-6)}</span>
+                                    <button class="copy-address-button" onclick="copyWalletAddress('${wallet.address}')">Copy Address</button>
+                                    </span>
+                                    <button onclick="event.stopPropagation(); copyWalletAddress('${wallet.address}')" 
+                                            style="background: var(--primary); color: white; border: none; padding: 5px 10px; 
+                                                   border-radius: 5px; font-size: 0.8em; cursor: pointer;">
+                                        Copy Address
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+            });
+
+            savedWalletsList.innerHTML = walletsHTML;
+        }
+
+        // Copy wallet address
+        function copyWalletAddress(address) {
+            navigator.clipboard.writeText(address).then(() => {
+                soundManager.play('click');
+                showNotification('success', 'Address Copied', `Wallet address copied: ${address.slice(0, 8)}...${address.slice(-6)}`);
+            }).catch(error => {
+                showNotification('error', 'Copy Failed', error.message);
+            });
+        }
+
+        // Toggle sound on/off
+        function toggleSound() {
+            const enabled = soundManager.toggle();
+            const soundButton = document.getElementById('soundToggle');
+            soundButton.textContent = `Sound: ${enabled ? 'ON' : 'OFF'}`;
+            soundButton.style.background = enabled ? 'var(--success)' : 'var(--danger)';
+            soundManager.play('click'); // Play click sound when toggling on
+        }
+
+        // Generate real wallet from mnemonic
+        function generateRealWallet() {
+            try {
+                const mnemonic = gameState.currentPhrase.join(' ');
+                const wallet = walletManager.generateWalletFromMnemonic(mnemonic);
+
+                // Store wallet in game state
+                gameState.wallet = wallet;
+
+                // Update UI with wallet info
+                document.getElementById('walletAddress').textContent = wallet.address;
+                document.getElementById('derivationPath').textContent = wallet.derivationPath;
+
+                // Show success message
+                showNotification('success', 'Wallet Generated', `New wallet created: ${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`);
+
+                return wallet;
+            } catch (error) {
+                console.error('Failed to generate wallet:', error);
+                showNotification('error', 'Wallet Generation Failed', error.message);
+                return null;
+            }
+        }
+
+        // Show notification
+        function showNotification(type, title, message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification-${type}`;
+            notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#FF9800'};
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        z-index: 10000;
+                        max-width: 300px;
+                        animation: slideIn 0.3s ease;
+                    `;
+
+            notification.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${title}</div>
+                        <div style="font-size: 0.9em;">${message}</div>
+                    `;
+
+            document.body.appendChild(notification);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Create particle effect
+        function createParticle(element) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.textContent = '✨';
+            particle.style.left = element.offsetLeft + element.offsetWidth / 2 + 'px';
+            particle.style.top = element.offsetTop + element.offsetHeight / 2 + 'px';
+            particle.style.setProperty('--x', (Math.random() - 0.5) * 200 + 'px');
+            particle.style.setProperty('--y', (Math.random() - 0.5) * 200 + 'px');
+            particle.style.animation = 'particleAnimation 1s ease-out forwards';
+
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalSpins').textContent = gameState.totalSpins;
+            document.getElementById('uniquePhrases').textContent = gameState.uniquePhrases.size;
+            document.getElementById('rarityScore').textContent =
+                gameState.uniquePhrases.size > 0 ?
+                    ((gameState.uniquePhrases.size / gameState.totalSpins) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('magicLevel').textContent = gameState.magicLevel;
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Auto generate
+        function autoGenerate() {
+            if (gameState.autoGenerating) {
+                gameState.autoGenerating = false;
+                return;
+            }
+
+            gameState.autoGenerating = true;
+            const autoSpin = async () => {
+                if (gameState.autoGenerating && !gameState.isSpinning) {
+                    await spinReels();
+                    setTimeout(autoSpin, 3000);
+                }
+            };
+            autoSpin();
+        }
+
+        // Save phrase
+        function savePhrase() {
+            if (gameState.currentPhrase.length !== 12) {
+                alert('Please generate a phrase first!');
+                return;
+            }
+
+            gameState.savedPhrases.push({
+                phrase: gameState.currentPhrase.join(' '),
+                timestamp: new Date().toISOString(),
+                magicLevel: gameState.magicLevel
+            });
+
+            saveGameState();
+            alert('Phrase saved successfully!');
+        }
+
+        // Export phrases
+        function exportPhrases() {
+            if (gameState.savedPhrases.length === 0) {
+                alert('No phrases to export!');
+                return;
+            }
+
+            const data = JSON.stringify(gameState.savedPhrases, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mnemonic-phrases.json';
+            a.click();
+        }
+
+        // Reset stats
+        function resetStats() {
+            if (confirm('Are you sure you want to reset all statistics?')) {
+                gameState.totalSpins = 0;
+                gameState.uniquePhrases.clear();
+                gameState.magicLevel = 0;
+                updateStats();
+                saveGameState();
+            }
+        }
+
+        // Copy mnemonic
+        function copyMnemonic() {
+            const phrase = gameState.currentPhrase.join(' ');
+            if (!phrase) {
+                showNotification('error', 'No Phrase', 'Please generate a phrase first!');
+                return;
+            }
+
+            navigator.clipboard.writeText(phrase).then(() => {
+                showNotification('success', 'Phrase Copied', 'Mnemonic phrase copied to clipboard!');
+            }).catch(error => {
+                showNotification('error', 'Copy Failed', error.message);
+            });
+        }
+
+        // Verify phrase
+        function verifyPhrase() {
+            if (gameState.currentPhrase.length !== 12) {
+                showNotification('error', 'Verification Failed', 'Please generate a 12-word phrase first!');
+                return;
+            }
+
+            const validation = validateMnemonic(gameState.currentPhrase.join(' '));
+            if (validation.valid) {
+                showNotification('success', 'Phrase Valid', 'Your mnemonic phrase is cryptographically valid!');
+            } else {
+                showNotification('error', 'Invalid Phrase', validation.error);
+            }
+        }
+
+        // Send transaction
+        async function sendTransaction() {
+            const recipient = document.getElementById('recipientAddress').value.trim();
+            const amount = document.getElementById('sendAmount').value;
+
+            if (!recipient || !amount) {
+                showNotification('error', 'Invalid Input', 'Please enter recipient address and amount');
+                return;
+            }
+
+            if (!gameState.wallet) {
+                showNotification('error', 'No Wallet', 'Please generate a wallet first');
+                return;
+            }
+
+            // Validate address format
+            if (!recipient.startsWith('0x') || recipient.length !== 42) {
+                showNotification('error', 'Invalid Address', 'Please enter a valid Ethereum address');
+                return;
+            }
+
+            try {
+                showNotification('info', 'Sending Transaction', 'Transaction is being processed...');
+
+                const txHash = await walletManager.sendTransaction(recipient, amount);
+
+                showNotification('success', 'Transaction Sent', `Transaction hash: ${txHash.slice(0, 10)}...${txHash.slice(-8)}`);
+
+                // Clear inputs
+                document.getElementById('recipientAddress').value = '';
+                document.getElementById('sendAmount').value = '';
+
+                // Refresh balance
+                setTimeout(() => refreshBalance(), 2000);
+
+            } catch (error) {
+                showNotification('error', 'Transaction Failed', error.message);
+            }
+        }
+
+        // Reveal private key
+        function revealPrivateKey() {
+            if (!gameState.wallet) {
+                showNotification('error', 'No Wallet', 'Please generate a wallet first');
+                return;
+            }
+
+            const privateKeyElement = document.getElementById('privateKey');
+            if (privateKeyElement.textContent === 'Hidden (Click to reveal)') {
+                privateKeyElement.textContent = gameState.wallet.privateKey.slice(0, 10) + '...';
+                showNotification('warning', 'Private Key Revealed', 'Keep your private key secure!');
+
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    privateKeyElement.textContent = 'Hidden (Click to reveal)';
+                }, 10000);
+            } else {
+                privateKeyElement.textContent = 'Hidden (Click to reveal)';
+            }
+        }
+
+        // Export wallet
+        function exportWallet() {
+            if (!gameState.wallet) {
+                showNotification('error', 'No Wallet', 'Please generate a wallet first');
+                return;
+            }
+
+            const walletData = {
+                address: gameState.wallet.address,
+                privateKey: gameState.wallet.privateKey,
+                mnemonic: gameState.wallet.mnemonic,
+                derivationPath: gameState.wallet.derivationPath,
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(walletData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `wallet_${gameState.wallet.address.slice(0, 8)}.json`;
+            link.click();
+
+            showNotification('success', 'Wallet Exported', 'Wallet data has been downloaded securely');
+        }
+
+        // Refresh balance
+        async function refreshBalance() {
+            if (!walletManager.currentWallet) {
+                showNotification('error', 'No Connection', 'Please connect a wallet first');
+                return;
+            }
+
+            try {
+                await walletManager.updateWalletInfo();
+                showNotification('success', 'Balance Updated', `Current balance: ${gameState.balance} ETH`);
+            } catch (error) {
+                showNotification('error', 'Update Failed', error.message);
+            }
+        }
+
+        // Show transaction history
+        async function showTransactionHistory() {
+            if (!walletManager.currentWallet) {
+                showNotification('error', 'No Connection', 'Please connect a wallet first');
+                return;
+            }
+
+            try {
+                const history = await walletManager.getTransactionHistory(walletManager.currentWallet);
+
+                let historyText = 'Transaction History:\n\n';
+                history.forEach((tx, index) => {
+                    historyText += `${index + 1}. ${tx.hash}\n`;
+                    historyText += `   To: ${tx.to}\n`;
+                    historyText += `   Amount: ${tx.value} ETH\n`;
+                    historyText += `   Status: ${tx.status}\n`;
+                    historyText += `   Date: ${new Date(tx.timestamp).toLocaleString()}\n\n`;
+                });
+
+                alert(historyText || 'No transactions found');
+
+            } catch (error) {
+                showNotification('error', 'History Failed', error.message);
+            }
+        }
+
+        // Switch network
+        async function switchNetwork() {
+            const networkId = document.getElementById('networkSelect').value;
+
+            if (!walletManager.provider) {
+                showNotification('error', 'No Provider', 'Please connect with MetaMask first');
+                return;
+            }
+
+            try {
+                await walletManager.provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: `0x${parseInt(networkId).toString(16)}` }]
+                });
+
+                showNotification('success', 'Network Switched', `Switched to ${walletManager.networks[networkId].name}`);
+
+            } catch (error) {
+                // If network doesn't exist, try to add it
+                if (error.code === 4902) {
+                    try {
+                        await walletManager.provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: `0x${parseInt(networkId).toString(16)}`,
+                                chainName: walletManager.networks[networkId].name,
+                                rpcUrls: [walletManager.networks[networkId].rpcUrl],
+                                nativeCurrency: {
+                                    name: 'ETH',
+                                    symbol: 'ETH',
+                                    decimals: 18
+                                }
+                            }]
+                        });
+
+                        showNotification('success', 'Network Added', `${walletManager.networks[networkId].name} added to MetaMask`);
+
+                    } catch (addError) {
+                        showNotification('error', 'Network Switch Failed', addError.message);
+                    }
+                } else {
+                    showNotification('error', 'Network Switch Failed', error.message);
+                }
+            }
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            try {
+                if (!walletManager.web3) {
+                    await walletManager.initialize();
+                }
+
+                const address = await walletManager.connectWallet();
+                if (address) {
+                    showNotification('success', 'Wallet Connected', `Connected to ${address.slice(0, 6)}...${address.slice(-4)}`);
+                }
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showNotification('error', 'Connection Failed', error.message);
+            }
+        }
+
+        // Import phrase
+        function importPhrase() {
+            // Show import options
+            const importOptions = `
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 10px 0;">
+                            <h4 style="color: var(--secondary); margin-bottom: 15px;">Import Options:</h4>
+                            <button onclick="importFromSavedSlots()" style="background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                Import from Saved Slots
+                            </button>
+                            <button onclick="importManualPhrase()" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                Manual Import
+                            </button>
+                            <button onclick="importFromClipboard()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                Import from Clipboard
+                            </button>
+                        </div>
+                    `;
+
+            // Create modal for import options
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        background: var(--card-bg); padding: 30px; border-radius: 15px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 10000;
+                        max-width: 500px; width: 90%;
+                    `;
+            modal.innerHTML = importOptions + `
+                        <button onclick="this.parentElement.remove()" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 15px; cursor: pointer; width: 100%;">
+                            Cancel
+                        </button>
+                    `;
+
+            document.body.appendChild(modal);
+        }
+
+        // Import from saved slot phrases
+        function importFromSavedSlots() {
+            const slotPhrases = gameState.savedPhrases.filter(p => p.source === 'slot_machine');
+
+            if (slotPhrases.length === 0) {
+                showNotification('info', 'No Saved Slots', 'No slot-generated phrases found. Spin the slots first!');
+                document.querySelector('[onclick*="importPhrase"]').parentElement.remove();
+                return;
+            }
+
+            let optionsHTML = '<h4 style="color: var(--secondary);">Select a Slot Phrase:</h4>';
+            slotPhrases.forEach((saved, index) => {
+                optionsHTML += `
+                            <div style="background: rgba(255,255,255,0.05); padding: 10px; margin: 5px 0; border-radius: 8px; cursor: pointer;" 
+                                 onclick="selectSlotPhrase(${index})">
+                                <div style="font-size: 0.8em; opacity: 0.7;">${saved.timestamp}</div>
+                                <div style="font-family: monospace; word-break: break-all;">${saved.phrase}</div>
+                                <div style="color: var(--accent); font-size: 0.9em;">${saved.address}</div>
+                            </div>
+                        `;
+            });
+
+            // Update modal content
+            const modal = document.querySelector('[style*="position: fixed"]');
+            if (modal) {
+                modal.innerHTML = optionsHTML + `
+                            <button onclick="this.parentElement.remove()" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 15px; cursor: pointer; width: 100%;">
+                                Cancel
+                            </button>
+                        `;
+            }
+        }
+
+        // Select specific slot phrase
+        function selectSlotPhrase(index) {
+            const slotPhrases = gameState.savedPhrases.filter(p => p.source === 'slot_machine');
+            const selected = slotPhrases[index];
+
+            if (selected) {
+                gameState.currentPhrase = selected.phrase.split(' ');
+                updateMnemonicDisplay();
+                updateStats();
+
+                // Load the existing wallet
+                gameState.wallet = {
+                    address: selected.address,
+                    mnemonic: selected.phrase,
+                    derivationPath: "m/44'/60'/0'/0/0",
+                    privateKey: 'Hidden (Imported)',
+                    publicKey: 'Imported'
+                };
+
+                // Update UI
+                document.getElementById('walletAddress').textContent = selected.address;
+                document.getElementById('derivationPath').textContent = gameState.wallet.derivationPath;
+                document.getElementById('privateKey').textContent = 'Imported from slot';
+
+                // Close modal and switch to wallet tab
+                document.querySelector('[style*="position: fixed"]').remove();
+                switchToWalletTab();
+
+                showNotification('success', 'Wallet Imported', `Imported wallet from slot: ${selected.address.slice(0, 6)}...${selected.address.slice(-4)}`);
+            }
+        }
+
+        // Import manual phrase
+        function importManualPhrase() {
+            const phrase = prompt('Enter your 12-word mnemonic phrase:');
+            if (phrase) {
+                const validation = validateMnemonic(phrase);
+                if (validation.valid) {
+                    gameState.currentPhrase = phrase.trim().split(/\s+/);
+                    updateMnemonicDisplay();
+                    updateStats();
+                    showNotification('success', 'Phrase Imported', 'Your mnemonic phrase has been imported successfully');
+                } else {
+                    showNotification('error', 'Invalid Phrase', validation.error);
+                }
+            }
+            document.querySelector('[style*="position: fixed"]').remove();
+        }
+
+        // Import from clipboard
+        async function importFromClipboard() {
+            try {
+                const phrase = await navigator.clipboard.readText();
+                if (phrase) {
+                    const validation = validateMnemonic(phrase);
+                    if (validation.valid) {
+                        gameState.currentPhrase = phrase.trim().split(/\s+/);
+                        updateMnemonicDisplay();
+                        updateStats();
+                        showNotification('success', 'Clipboard Imported', 'Mnemonic imported from clipboard successfully');
+                    } else {
+                        showNotification('error', 'Invalid Phrase', validation.error);
+                    }
+                }
+            } catch (error) {
+                showNotification('error', 'Clipboard Error', 'Failed to read from clipboard');
+            }
+            document.querySelector('[style*="position: fixed"]').remove();
+        }
+
+        // Make a wish
+        function makeWish() {
+            const wishInput = document.getElementById('wishInput');
+            const wish = wishInput.value.trim();
+
+            if (!wish) {
+                alert('Please enter a wish!');
+                return;
+            }
+
+            // Add wish to list
+            const wishData = {
+                wish: wish,
+                timestamp: new Date().toISOString(),
+                granted: true,
+                reward: Math.random() > 0.5 ? 'magical phrase' : 'blessing'
+            };
+
+            gameState.wishes.unshift(wishData);
+
+            // Update display
+            updateWishesDisplay();
+
+            // Clear input
+            wishInput.value = '';
+
+            // Grant a reward
+            setTimeout(() => {
+                if (wishData.reward === 'magical phrase') {
+                    spinReels();
+                    alert('🧞 The genie granted your wish with a magical phrase!');
+                } else {
+                    gameState.magicLevel += 10;
+                    updateStats();
+                    alert('🧞 The genie blessed you with magic power!');
+                }
+            }, 1000);
+        }
+
+        // Update wishes display
+        function updateWishesDisplay() {
+            const wishesList = document.getElementById('wishesList');
+
+            if (gameState.wishes.length === 0) {
+                wishesList.innerHTML = '<p style="opacity: 0.6; text-align: center;">No wishes granted yet...</p>';
+                return;
+            }
+
+            wishesList.innerHTML = gameState.wishes.map(wish => `
+                        <div class="wish-item">
+                            <strong>🧞 Wish:</strong> ${wish.wish}<br>
+                            <small>🕒 ${new Date(wish.timestamp).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+        }
+
+        // Celebration effect
+        function celebrate() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.textContent = ['🎉', '🎊', '✨', '🌟'][Math.floor(Math.random() * 4)];
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.top = Math.random() * window.innerHeight + 'px';
+                    particle.style.fontSize = '24px';
+                    particle.style.setProperty('--x', (Math.random() - 0.5) * 300 + 'px');
+                    particle.style.setProperty('--y', -Math.random() * 300 + 'px');
+                    particle.style.animation = 'particleAnimation 2s ease-out forwards';
+
+                    document.body.appendChild(particle);
+                    setTimeout(() => particle.remove(), 2000);
+                }, i * 100);
+            }
+        }
+
+        // Save game state to localStorage
+        function saveGameState() {
+            const state = {
+                totalSpins: gameState.totalSpins,
+                uniquePhrases: Array.from(gameState.uniquePhrases),
+                savedPhrases: gameState.savedPhrases,
+                wishes: gameState.wishes,
+                magicLevel: gameState.magicLevel
+            };
+            localStorage.setItem('wordReelGameState', JSON.stringify(state));
+        }
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const saved = localStorage.getItem('wordReelGameState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                gameState.totalSpins = state.totalSpins || 0;
+                gameState.uniquePhrases = new Set(state.uniquePhrases || []);
+                gameState.savedPhrases = state.savedPhrases || [];
+                gameState.wishes = state.wishes || [];
+                gameState.magicLevel = state.magicLevel || 0;
+                updateWishesDisplay();
+            }
+        }
+
+        // Sound Manager will be loaded from external file
+
+        // Initialize sound manager
+        const soundManager = new SoundManager();
+
+        // Real Trading Engine will be loaded from external file
+
+        // Initialize real trading engine
+        const tradingEngine = new RealTradingEngine();
+
+        // Trading Dashboard Functions
+        function showPage(pageId) {
+            soundManager.play('click');
+
+            const pages = document.querySelectorAll('.page-content');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            pages.forEach(page => page.classList.remove('active'));
+            navItems.forEach(item => item.classList.remove('active'));
+
+            const targetPage = document.getElementById(pageId + '-page');
+            const targetNav = Array.from(navItems).find(item => item.textContent.toLowerCase().includes(pageId));
+
+            if (targetPage) targetPage.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+        }
+
+        async function scanArbitrage() {
+            soundManager.play('click');
+
+            const tableBody = document.getElementById('arbTableBody');
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Scanning for arbitrage opportunities...</td></tr>';
+
+            try {
+                const opportunities = await tradingEngine.scanArbitrageOpportunities();
+
+                if (opportunities.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888;">No profitable arbitrage opportunities found</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                opportunities.forEach(opp => {
+                    const profitColor = opp.netProfit.startsWith('-') ? '#ef4444' : '#10b981';
+                    html += `
+                                <tr onclick="executeArbitrage(${opportunities.indexOf(opp)})" style="cursor: pointer;" onmouseover="this.style.background='rgba(139, 92, 246, 0.1)'" onmouseout="this.style.background='transparent'">
+                                    <td>${opp.tokenA}</td>
+                                    <td>${opp.exchangeA}</td>
+                                    <td>${opp.priceA}</td>
+                                    <td>${opp.tokenB}</td>
+                                    <td>${opp.exchangeB}</td>
+                                    <td>${opp.priceB}</td>
+                                    <td style="color: ${profitColor}">${opp.profit}</td>
+                                    <td>${opp.gasCost}</td>
+                                    <td style="color: ${profitColor}; font-weight: bold;">${opp.netProfit}</td>
+                                </tr>
+                            `;
+                });
+
+                tableBody.innerHTML = html;
+                soundManager.play('win');
+                showNotification('success', 'Scan Complete', `Found ${opportunities.length} arbitrage opportunities`);
+
+            } catch (error) {
+                console.error('Arbitrage scan failed:', error);
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #ef4444;">Failed to scan opportunities</td></tr>';
+                showNotification('error', 'Scan Failed', error.message);
+            }
+        }
+
+        async function executeArbitrage(index) {
+            soundManager.play('click');
+
+            try {
+                const opportunity = tradingEngine.arbitrageOpportunities[index];
+                const trade = await tradingEngine.executeArbitrage(opportunity);
+
+                showNotification('success', 'Trade Executed',
+                    `Arbitrage executed: ${trade.token} profit $${trade.profit.toFixed(2)}`);
+
+                // Refresh the scan
+                scanArbitrage();
+
+            } catch (error) {
+                console.error('Arbitrage execution failed:', error);
+                showNotification('error', 'Execution Failed', error.message);
+            }
+        }
+
+        function startTradingBot() {
+            soundManager.play('click');
+
+            try {
+                tradingEngine.startTradingBot();
+                showNotification('success', 'Bot Started', 'Trading bot is now scanning for opportunities');
+            } catch (error) {
+                console.error('Failed to start bot:', error);
+                showNotification('error', 'Bot Start Failed', error.message);
+            }
+        }
+
+        function stopTradingBot() {
+            soundManager.play('click');
+
+            try {
+                tradingEngine.stopTradingBot();
+                showNotification('info', 'Bot Stopped', 'Trading bot has been stopped');
+            } catch (error) {
+                console.error('Failed to stop bot:', error);
+                showNotification('error', 'Bot Stop Failed', error.message);
+            }
+        }
+
+        function runSimulation() {
+            soundManager.play('click');
+
+            try {
+                // Get selected DEXs
+                const dexSelect = document.getElementById('simDexs');
+                const selectedDexs = Array.from(dexSelect.selectedOptions).map(option => option.value);
+
+                if (selectedDexs.length < 2) {
+                    showNotification('warning', 'DEX Selection', 'Please select at least 2 DEXs for simulation');
+                    return;
+                }
+
+                // Run simulation with real engine
+                const settings = {
+                    selectedDexs: selectedDexs,
+                    timeRange: 30, // 30 days
+                    initialCapital: 1000
+                };
+
+                const results = tradingEngine.runBacktestSimulation(settings);
+
+                // Update UI with results
+                document.getElementById('totalTrades').textContent = results.totalTrades;
+                document.getElementById('winRate').textContent = results.winRate;
+                document.getElementById('totalProfit').textContent = results.totalProfit;
+
+                // Update chart with simulation data
+                updateSimulationChart(results.history);
+
+                // Update trade history
+                const tradeHistoryDiv = document.getElementById('tradeHistory');
+                const recentTrades = results.history.slice(-10).reverse();
+
+                let historyHTML = '<div style="max-height: 200px; overflow-y: auto;">';
+                recentTrades.forEach(trade => {
+                    const profitColor = trade.profit > 0 ? '#10b981' : '#ef4444';
+                    historyHTML += `
+                                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <span>${trade.timestamp.toLocaleDateString()}</span>
+                                    <span style="color: ${profitColor}">$${trade.profit.toFixed(2)}</span>
+                                </div>
+                            `;
+                });
+                historyHTML += '</div>';
+                tradeHistoryDiv.innerHTML = historyHTML;
+
+                soundManager.play('win');
+                showNotification('success', 'Simulation Complete',
+                    `Simulation completed: ${results.totalTrades} trades, ${results.winRate} win rate`);
+
+            } catch (error) {
+                console.error('Simulation failed:', error);
+                showNotification('error', 'Simulation Failed', error.message);
+            }
+        }
+
+        function resetSimulation() {
+            soundManager.play('click');
+
+            document.getElementById('totalTrades').textContent = '0';
+            document.getElementById('winRate').textContent = '0%';
+            document.getElementById('totalProfit').textContent = '$0';
+
+            if (window.simChart) {
+                window.simChart.destroy();
+                window.simChart = null;
+            }
+
+            const ctx = document.getElementById('simProfitChart');
+            if (ctx) {
+                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+            }
+        }
+
+        function updateSimulationChart(history) {
+            const ctx = document.getElementById('simProfitChart').getContext('2d');
+            const data = history.reverse().reduce((acc, trade) => {
+                acc.labels.push(trade.timestamp);
+                acc.data.push(parseFloat(trade.profit));
+                return acc;
+            }, {
+                labels: [],
+                data: []
+            });
+
+            if (window.simChart) {
+                window.simChart.destroy();
+            }
+
+            window.simChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Cumulative P/L',
+                        data: data.data.reduce((acc, val, i) => {
+                            acc.push((acc[i - 1] || 0) + val);
+                            return acc;
+                        }, []),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: true,
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#e5e7eb',
+                                callback: value => `C$${value.toFixed(2)}`
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#e5e7eb',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function simulateTradingActivity() {
+            // Generate random trading data for demonstration
+            const trades = [];
+            for (let i = 0; i < 10; i++) {
+                trades.push({
+                    timestamp: new Date(Date.now() - i * 60 * 60 * 1000),
+                    price: 2800 + Math.random() * 200,
+                    volume: Math.random() * 10,
+                    profit: (Math.random() - 0.5) * 100
+                });
+            }
+
+            // Update trading chart
+            if (window.tradingChart) {
+                window.tradingChart.data.labels = trades.map(t => t.timestamp);
+                window.tradingChart.data.datasets[0].data = trades.map(t => t.price);
+                window.tradingChart.update();
+            }
+        }
+
+        function downloadTradeHistory() {
+            soundManager.play('click');
+
+            try {
+                // Get real trading history from engine
+                const history = tradingEngine.tradingHistory.length > 0 ?
+                    tradingEngine.tradingHistory :
+                    [
+                        { timestamp: new Date(), token: 'ETH', exchangeA: 'Uniswap', exchangeB: 'SushiSwap', buyPrice: 2850, sellPrice: 2852.75, gasCost: 15.00, profit: 2.25, status: 'executed' },
+                        { timestamp: new Date(Date.now() - 3600000), token: 'BTC', exchangeA: 'PancakeSwap', exchangeB: 'Uniswap', buyPrice: 42000, sellPrice: 42015, gasCost: 25.50, profit: -10.50, status: 'executed' },
+                        { timestamp: new Date(Date.now() - 7200000), token: 'BNB', exchangeA: '1inch', exchangeB: 'Curve', buyPrice: 320, sellPrice: 321.50, gasCost: 8.75, profit: 12.75, status: 'executed' }
+                    ];
+
+                // Create CSV content
+                const csvHeaders = 'Timestamp,Token,Exchange A,Exchange B,Buy Price,Sell Price,Gas Cost,Profit,Status\n';
+                const csvContent = history.map(t =>
+                    `${t.timestamp.toISOString()},${t.token},${t.exchangeA},${t.exchangeB},${t.buyPrice},${t.sellPrice},${t.gasCost},${t.profit},${t.status}`
+                ).join('\n');
+
+                const csv = csvHeaders + csvContent;
+
+                // Create and download file
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `trading_history_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                soundManager.play('win');
+                showNotification('success', 'Download Complete', `Downloaded ${history.length} trade records`);
+
+            } catch (error) {
+                console.error('Download failed:', error);
+                showNotification('error', 'Download Failed', error.message);
+            }
+        }
+
+        // Initialize wallet manager
+        const walletManager = new WalletManager();
+
+        // DOM Element Cache - Cache frequently accessed elements to avoid repeated queries
+        const DOMCache = {
+            // Slot machine elements
+            reelsContainer: null,
+            spinButton: null,
+            mixerButton: null,
+            mnemonicDisplay: null,
+            wordMixerInfo: null,
+            entropyDisplay: null,
+
+            // Wallet elements
+            walletAddress: null,
+            securityLevel: null,
+            derivationPath: null,
+            networkInfo: null,
+            walletBalance: null,
+            privateKey: null,
+            savedWalletsList: null,
+
+            // Trading elements
+            tradingChart: null,
+            priceTicker: null,
+            traderTab: null,
+            totalTrades: null,
+            winRate: null,
+            totalProfit: null,
+
+            // UI elements
+            soundToggle: null,
+            tabs: null,
+
+            // Initialize cache function
+            init() {
+                console.log('Initializing DOM cache...');
+
+                // Slot machine elements
+                this.reelsContainer = document.getElementById('reelsContainer');
+                this.spinButton = document.getElementById('spinButton');
+                this.mixerButton = document.getElementById('mixerButton');
+                this.mnemonicDisplay = document.getElementById('mnemonicDisplay');
+                this.wordMixerInfo = document.getElementById('wordMixerInfo');
+                this.entropyDisplay = document.getElementById('entropyDisplay');
+
+                // Wallet elements
+                this.walletAddress = document.getElementById('walletAddress');
+                this.securityLevel = document.getElementById('securityLevel');
+                this.derivationPath = document.getElementById('derivationPath');
+                this.networkInfo = document.getElementById('networkInfo');
+                this.walletBalance = document.getElementById('walletBalance');
+                this.privateKey = document.getElementById('privateKey');
+                this.savedWalletsList = document.getElementById('savedWalletsList');
+
+                // Trading elements
+                this.tradingChart = document.getElementById('tradingChart');
+                this.priceTicker = document.getElementById('priceTicker');
+                this.traderTab = document.getElementById('trader-tab');
+                this.totalTrades = document.getElementById('totalTrades');
+                this.winRate = document.getElementById('winRate');
+                this.totalProfit = document.getElementById('totalProfit');
+
+                // UI elements
+                this.soundToggle = document.getElementById('soundToggle');
+                this.tabs = document.querySelectorAll('.tab');
+
+                console.log('DOM cache initialized with', Object.keys(this).length, 'elements');
+            },
+
+            // Get element with null check
+            get(elementName) {
+                return this[elementName] || null;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            DOMCache.init();
+            initializeGame();
+            await walletManager.initialize();
+
+            // Add CSS animations for notifications
+            const style = document.createElement('style');
+            style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOut {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+            document.head.appendChild(style);
+        });
+    </script>
+
+
+
+
+    <div class="container">
+        <div class="header">
+            <h1>Crypto Slot Machine</h1>
+            <p>Generate 12-word mnemonic phrases with magical slot reels!</p>
+        </div>
+        <div class="tab-container">
+            <div class="tab active" onclick="window.uiComponents.switchTab('slots')">Slots</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('wallet')">Wallet</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('trader')">Trading Dashboard</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('dex-agent')">DEX AI Agent</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('evm-chains')">EVM Chains</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('bsc-trading')">BSC Trading</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('solana-trading')">Solana Trading</div>
+            <div class="tab" onclick="window.uiComponents.switchTab('csv')">CSV Data</div>
+        </div>
+
+        <!-- Slots Tab -->
+        <div id="slots-tab" class="tab-content active">
+            <div class="slot-machine">
+                <h2>Word-Reel Slot Wallet + Aladdin's Lamp Slots</h2>
+                <div class="reels-container" id="reelsContainer">
+                    <!-- 12 reels will be generated here -->
+                    <div class="reel">1</div>
+                    <div class="reel">2</div>
+                    <div class="reel">3</div>
+                    <div class="reel">4</div>
+                    <div class="reel">5</div>
+                    <div class="reel">6</div>
+                    <div class="reel">7</div>
+                    <div class="reel">8</div>
+                    <div class="reel">9</div>
+                    <div class="reel">10</div>
+                    <div class="reel">11</div>
+                    <div class="reel">12</div>
+                </div>
+                <div class="controls">
+                    <button id="mixerButton" class="control-btn">WORD MIXER SPIN</button>
+                    <button id="autoSpinToggle" class="control-btn">Auto-Spin: OFF</button>
+                    <button id="soundToggle" class="control-btn">Sound: ON</button>
+                </div>
+                <div class="game-controls">
+                    <div class="bet-controls">
+                        <button id="betDecrease" class="secondary-button">Bet -</button>
+                        <div id="betAmount">Bet: 10</div>
+                        <button id="betIncrease" class="secondary-button">Bet +</button>
+                    </div>
+                    <div id="credits">Credits: 1000</div>
+                </div>
+                <div class="game-stats" id="gameStats">
+                    <div class="stat-item">
+                        <label>Spins:</label>
+                        <value>0</value>
+                    </div>
+                    <div class="stat-item">
+                        <label>Magic Level:</label>
+                        <value>0</value>
+                    </div>
+                    <div class="stat-item">
+                        <label>Total Magic:</label>
+                        <value>0</value>
+                    </div>
+                    <div class="stat-item">
+                        <label>Saved Phrases:</label>
+                        <value>0</value>
+                    </div>
+                </div>
+                <div class="mnemonic-display" id="mnemonicDisplay">
+                    Spin the reels to generate your 12-word mnemonic phrase
+                </div>
+                <div class="wallet-actions">
+                    <button id="generateWallet" class="control-btn">Generate Wallet</button>
+                    <button id="savePhrase" class="control-btn">Save Phrase</button>
+                    <button id="importPhrase" class="control-btn">Import Phrase</button>
+                    <button id="copyAddress" class="control-btn">Copy Address</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Trading Dashboard Tab -->
+        <div id="trader-tab" class="tab-content">
+            <div class="sidebar">
+                <div class="nav-item active" onclick="window.slotsEngine.showPage('arbitrage')"> Arbitrage Scanner
+                </div>
+                <div class="nav-item" onclick="window.slotsEngine.showPage('trading')"> Trading Bot </div>
+                <div class="nav-item" onclick="window.slotsEngine.showPage('backtest')"> Backtesting </div>
+                <div class="nav-item" onclick="window.slotsEngine.showPage('portfolio')"> Portfolio </div>
+            </div>
+            <div class="bot-status">
+                <div class="status-indicator stopped"></div>
+                <span>Bot Stopped</span>
+            </div>
+            <div class="control-buttons">
+                <button id="startTradingBot" class="control-btn">Start Bot</button>
+                <button id="stopTradingBot" class="control-btn">Stop Bot</button>
+                <button id="runBacktest" class="control-btn">Run Backtest</button>
+            </div>
+            <div class="trading-chart-card">
+                <canvas id="tradingChart"></canvas>
+            </div>
+            <div class="backtest-results" id="backtestResults">
+                <h4>Backtest Results</h4>
+                <div class="backtest-stats">
+                    <div class="stat">
+                        <label>Total Trades:</label>
+                        <value>0</value>
+                    </div>
+                    <div class="stat">
+                        <label>Win Rate:</label>
+                        <value>0%</value>
+                    </div>
+                    <div class="stat">
+                        <label>Total Profit:</label>
+                        <value>$0</value>
+                    </div>
+                    <div class="stat">
+                        <label>Final Capital:</label>
+                        <value>$0</value>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DEX AI Agent Tab -->
+        <div id="dex-agent-tab" class="tab-content">
+            <div class="card">
+                <h2>DEX Trading AI Agent</h2>
+                <!-- API Setup -->
+                <div class="api-setup">
+                    <h3>AI Configuration</h3>
+                    <div class="parameter-input">
+                        <label for="apiKey">OpenAI API Key:</label>
+                        <input type="password" id="apiKey" placeholder="Enter your OpenAI API key">
+                        <button onclick="saveApiKey()">Save</button>
+                    </div>
+                    <div class="parameter-input">
+                        <label for="baseUrl">API Base URL:</label>
+                        <input type="text" id="baseUrl" value="https://api.openai.com/v1/chat/completions">
+                        <button onclick="saveBaseUrl()">Save</button>
+                    </div>
+                    <div id="apiKeyStatus" class="api-key invalid">API Key Required</div>
+                </div>
+                <!-- Trading Controls -->
+                <div class="trading-panel">
+                    <h3>Trading Controls</h3>
+                    <div class="control-buttons">
+                        <button class="control-btn start" onclick="startAITrading()">Start AI Trading</button>
+                        <button class="control-btn" onclick="stopAITrading()">Stop AI Trading</button>
+                        <button class="control-btn" onclick="resetAITrading()">Reset</button>
+                    </div>
+                </div>
+                <!-- Token Grid -->
+                <div class="token-grid" id="tokenGrid">
+                    <!-- Tokens will be displayed here -->
+                </div>
+                <!-- AI Analysis Display -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3>AI Analysis</h3>
+                    <div id="aiAnalysis">
+                        <p>Waiting for market data...</p>
+                    </div>
+                </div>
+                <!-- Trading Console -->
+                <div class="console" id="tradingConsole">
+                    <div class="log">AI Agent ready. Click "Start AI Trading" to begin.</div>
+                </div>
+                <!-- Metrics -->
+                <div class="metrics">
+                    <div class="metric">
+                        <h3>Total Trades</h3>
+                        <p id="totalTrades">0</p>
+                    </div>
+                    <div class="metric">
+                        <h3>Win Rate</h3>
+                        <p id="winRate">0%</p>
+                    </div>
+                    <div class="metric">
+                        <h3>Total Profit</h3>
+                        <p id="totalProfit">$0</p>
+                    </div>
+                </div>
+                <!-- Portfolio Chart -->
+                <div class="chart-container">
+                    <canvas id="tradingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- EVM Chains Tab -->
+        <div id="evm-chains-tab" class="tab-content">
+            <div class="card">
+                <h2>EVM Chains Management</h2>
+                <div class="chain-info">
+                    <h3>Current Chain</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Chain Name:</label>
+                            <span id="chainName">Not Connected</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Chain ID:</label>
+                            <span id="chainId">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Native Currency:</label>
+                            <span id="nativeCurrency">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Block Explorer:</label>
+                            <a id="blockExplorer" href="#" target="_blank">-</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chain-controls">
+                    <h3>Chain Selection</h3>
+                    <select id="chainSelector">
+                        <option value="">Select Chain</option>
+                    </select>
+                    <button class="control-btn" onclick="window.evmChains.connectWallet()">Connect Wallet</button>
+                </div>
+                <div class="wallet-info">
+                    <h3>Wallet Status</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Status:</label>
+                            <span id="walletStatus">Not Connected</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Address:</label>
+                            <span id="walletAddress">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="supported-chains">
+                    <h3>Supported Chains</h3>
+                    <div class="chain-grid">
+                        <div class="chain-card">
+                            <h4>Ethereum</h4>
+                            <p>Chain ID: 0x1</p>
+                            <p>Native: ETH</p>
+                        </div>
+                        <div class="chain-card">
+                            <h4>Polygon</h4>
+                            <p>Chain ID: 0x89</p>
+                            <p>Native: MATIC</p>
+                        </div>
+                        <div class="chain-card">
+                            <h4>BSC</h4>
+                            <p>Chain ID: 0x38</p>
+                            <p>Native: BNB</p>
+                        </div>
+                        <div class="chain-card">
+                            <h4>Arbitrum</h4>
+                            <p>Chain ID: 0xA4B1</p>
+                            <p>Native: ETH</p>
+                        </div>
+                        <div class="chain-card">
+                            <h4>Optimism</h4>
+                            <p>Chain ID: 0xA</p>
+                            <p>Native: ETH</p>
+                        </div>
+                        <div class="chain-card">
+                            <h4>Avalanche</h4>
+                            <p>Chain ID: 0xA86A</p>
+                            <p>Native: AVAX</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BSC Trading Tab -->
+        <div id="bsc-trading-tab" class="tab-content">
+            <div class="card">
+                <h2>Binance Smart Chain Trading</h2>
+                <div class="bsc-controls">
+                    <div class="control-row">
+                        <select id="bscDexSelector" class="control-btn">
+                            <option value="">Select DEX</option>
+                            <option value="uniswap">Uniswap</option>
+                            <option value="sushiswap">SushiSwap</option>
+                            <option value="pancakeswap">PancakeSwap</option>
+                        </select>
+                        <button class="control-btn" onclick="window.bscTrading.connectWallet()">Connect Wallet</button>
+                    </div>
+                    <div class="wallet-status">
+                        <span id="bscWalletStatus" class="status-indicator stopped">Not Connected</span>
+                        <span id="bscWalletAddress">-</span>
+                        <span id="bscBnbBalance">-</span>
+                    </div>
+                </div>
+                <div class="price-section">
+                    <h3>Live Prices</h3>
+                    <div id="bscPriceContainer" class="price-grid">
+                        <!-- Price cards will be populated here -->
+                    </div>
+                </div>
+                <div class="trading-section">
+                    <h3>Quick Trade</h3>
+                    <div class="trade-form">
+                        <div class="form-row">
+                            <select id="bscTokenA" class="control-btn">
+                                <option value="">Select Token A</option>
+                            </select>
+                            <select id="bscTokenB" class="control-btn">
+                                <option value="">Select Token B</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <input type="number" id="bscAmount" placeholder="Amount">
+                            <button class="control-btn" onclick="window.bscTrading.executeSwap()">Swap</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="arbitrage-section">
+                    <h3>Arbitrage Opportunities</h3>
+                    <table id="bscArbitrageTable" class="arb-table">
+                        <thead>
+                            <tr>
+                                <th>Pair</th>
+                                <th>Buy DEX</th>
+                                <th>Sell DEX</th>
+                                <th>Buy Price</th>
+                                <th>Sell Price</th>
+                                <th>Profit %</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center;">Scanning for opportunities...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="history-section">
+                    <h3>Trade History</h3>
+                    <table id="bscTradeHistoryTable" class="arb-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Pair</th>
+                                <th>Amount In</th>
+                                <th>Amount Out</th>
+                                <th>DEX</th>
+                                <th>Transaction</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center;">No trades yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="log-section">
+                    <h3>Activity Log</h3>
+                    <div id="bscLogContainer" class="console">
+                        <!-- Log entries will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solana Trading Tab -->
+        <div id="solana-trading-tab" class="tab-content">
+            <div class="card">
+                <h2>Solana Trading</h2>
+                <div class="solana-controls">
+                    <div class="control-row">
+                        <select id="solanaDexSelector" class="control-btn">
+                            <option value="">Select DEX</option>
+                        </select>
+                        <button class="control-btn" onclick="window.solanaTrading.connectWallet()">Connect
+                            Phantom</button>
+                    </div>
+                    <div class="wallet-status">
+                        <span id="solanaWalletStatus" class="status-indicator stopped">Not Connected</span>
+                        <span id="solanaWalletAddress">-</span>
+                        <span id="solanaSolBalance">-</span>
+                    </div>
+                </div>
+                <div class="price-section">
+                    <h3>Live Prices</h3>
+                    <div id="solanaPriceContainer" class="price-grid">
+                        <!-- Price cards will be populated here -->
+                    </div>
+                </div>
+                <div class="token-accounts-section">
+                    <h3>Token Accounts</h3>
+                    <table id="solanaTokenAccountsTable" class="arb-table">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Name</th>
+                                <th>Balance</th>
+                                <th>Value (USD)</th>
+                                <th>Explorer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center;">Connect wallet to view accounts</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="trading-section">
+                    <h3>Quick Trade</h3>
+                    <div class="trade-form">
+                        <div class="form-row">
+                            <select id="solanaTokenA" class="control-btn">
+                                <option value="">Select Token A</option>
+                            </select>
+                            <select id="solanaTokenB" class="control-btn">
+                                <option value="">Select Token B</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <input type="number" id="solanaAmount" placeholder="Amount">
+                            <button class="control-btn" onclick="window.solanaTrading.executeSwap()">Swap</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="arbitrage-section">
+                    <h3>Arbitrage Opportunities</h3>
+                    <table id="solanaArbitrageTable" class="arb-table">
+                        <thead>
+                            <tr>
+                                <th>Pair</th>
+                                <th>Buy DEX</th>
+                                <th>Sell DEX</th>
+                                <th>Buy Price</th>
+                                <th>Sell Price</th>
+                                <th>Profit %</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center;">Scanning for opportunities...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="history-section">
+                    <h3>Trade History</h3>
+                    <table id="solanaTradeHistoryTable" class="arb-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Pair</th>
+                                <th>Amount In</th>
+                                <th>Amount Out</th>
+                                <th>DEX</th>
+                                <th>Transaction</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center;">No trades yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="log-section">
+                    <h3>Activity Log</h3>
+                    <div id="solanaLogContainer" class="console">
+                        <!-- Log entries will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Data Tab -->
+        <div id="csv-tab" class="tab-content">
+            <div class="csv-manager">
+                <div class="csv-header">
+                    <h3>CSV Data Manager</h3>
+                    <div class="csv-actions">
+                        <button id="uploadCSV" class="csv-btn upload">Upload CSV</button>
+                        <button id="downloadCSV" class="csv-btn download">Download CSV</button>
+                        <button id="scrapeData" class="csv-btn scrape">Scrape Data</button>
+                        <button id="runBacktest" class="csv-btn backtest">Run Backtest</button>
+                        <button id="runPrediction" class="csv-btn predict">Run Prediction</button>
+                    </div>
+                </div>
+                <div class="csv-content">
+                    <div class="csv-section">
+                        <h4>Data Sources</h4>
+                        <div class="data-sources">
+                            <div class="data-source">
+                                <label>CoinGecko</label>
+                                <button class="scrape-btn" data-source="coingecko">Scrape</button>
+                            </div>
+                            <div class="data-source">
+                                <label>DeFi Llama</label>
+                                <button class="scrape-btn" data-source="defillama">Scrape</button>
+                            </div>
+                            <div class="data-source">
+                                <label>DexScreener</label>
+                                <button class="scrape-btn" data-source="dexscreener">Scrape</button>
+                            </div>
+                            <div class="data-source">
+                                <label>Binance</label>
+                                <button class="scrape-btn" data-source="binance">Scrape</button>
+                            </div>
+                            <div class="data-source">
+                                <label>Uniswap</label>
+                                <button class="scrape-btn" data-source="uniswap">Scrape</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="csv-section">
+                        <h4>Available CSV Files</h4>
+                        <div id="csvFilesList" class="csv-files-list">
+                            <p class="no-files">No CSV files available</p>
+                        </div>
+                    </div>
+                    <div class="csv-section">
+                        <h4>Backtest Results</h4>
+                        <div id="backtestResults" class="backtest-results">
+                            <p class="no-results">No backtest results available</p>
+                        </div>
+                    </div>
+                    <div class="csv-section">
+                        <h4>Predictions</h4>
+                        <div id="predictions" class="predictions">
+                            <p class="no-predictions">No predictions available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Elements -->
+        <audio id="spinSound" preload="auto"></audio>
+        <audio id="winSound" preload="auto"></audio>
+        <audio id="clickSound" preload="auto"></audio>
+        <audio id="coinSound" preload="auto"></audio>
+
+        <!-- Core Scripts -->
+        <script src="core/application/main.js?v=1"
+            onerror="console.error('Failed to load core/application/main.js')"></script>
+        <script src="core/storage/file-system-manager.js?v=1"
+            onerror="console.error('Failed to load core/storage/file-system-manager.js')"></script>
+        <script src="core/audio/sound-manager.js?v=1"
+            onerror="console.error('Failed to load core/audio/sound-manager.js')"></script>
+        <script src="core/config/settings-manager.js?v=1"
+            onerror="console.error('Failed to load core/config/settings-manager.js')"></script>
+        <script>
+            if (window.isTestnetMode) {
+                document.write('<script src="core/config/testnet-config.js?v=1" onerror="console.error(\'Failed to load core/config/testnet-config.js\')"><\/script>');
+            }
+        </script>
+        <script src="core/application/app-main.js?v=1"
+            onerror="console.error('Failed to load core/application/app-main.js')"></script>
+        <script src="core/application/application-core.js?v=1"
+            onerror="console.error('Failed to load core/application/application-core.js')"></script>
+        <script src="core/application/notification-system.js?v=1"
+            onerror="console.error('Failed to load core/application/notification-system.js')"></script>
+
+        <!-- UI Components -->
+        <script src="ui/ui-manager.js?v=1" onerror="console.error('Failed to load ui/ui-manager.js')"></script>
+        <script src="ui/components/ui-manager.js?v=1"
+            onerror="console.error('Failed to load ui/components/ui-manager.js')"></script>
+        <script src="ui/components/ui-components.js?v=1"
+            onerror="console.error('Failed to load ui/components/ui-components.js')"></script>
+
+        <!-- Utils -->
+        <script src="utils/helpers/utils.js?v=1"
+            onerror="console.error('Failed to load utils/helpers/utils.js')"></script>
+        <script src="utils/helpers/2html-functions.js?v=1"
+            onerror="console.error('Failed to load utils/helpers/2html-functions.js')"></script>
+
+        <!-- Feature Scripts -->
+        <script src="features/memory-palace/memory-palace-manager.js?v=1"
+            onerror="console.error('Failed to load features/memory-palace/memory-palace-manager.js')"></script>
+        <script src="features/wallet/wallet-manager.js?v=1"
+            onerror="console.error('Failed to load features/wallet/wallet-manager.js')"></script>
+
+        <!-- Trading Features -->
+        <script src="features/trading/trading-engine.js?v=1"
+            onerror="console.error('Failed to load features/trading/trading-engine.js')"></script>
+        <script src="features/trading/backtesting-engine.js?v=1"
+            onerror="console.error('Failed to load features/trading/backtesting-engine.js')"></script>
+        <script src="features/trading/solana-trading.js?v=1"
+            onerror="console.error('Failed to load features/trading/solana-trading.js')"></script>
+        <script>
+            if (window.isTestnetMode) {
+                document.write('<script src="features/trading/testnet-ui-manager.js?v=1" onerror="console.error(\'Failed to load features/trading/testnet-ui-manager.js\')"><\/script>');
+            }
+        </script>
+        <script src="features/trading/trading-agent-controller.js?v=1"
+            onerror="console.error('Failed to load features/trading/trading-agent-controller.js')"></script>
+        <script src="features/trading/duplicate-analysis.js?v=1"
+            onerror="console.error('Failed to load features/trading/duplicate-analysis.js')"></script>
+        <script src="features/trading/enhanced-trading-agent.js?v=1"
+            onerror="console.error('Failed to load features/trading/enhanced-trading-agent.js')"></script>
+        <script src="features/trading/enhanced-trading-bot.js?v=1"
+            onerror="console.error('Failed to load features/trading/enhanced-trading-bot.js')"></script>
+        <script src="features/trading/evm-chains.js?v=1"
+            onerror="console.error('Failed to load features/trading/evm-chains.js')"></script>
+        <script src="features/trading/simulation-engine.js?v=1"
+            onerror="console.error('Failed to load features/trading/simulation-engine.js')"></script>
+
+        <!-- Slots Features -->
+        <script src="features/slots/slot-machine.js?v=1"
+            onerror="console.error('Failed to load features/slots/slot-machine.js')"></script>
+        <script src="features/slots/slots-engine.js?v=1"
+            onerror="console.error('Failed to load features/slots/slots-engine.js')"></script>
+
+        <!-- CSV Features -->
+        <script src="features/csv/csv-data-manager.js?v=1"
+            onerror="console.error('Failed to load features/csv/csv-data-manager.js')"></script>
+
+        <!-- Desktop App -->
+        <script src="ui/desktop/desktop-app.js?v=1"
+            onerror="console.error('Failed to load ui/desktop/desktop-app.js')"></script>
+
+        <!-- Initialize Application -->
+        <script>
+            // Initialize when DOM is ready
+            document.addEventListener('DOMContentLoaded', async () => {
+                console.log('Starting Jackpot Wallet Desktop App...');
+                try {
+                    // Check if global instances exist
+                    if (!window.jackpotWalletApp) {
+                        throw new Error('jackpotWalletApp is not defined. Check if core/application/main.js loaded correctly.');
+                    }
+                    if (!window.memoryPalaceManager) {
+                        throw new Error('memoryPalaceManager is not defined. Check if features/memory-palace/memory-palace-manager.js loaded correctly.');
+                    }
+                    if (!window.desktopApp) {
+                        throw new Error('desktopApp is not defined. Check if ui/desktop/desktop-app.js loaded correctly.');
+                    }
+
+                    // Optional components (log warnings if not loaded)
+                    if (!window.SoundManager) {
+                        console.warn('SoundManager not loaded - audio features will be limited');
+                    }
+                    if (!window.WalletManager) {
+                        console.warn('WalletManager not loaded - wallet features will be limited');
+                    }
+                    if (!window.TradingEngine) {
+                        console.warn('TradingEngine not loaded - trading features will be limited');
+                    }
+                    if (!window.SlotMachine) {
+                        console.warn('SlotMachine not loaded - slot features will be limited');
+                    }
+                    if (!window.SettingsManager) {
+                        console.warn('SettingsManager not loaded - settings features will be limited');
+                    }
+                    if (!window.NotificationSystem) {
+                        console.warn('NotificationSystem not loaded - notification features will be limited');
+                    }
+                    if (!window.BacktestingEngine) {
+                        console.warn('BacktestingEngine not loaded - backtesting features will be limited');
+                    }
+                    if (!window.SimulationEngine) {
+                        console.warn('SimulationEngine not loaded - simulation features will be limited');
+                    }
+                    if (!window.CSVDataManager) {
+                        console.warn('CSVDataManager not loaded - CSV features will be limited');
+                    }
+
+                    console.log('All global instances found, starting initialization...');
+
+                    // Initialize game and wallet manager first
+                    console.log('Initializing game...');
+                    initializeGame();
+
+                    console.log('Initializing wallet manager...');
+                    await walletManager.initialize();
+
+                    // Add CSS animations for notifications
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOut {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    // Enable testnet styles if testnet mode is active
+                    if (window.isTestnetMode) {
+                        const testnetStyles = document.getElementById('testnet-styles');
+                        if (testnetStyles) {
+                            testnetStyles.disabled = false;
+                            console.log('Testnet mode enabled');
+                        }
+                    }
+
+                    // Add toggle function
+                    window.toggleTestnet = function () {
+                        window.isTestnetMode = !window.isTestnetMode;
+                        const testnetStyles = document.getElementById('testnet-styles');
+                        if (testnetStyles) {
+                            testnetStyles.disabled = !window.isTestnetMode;
+                        }
+                        const newUrl = window.isTestnetMode ? window.location.pathname + '?testnet=true' : window.location.pathname;
+                        window.history.pushState({}, '', newUrl);
+                        console.log('Testnet mode toggled:', window.isTestnetMode);
+                        location.reload();
+                    };
+
+                    // Initialize core systems in order
+                    console.log('Initializing JackpotWalletApp...');
+                    await window.jackpotWalletApp.initialize();
+                    console.log('Initializing MemoryPalaceManager...');
+                    await window.memoryPalaceManager.initialize();
+                    console.log('Initializing DesktopApp...');
+                    await window.desktopApp.initialize();
+                    console.log('Jackpot Wallet Desktop App started successfully');
+                } catch (error) {
+                    console.error('Failed to start desktop app:', error);
+                    console.error('Stack trace:', error.stack);
+
+                    // Show user-friendly error
+                    const errorMessage = `Failed to start desktop app: ${error.message}`;
+                    console.error(errorMessage);
+
+                    // Try to show error in UI
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #f44336;
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                max-width: 500px;
+                text-align: center;
+            `;
+                    errorDiv.innerHTML = `
+                <h3>Initialization Error</h3>
+                <p>${errorMessage}</p>
+                <p>Please check the browser console for more details.</p>
+                <button onclick="this.parentElement.remove()" style="
+                    background: white;
+                    color: #f44336;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                ">Close</button>
+            `;
+                    document.body.appendChild(errorDiv);
+                }
+            });
+        </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+
+</html>

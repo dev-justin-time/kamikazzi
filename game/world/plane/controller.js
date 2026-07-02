@@ -3,9 +3,7 @@
 // Owns: velocity, smoothed roll/pitch, propeller spin, two contrails.
 // Bridge: world.js feeds (normalizedΔx, normalizedΔy) per RAF as `input`.
 //
-// This was previously exported alongside buildPlane but nothing imported it.
-// We now USE it in world.js so the world loop has a single steering authority
-// and the plane gets realistic damping + visible contrails from wing tips.
+// realistic damping + visible contrails from wing tips.
 import * as THREE from 'https://esm.sh/three@0.128.0';
 import { TUNING, clamp } from '../shared.js';
 
@@ -61,18 +59,9 @@ export class PlaneController {
   constructor(plane, propeller, scene) {
     this.plane = plane;
     // Propeller is now passed in directly — it's no longer a child of
-    // `plane` (world.js re-parents it to scene for HUD-lock). The previous
-    // recursive `this.plane.getObjectByName('propeller')` lookup reachable
-    // only descendants of `plane` and would silently fail after re-parenting.
+    // `plane` (world.js re-parents it to scene for HUD-lock).
+  
     this.propeller = propeller || null;
-
-    // MULTI-PROPELLER SPIN: collect every `Object3D` named 'propeller' under
-    // the plane wrapper. The procedural path always has one synthesised
-    // propeller (returned to world.js as the HUD-lock target); GLB paths MAY
-    // also ship a 'propeller'-named mesh inside the loaded scene tree — the
-    // HUD-lock refactor preserved that for model integrity, but only spun
-    // the HUD prop. Now we spin them ALL in lockstep so the GLB's own rotor
-    // doesn't appear frozen while the HUD copy turns.
     this.propellers = [];
     if (plane && plane.traverse) {
       plane.traverse(node => {

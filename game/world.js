@@ -32,7 +32,8 @@ import {
 import {
   syncHighScore, submitLeaderboard, getHighScore, getUsername,
   createMultiplayerRoom, captureScreenshot, saveReplay,
-} from '../puter-client.js';
+  saveGameSnapshot, loadGameSnapshot, deleteGameSnapshot,
+} from './puter-client.js';
 
 // --- internal constants (cluster/camera/sun tuning kept local; gameplay tuning lives in shared.js) ---
 const PEER_LERP = 0.2;
@@ -62,9 +63,11 @@ const CAMERA_TRAIL_FACTOR = 0.5;
 const SHIELD_BOOST_CYCLE = ['shield', 'boost', 'stamina', 'magnet', 'score2x', 'slowmo'];
 
 // Load the impact SFX buffer once at world-init. Tries the canonical
-// /assets/audio/explosion.wav first; falls back to playing the existing
+// /assets/audio/explosion.wav first; then falls back to
 // /assets/audio/airplane.wav (~0.54s, 22050Hz 8-bit) as a punchy one-shot
 // burst if the canonical asset isn't on disk yet ("pending new asset").
+// If both file loads fail, synthesizes a white-noise explosion burst via
+// Web Audio API so the game ALWAYS has a proper impact sound.
 // Returns { buffer, isFallback } | null. Buffer is shared by all crashes.
 async function loadImpactBuffer() {
   const tries = [
@@ -86,8 +89,59 @@ async function loadImpactBuffer() {
       lastErr = e;
     }
   }
-  console.warn('Impact sound: all candidates failed; crash will be silent.', lastErr);
-  return null;
+  // Both file loads failed — synthesize an explosion via Web Audio API.
+  // White noise burst with rapid exponential decay sounds like a sharp
+  // impact / explosion, much better than silence.
+  console.warn('Impact sound: all files failed; synthesizing explosion via Web Audio API.', lastErr);
+  try {
+    // Create an off-line AudioContext to render the synthesized buffer.
+    // OfflineAudioContext is supported in all modern browsers and doesn't
+    // require user gesture. Sample rate matches the shared listener's
+    // context (typically 44100 or 48000).
+    const sampleRate = 44100;
+    const duration = 0.8; // 800ms explosion
+    const length = Math.floor(sampleRate * duration);
+    const offlineCtx = new OfflineAudioContext(1, length, sampleRate);
+
+    // White noise buffer source
+    const noiseLen = length;
+    const noiseArray = new Float32Array(noiseLen);
+    for (let i = 0; i < noiseLen; i++) {
+      noiseArray[i] = Math.random() * 2 - 1;
+    }
+    const noiseBuffer = offlineCtx.createBuffer(1, noiseLen, sampleRate);
+    noiseBuffer.getChannelData(0).set(noiseArray);
+    const noiseSource = offlineCtx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+
+    // Exponential decay envelope: starts loud, decays to silence
+    const gainNode = offlineCtx.createGain();
+    const now = 0;
+    gainNode.gain.setValueAtTime(0.9, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    // Low-pass filter to make it sound more like an explosion (rumble)
+    // rather than pure white noise (hiss)
+    const filter = offlineCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.exponentialRampToValueAtTime(200, now + duration);
+    filter.Q.setValueAtTime(1.0, now);
+
+    noiseSource.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(offlineCtx.destination);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + duration);
+
+    const renderedBuffer = await offlineCtx.startRendering();
+    console.log('Impact sound: synthesized explosion successfully.');
+    return { buffer: renderedBuffer, isFallback: true };
+  } catch (synthErr) {
+    console.warn('Impact sound: synthesis also failed; crash will be silent.', synthErr);
+    return null;
+  }
 }
 
 // Per-type pickup SFX preloader — mirrors the impact loader pattern.
@@ -155,7 +209,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     const h = domElement.clientHeight || window.innerHeight;
     const ar = w / h;
     bg.setOrthoAspect(ar > 0 ? ar : 1);
-    if (bg.material.map) bg.updateContain(bg.material.map);
+    if (bg.material.map) bg.updateCoverFit(bg.material.map);
   };
   syncBgAspect();
   window.addEventListener('resize', syncBgAspect);
@@ -173,7 +227,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     const tex = bgTextures[idx];
     if (!tex) return;
     bg.setTexture(tex);
-    bg.updateContain(tex);
+    bg.updateCoverFit(tex);
 
     if (entry && typeof entry === 'object' && (entry.mode || entry.tint || entry.bgTint !== undefined)) {
       applyPalette({ scene, ground, mode: entry.mode || state._ideas_mode, tint: entry.tint || state._ideas_tint, bgMaterial: bg.material });
@@ -354,7 +408,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     won: false,
     paused: false,
     score: 0,
-    speed: TUNING.STARTING_SPEED,
+    speed: TUNING.SPEED_PER_LEVEL[0],
     baseSpeed: TUNING.BASE_SPEED,
     spawnTimer: 0,
     spawnInterval: TUNING.SPAWN_INTERVAL,
@@ -708,9 +762,9 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           }
 
           if (state.running) {
-            // Speed ramp scales per level so higher levels accelerate faster
-            const levelSpeedMult = Math.min(1.5, Math.pow(TUNING.LEVEL_SPEED_MULT, state.level - 1));
-            state.speed += TUNING.SPEED_RAMP * levelSpeedMult * dt;
+            // Gentle within-level speed ramp (no per-level multiplier — the
+            // level-gate reset to SPEED_PER_LEVEL on level-up handles difficulty steps)
+            state.speed += TUNING.SPEED_RAMP * dt;
 
             // Score is explicitly distance-based: higher point system tied to game distance
             const frameDistance = effSpeed * dt;
@@ -723,6 +777,9 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
               if (state.score - state.levelStartScore >= needed) {
                 state.level++;
                 state.levelStartScore = state.score;
+                // Level-gated speed: reset to this level's base speed so each
+                // sector has a predictable difficulty floor.
+                state.speed = TUNING.SPEED_PER_LEVEL[state.level - 1];
                 if (state.level <= NUM_LEVELS) {
                   applyLevelBackground(state.levelOrder[state.level - 1]);
                 }
@@ -895,7 +952,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     state.over = false;
     state.won = false;
     state.score = 0;
-    state.speed = state.baseSpeed;
+    state.speed = TUNING.SPEED_PER_LEVEL[0];
     state.spawnTimer = 0;
     state.spawnInterval = TUNING.SPAWN_INTERVAL;
     state.target.x = 0;
@@ -990,7 +1047,8 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     } catch (e) { console.warn('persisting score failed', e); }
 
     // ---- Replay Save for notable runs ----
-    // Notable = new personal best, mission success, or score >= 3000.
+    // Notable = new personal best, mission success, or score >= 3000
+    // (a non-win run that reached late-game / all 8 levels).
     const notableReason = isNewBest ? 'new-best' : state.won ? 'mission-success' : final >= 3000 ? 'high-score' : null;
     if (notableReason) {
       try {
@@ -1026,11 +1084,16 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   }
 
   // Compute performance grade (also used by replay save)
+  //   S: ≥ 10,000  (exceptional)
+  //   A: ≥  5,000  (mission success)
+  //   B: ≥  3,000  (completed all 8 levels)
+  //   C: ≥  1,500  (mid-game)
+  //   D: <  1,500  (early crash)
   function computeGrade(score) {
     if (score >= 10000) return 'S';
-    if (score >= 7000) return 'A';
-    if (score >= 5000) return 'B';
-    if (score >= 3000) return 'C';
+    if (score >=  5000) return 'A';
+    if (score >=  3000) return 'B';
+    if (score >=  1500) return 'C';
     return 'D';
   }
 
@@ -1251,6 +1314,74 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     }, undefined, err => console.warn('applyPlaneSkin failed', err));
   }
 
+  // ---- snapshot (cross-device resume) ----
+  async function saveSnapshot() {
+    if (!state.running || state.over || state.won) return false;
+    const currentLevelBgIdx = state.levelOrder[state.level - 1];
+    await saveGameSnapshot({
+      score: state.score,
+      level: state.level,
+      levelOrder: state.levelOrder,
+      levelOrderIndex: state.level - 1,
+      currentLevelBgIdx,
+      speed: state.speed,
+      baseSpeed: state.baseSpeed,
+      distanceTraveled: state.distanceTraveled,
+      timeElapsedMs: performance.now() - state.startTimeMs,
+      levelStartScore: state.levelStartScore,
+      spawnInterval: state.spawnInterval,
+      _ideas_enablePowerups: state._ideas_enablePowerups,
+      _night: state._night,
+      _ideas_mode: state._ideas_mode,
+      _ideas_tint: state._ideas_tint,
+      _ideas_cascade: state._ideas_cascade,
+      _ideas_recognized: state._ideas_recognized,
+    });
+    return true;
+  }
+
+  async function loadSnapshot(snap) {
+    if (!snap) return;
+    // Restore core progression state
+    state.score = snap.score || 0;
+    state.level = snap.level || 1;
+    // Cap restored speed to the current level's base so old snapshots from
+    // before the level-gated speed refactor don't carry over runaway values.
+    const _snapLevel = (snap.level || 1) - 1;
+    state.speed = Math.min(snap.speed ?? TUNING.SPEED_PER_LEVEL[0], TUNING.SPEED_PER_LEVEL[_snapLevel] || TUNING.SPEED_PER_LEVEL[0]);
+    state.baseSpeed = snap.baseSpeed ?? TUNING.BASE_SPEED;
+    state.distanceTraveled = snap.distanceTraveled || 0;
+    state.timeElapsedMs = snap.timeElapsedMs || 0;
+    state.levelStartScore = snap.levelStartScore || 0;
+    state.spawnInterval = snap.spawnInterval || TUNING.SPAWN_INTERVAL;
+    state._ideas_enablePowerups = snap._ideas_enablePowerups ?? false;
+    state._night = snap._night ?? false;
+    state._ideas_mode = snap._ideas_mode || 'day';
+    state._ideas_tint = snap._ideas_tint || null;
+    state._ideas_cascade = snap._ideas_cascade ?? false;
+    state._ideas_recognized = snap._ideas_recognized ?? true;
+
+    // Restore level order and apply the correct background
+    if (snap.levelOrder && Array.isArray(snap.levelOrder)) {
+      state.levelOrder = snap.levelOrder;
+    } else {
+      state.levelOrder = shuffle(Array.from({ length: NUM_LEVELS }, (_, i) => i));
+    }
+    const bgIdx = snap.currentLevelBgIdx ?? state.levelOrder[state.level - 1];
+    applyLevelBackground(bgIdx);
+
+    // Apply palette from ideas config
+    applyPalette({
+      scene, ground,
+      mode: state._ideas_mode,
+      tint: state._ideas_tint,
+      bgMaterial: bg.material,
+    });
+
+    // Delete the snapshot so it can't be re-loaded
+    await deleteGameSnapshot();
+  }
+
   // ---- expose API ----
   return {
     scene, camera, plane,
@@ -1262,6 +1393,9 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     applyPlaneSkin,
     cancelCrashStagger: clearCrashStaggerTimers,
     ensureEngineSound: tryStartEngineSound,
+    saveSnapshot,
+    loadSnapshot,
+    deleteGameSnapshot,
     dispose() {
       stopLoop();
       stopEngineSound();

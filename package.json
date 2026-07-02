@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "description": "High-octane technical flight simulation through procedural neon valleys. Built with Three.js and Puter.js cloud integration.",
-  "keywords": ["game", "three.js", "webgl", "flight", "arcade", "puter"],
+  "keywords": [
+    "game",
+    "three.js",
+    "webgl",
+    "flight",
+    "arcade",
+    "puter"
+  ],
   "author": "Kamikazzi Team",
   "license": "MIT",
   "scripts": {

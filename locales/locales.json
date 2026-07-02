@@ -1,0 +1,8 @@
+{
+  "en": { "name": "English", "nativeName": "English", "flag": "🇺🇸" },
+  "ja": { "name": "Japanese", "nativeName": "日本語", "flag": "🇯🇵" },
+  "es": { "name": "Spanish", "nativeName": "Español", "flag": "🇪🇸" },
+  "fr": { "name": "French", "nativeName": "Français", "flag": "🇫🇷" },
+  "de": { "name": "German", "nativeName": "Deutsch", "flag": "🇩🇪" },
+  "zh": { "name": "Chinese (Simplified)", "nativeName": "简体中文", "flag": "🇨🇳" }
+}

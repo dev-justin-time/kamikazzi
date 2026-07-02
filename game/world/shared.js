@@ -25,14 +25,17 @@ export const TUNING = {
   BOUND_Y_MAX: 16,
 
   // Gameplay
-  SPEED_RAMP: 0.00035,            // dt-multiplied per-frame speed increase
+  // Level-gated speed: each level has a fixed base speed so new players get
+  // more breathing room at the start and the difficulty steps are predictable.
+  // The per-frame SPEED_RAMP is greatly reduced — just enough gentle within-
+  // level tension so each level feels slightly faster toward its end.
+  SPEED_PER_LEVEL: [0.30, 0.45, 0.65, 0.85, 1.05, 1.25, 1.45, 1.60],
+  SPEED_RAMP: 0.00010,            // gentle within-level tension (was 0.00035 — now 3.5× slower)
   SCORE_GAIN: 1.0,                // dt-multiplied per-frame score (higher point system tied to distance)
-  BASE_SPEED: 0.25,
-  STARTING_SPEED: 0.25,            // 2× slower than the previous 0.5 base
+  BASE_SPEED: 0.30,               // matches SPEED_PER_LEVEL[0]
   SPAWN_INTERVAL: 26,
   MIN_SPAWN_INTERVAL: 10,         // clamp on dynamic interval
   SPAWN_SPEED_PRESSURE: 4,        // speed term that tightens interval
-  LEVEL_SPEED_MULT: 1.1,           // each level ramps 10% faster
   LEVEL_LENGTH_MULT: 1.12,         // each level requires 12% more score (steeper late-game ramp)
   BUILD_PASS_BONUS: 5,
   BUILD_DRIFT_FACTOR: 2.2,        // multiplier on `speed` for building drift
@@ -213,10 +216,122 @@ export function getExplosionParticleMaterial(colorHex) {
   return mat;
 }
 
-// ---------- Misc domain constants ----------
-export const BUILDING_COLORS = [
-  0x5c6bc0, 0x26a69a, 0xab47bc, 0xef5350, 0xffa726, 0x42a5f5, 0x55d65f,
+// ---------- Building shape probability weights ----------
+// Weights for random shape selection when spawning buildings.
+// Higher weight = more likely to appear.
+export const BUILDING_SHAPE_WEIGHTS = {
+  box: 40,           // standard rectangular box
+  cylinder: 15,      // round tower
+  stepped: 20,       // terraced / ziggurat
+  slopedRoof: 18,    // box + triangular roof
+  tower: 7,          // thin tall comm tower
+};
+
+// ---------- Building skin system ----------
+// Each skin is a named theme with color palette + optional graffiti decal override.
+// Skins are unlocked via achievements (score thresholds).
+// The 'default' skin is always available; others require a minimum score
+// reached in any previous run (tracked via localStorage kamikazziBestScore).
+export const BUILDING_SKINS = [
+  {
+    id: 'default',
+    name: 'Standard Issue',
+    palette: [0x5c6bc0, 0x26a69a, 0xab47bc, 0xef5350, 0xffa726, 0x42a5f5, 0x55d65f],
+    desc: 'The default city palette.',
+    unlockScore: 0,
+    decalOverlay: null,
+    roofColor: 0x4a4a6a,
+    accentColor: 0x2a2f3a,
+  },
+  {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Night',
+    palette: [0x0066ff, 0xff00ff, 0x00ffcc, 0xff6600, 0xaa00ff, 0x00ccff, 0xff0066],
+    desc: 'Neon-drenched city streets.',
+    unlockScore: 500,
+    decalOverlay: null,
+    roofColor: 0x1a002a,
+    accentColor: 0x4a0080,
+  },
+  {
+    id: 'wasteland',
+    name: 'Wasteland',
+    palette: [0x8c7a6b, 0x6b5e4a, 0x5c4e3d, 0x7a6b4a, 0x4a5c3d, 0x8c7a3d, 0x6b5c4a],
+    desc: 'Rusted, sand-blasted ruins.',
+    unlockScore: 1000,
+    decalOverlay: null,
+    roofColor: 0x3d3028,
+    accentColor: 0x5a4a3a,
+  },
+  {
+    id: 'arctic',
+    name: 'Arctic Zone',
+    palette: [0x8cbfff, 0x5a9aff, 0xccddff, 0xaaccff, 0x7aadff, 0x6b9fff, 0xbbddff],
+    desc: 'Frozen tundra architecture.',
+    unlockScore: 1500,
+    decalOverlay: null,
+    roofColor: 0xffffff,
+    accentColor: 0x8cbfff,
+  },
+  {
+    id: 'neon',
+    name: 'Neon Sun',
+    palette: [0xff6b6b, 0xffd93d, 0x6bcb77, 0x4d96ff, 0xff6bcb, 0xcb6bff, 0x6bffd9],
+    desc: 'Vibrant daylight metropolis.',
+    unlockScore: 2000,
+    decalOverlay: null,
+    roofColor: 0x2a1a00,
+    accentColor: 0x4a3000,
+  },
+  {
+    id: 'matrix',
+    name: 'Digital Rain',
+    palette: [0x00ff66, 0x00cc44, 0x33ff77, 0x00aa33, 0x66ff99, 0x00ff33, 0x00ee55],
+    desc: 'Green-tinted data-city.',
+    unlockScore: 3000,
+    decalOverlay: null,
+    roofColor: 0x001a00,
+    accentColor: 0x003300,
+  },
 ];
+
+// Current active building skin (applied at start of each run).
+// Stored as the skin ID string; 'default' is the fallback.
+const BUILDING_SKIN_KEY = 'kamikazzi_building_skin';
+export function getActiveBuildingSkin() {
+  try {
+    const id = localStorage.getItem(BUILDING_SKIN_KEY);
+    // Check predefined skins first
+    const builtin = BUILDING_SKINS.find(s => s.id === id);
+    if (builtin) return builtin;
+    // Check for a custom generated skin in localStorage
+    if (id === 'custom_generated') {
+      const raw = localStorage.getItem('kamikazzi_building_custom_skin');
+      if (raw) {
+        const custom = JSON.parse(raw);
+        if (custom && custom.palette && Array.isArray(custom.palette)) return custom;
+      }
+    }
+    return BUILDING_SKINS[0];
+  } catch (_) { return BUILDING_SKINS[0]; }
+}
+export function setActiveBuildingSkin(id) {
+  try { localStorage.setItem(BUILDING_SKIN_KEY, id); } catch (_) {}
+}
+
+// Check if a skin is unlocked based on the player's best score.
+// Best score is read from the existing localStorage key 'kamikazziHiScore'.
+export function isSkinUnlocked(skinId) {
+  if (skinId === 'default' || skinId === 'custom_generated') return true;
+  const skin = BUILDING_SKINS.find(s => s.id === skinId);
+  if (!skin) return false;
+  try {
+    const best = Number(localStorage.getItem('kamikazziHiScore') || 0);
+    return best >= skin.unlockScore;
+  } catch (_) { return false; }
+}
+
+// Window fill colors (glow)
 export const WINDOW_FILL_COLORS = [0xfff3b0, 0xbfe3ff];
 // Legacy single-color palette (kept for callers that don't pass opts.palette).
 export const EXPLOSION_COLORS = [0xff5722, 0xffc107, 0xff9800, 0xffeb3b];
@@ -291,7 +406,7 @@ export const FINAL_LEVEL_FOG = 0x330505;
 // first (N-1)..N multiples of this constant). 7 levels × 500 = 3500 total.
 export const SCORE_PER_LEVEL = 240;
 // Target score that triggers the Mission Success screen (in addition to max level).
-export const TARGET_SUCCESS_SCORE = 3000;
+export const TARGET_SUCCESS_SCORE = 5000;
 
 // Explosion GIF shown 3 sequential times during the crash sequence
 // (see ui.js playExplodeStep). Path under assets/image/ so all visual
@@ -406,26 +521,38 @@ export function createBackgroundScene() {
     }
   }
 
-  function updateContain(texture) {
+  function updateCoverFit(texture) {
     if (!texture || !texture.image || !texture.image.width) {
       // No texture: fall back to a square that fills the ortho frustum so the
       // tints show through uniformly.
-      mesh.scale.set(bgCamera.right - bgCamera.left, bgCamera.top - bgCamera.bottom, 1);
+      const fw = bgCamera.right - bgCamera.left;
+      const fh = bgCamera.top - bgCamera.bottom;
+      mesh.scale.set(fw, fh, 1);
+      mesh.position.y = bgCamera.top - fh / 2;
       return;
     }
     const IR = texture.image.width / texture.image.height;
     const AR = (bgCamera.right - bgCamera.left) / (bgCamera.top - bgCamera.bottom);
     let sx, sy;
+    // Overscan factor extends the image 10% past the viewport bottom so the
+    // image always bleeds past the 3D scene horizon, eliminating any visible
+    // seam between the photo edge and the ground fog. The factor is applied to
+    // both axes so aspect ratio is preserved and the overflow is uniform.
+    const OVERSCAN = 1.10;
     if (IR > AR) {
-      // Image wider than ortho: fill horizontally, bar vertically
-      sx = bgCamera.right - bgCamera.left;
-      sy = sx / IR;
-    } else {
-      // Image taller than ortho: fill vertically, bar horizontally
-      sy = bgCamera.top - bgCamera.bottom;
+      // Image wider than ortho: fill height (+overscan), width overflows edges
+      sy = (bgCamera.top - bgCamera.bottom) * OVERSCAN;
       sx = sy * IR;
+    } else {
+      // Image taller than ortho: fill width (+overscan), height overflows bottom
+      sx = (bgCamera.right - bgCamera.left) * OVERSCAN;
+      sy = sx / IR;
     }
     mesh.scale.set(sx, sy, 1);
+    // Top-anchor: top of image = top of frustum
+    // Mesh PlaneGeometry(1,1) centered at origin, scaled by (sx, sy, 1)
+    // Mesh y-range: position.y ± sy/2 → set so top edge matches frustum top
+    mesh.position.y = bgCamera.top - sy / 2;
   }
 
   function setTint(hex) {
@@ -437,5 +564,5 @@ export function createBackgroundScene() {
     material.dispose();
   }
 
-  return { bgScene, bgCamera, mesh, material, setTexture, updateContain, setOrthoAspect, setTint, dispose };
+  return { bgScene, bgCamera, mesh, material, setTexture, updateCoverFit, setOrthoAspect, setTint, dispose };
 }
