@@ -708,7 +708,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
           if (state.running) {
             // Speed ramp scales per level so higher levels accelerate faster
-            const levelSpeedMult = Math.pow(TUNING.LEVEL_SPEED_MULT, state.level - 1);
+            const levelSpeedMult = Math.min(1.5, Math.pow(TUNING.LEVEL_SPEED_MULT, state.level - 1));
             state.speed += TUNING.SPEED_RAMP * levelSpeedMult * dt;
 
             // Score is explicitly distance-based: higher point system tied to game distance
