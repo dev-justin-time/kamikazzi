@@ -37,3 +37,8 @@ ehthumbs.db
 .env.local
 .env.*.local
 la_dodger/
+
+# Temp screenshots / images
+screen.jpg
+screen.png
+assets/image/china.jpg
