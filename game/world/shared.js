@@ -320,7 +320,7 @@ export const POWERUP_SFX_URLS = {
 };
 
 // Crash-sequence keyframes. Single source of truth for WHAT happens at each
-// stage of the ~5.4s crash — the UI gif plays (ui.js playExplodeStep) and the
+// stage of the ~2.7s crash — the UI gif plays (ui.js playExplodeStep) and the
 // 3D-particle stagger (world.js endGame) walk this same table in lockstep.
 //
 // Each entry is one play / one 3D burst:
@@ -331,16 +331,17 @@ export const POWERUP_SFX_URLS = {
 //                  distinct (warm-orange / amber / smoke-grey etc.)
 //   - scale: per-burst scale multiplier for the 3D particles (1.0 = baseline)
 //
-// Future tweaks are one-line edits: e.g. "5 plays at 1500ms each" means
-// drop in five new entries each with intervalMs=1500 and the desired
+// Future tweaks are one-line edits: e.g. "5 plays at 750ms each" means
+// drop in five new entries each with intervalMs=750 and the desired
 // palette/scale ramp. The number of plays is just `.length`.
 export const CRASH_KEYFRAMES = [
-  { intervalMs: 1800, paletteIdx: 0, scale: 1.0 },   // play 1 — warm-orange "boom"
-  { intervalMs: 1800, paletteIdx: 1, scale: 1.3 },   // play 2 — amber       "burn"
-  { intervalMs: 1800, paletteIdx: 2, scale: 1.6 },   // play 3 — smoke-grey  "ash"
+  { intervalMs: 900, paletteIdx: 0, scale: 1.0 },   // play 1 — warm-orange "boom"
+  { intervalMs: 900, paletteIdx: 1, scale: 1.3 },   // play 2 — amber       "burn"
+  { intervalMs: 900, paletteIdx: 2, scale: 1.6 },   // play 3 — smoke-grey  "ash"
 ];
-// 1.7s native GIF loop + 100ms buffer per play; intentionally uniform so a
-// future tweak that wants even pacing only edits the intervalMs field.
+// 1.7s native GIF loop runs concurrently; 900ms gap means plays overlap
+// slightly for a denser crash feel. Intentionally uniform so a future
+// tweak that wants even pacing only edits the intervalMs field.
 
 // Derived convenience export so callers that just want the play count don't
 // touch the table. Recomputed per-import so it stays synchronized with
