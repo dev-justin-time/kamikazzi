@@ -1699,25 +1699,4 @@ export async function generateBuildingPalette(userPrompt, presetId) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Convenience: boot-time sync
-// ---------------------------------------------------------------------------
-// On load, try to pull cloud high score down to localStorage so the game
-// reads the freshest value even if it only checks localStorage directly.
-(async function bootSync() {
-  try {
-    const cloudBest = await cloudGet('HiScore');
-    if (typeof cloudBest === 'number' && cloudBest > 0) {
-      const localBest = Number(localStorage.getItem('kamikazziHiScore') || 0);
-      if (cloudBest > localBest) {
-        localStorage.setItem('kamikazziHiScore', String(cloudBest));
-      }
-    }
-    const cloudSettings = await cloudGet('Settings');
-    if (cloudSettings && typeof cloudSettings === 'object') {
-      const localSettings = localGet('Settings') || {};
-      const merged = { ...localSettings, ...cloudSettings };
-      localSet('Settings', merged);
-    }
-  } catch (_) {}
-})();
+

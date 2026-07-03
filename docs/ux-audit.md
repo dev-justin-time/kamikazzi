@@ -24,8 +24,8 @@
 
 ### R1 — Missing PNG Icons
 **Files affected:** `manifest.json`, `index.html`
-**Issue:** `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` referenced but did not exist.
-**Fix:** Generated all three from `assets/icon.svg` using sharp.
+**Issue:** `icons/icon-192.png`, `icons/icon-512.png`, `icons/apple-touch-icon.png` referenced but did not exist.
+**Fix:** Generated all three from `assets/icons/icon.svg` using sharp.
 
 ### R2 — Missing App Store Documentation
 **Issue:** No guide for submitting to the Puter App Center.

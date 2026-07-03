@@ -91,9 +91,9 @@ The game combines:
 ## Logos & Assets
 
 Logos and icon assets are available in the project root:
-- `assets/icon.svg` — Vector icon
-- `assets/icon-192.png` — 192×192 PWA icon
-- `assets/icon-512.png` — 512×512 PWA icon
-- `assets/apple-touch-icon.png` — iOS home screen icon
+- `assets/icons/icon.svg` — Vector icon
+- `assets/icons/icon-192.png` — 192×192 PWA icon
+- `assets/icons/icon-512.png` — 512×512 PWA icon
+- `assets/icons/apple-touch-icon.png` — iOS home screen icon
 
 Screenshot descriptions available in `marketing/screenshots.md`.

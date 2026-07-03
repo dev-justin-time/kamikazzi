@@ -11,10 +11,10 @@ This document covers everything required to list Kamikazzi 3D on the [Puter App 
 ### 1. Icon Requirements
 | File | Purpose | Status |
 |------|---------|--------|
-| `assets/icon.svg` | Primary vector source (favicon, scalable) | ✅ Ready |
-| `assets/icon-192.png` | PWA manifest (192×192) | ✅ Generated |
-| `assets/icon-512.png` | App Store listing (512×512) | ✅ Generated |
-| `assets/apple-touch-icon.png` | iOS home screen (512×512) | ✅ Generated |
+| `assets/icons/icon.svg` | Primary vector source (favicon, scalable) | ✅ Ready |
+| `assets/icons/icon-192.png` | PWA manifest (192×192) | ✅ Generated |
+| `assets/icons/icon-512.png` | App Store listing (512×512) | ✅ Generated |
+| `assets/icons/apple-touch-icon.png` | iOS home screen (512×512) | ✅ Generated |
 
 **Icon guidelines met:**
 - ✅ 512×512 pixel square
@@ -42,7 +42,7 @@ Submit these through the [Dev Center](https://developer.puter.com/app-center/) U
 | **Name** | KAMIKAZZI 3D |
 | **Short description** | High-octane technical flight simulation through procedural neon valleys. Dodge towers, collect powerups, and chase the high score. |
 | **Category** | Games / Action |
-| **Icon** | `assets/icon-512.png` |
+| **Icon** | `assets/icons/icon-512.png` |
 
 ### 4. Developer Agreement
 By submitting, you agree to the [Puter App Developer Agreement](https://puter.com/developer-agreement):
@@ -75,7 +75,7 @@ Your app will be reviewed against these criteria:
 3. **Click "New App"** and fill in:
    - App name: `KAMIKAZZI 3D`
    - Description (see [Marketing Kit](./assets/marketing_kit.md))
-   - Upload `assets/icon-512.png` as the app icon
+   - Upload `assets/icons/icon-512.png` as the app icon
    - Set entry URL to where the app is hosted
    - Select category: Games
 4. **Request Approval** — Puter reviews and notifies you via email.

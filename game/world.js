@@ -1,15 +1,8 @@
 // /game/world.js
 // Orchestrator: composes scene-level objects (lights, ground, clouds, plane)
 // with domain managers (buildings, powerups, explosions, ideas, multiplayer).
-//
-// CHANGES vs the old monolith:
-//   - Uses PlaneController for movement (was inline lerp + manual rotation).
-//   - Uses shared TUNING constants (no magic numbers here anymore).
-//   - Uses shared texture cache + cached geometries/materials everywhere.
-//   - Cancels the previous RAF before starting a new loop (no piling RAFs).
-//   - Cloud color is now white (was 0xff5a5a red via magic literal).
-//   - Periodic presence updates (was once at init, then never again).
-//   - Single source of palette (applyIdeasConfig + applyPalette coordinate).
+
+
 import * as THREE from 'https://esm.sh/three@0.128.0';
 
 import { buildPlane, loadPlaneFromGLB } from './world/plane/factory.js';

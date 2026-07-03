@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title data-i18n="title">KAMIKAZZI 3D</title>
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 
 <!-- Kamikaze theme typography: Stick No Bills for Latin signage, Noto Sans JP for the kanji sub-title. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,7 @@
     width: 100%; height: 100%; overflow: hidden;
     background: #87ceeb;
     font-family: 'Stick No Bills', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    touch-action: manipulation;
   }
   #game { position: fixed; inset: 0; }
   canvas { display: block; }
@@ -176,6 +177,22 @@
   #bootScreen .boot-seg.on { background: #00dddd; box-shadow: 0 0 8px rgba(0,221,221,0.45); }
   #bootScreen .boot-meta { display: flex; justify-content: space-between; font-size: 11px; color: rgba(152,203,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; }
   #bootScreen .boot-pct { color: #00dddd; font-weight: 700; }
+  /* Dev maker splash badge inside boot panel */
+  #bootScreen .dev-splash {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover; object-position: center;
+    border: 2px solid rgba(152,203,255,0.25);
+    margin: 0 auto 16px;
+    display: block;
+    filter: grayscale(0.5) brightness(0.8);
+    transition: filter 0.4s ease, border-color 0.4s ease;
+    box-shadow: 0 0 12px rgba(152,203,255,0.12);
+  }
+  #bootScreen.boot-done .dev-splash {
+    filter: grayscale(0) brightness(1);
+    border-color: rgba(0,221,221,0.5);
+    box-shadow: 0 0 20px rgba(0,221,221,0.25);
+  }
 
   /* ---- Pause screen (System Suspended) ---- */
   #pauseScreen {
@@ -1014,7 +1031,185 @@
     0%, 100% { transform: translateY(0) rotate(-4deg); }
     50% { transform: translateY(-6px) rotate(4deg); }
   }
+  /* ===== Level Fabricator styles ===== */
+  #levelFabricatorOverlay {
+    position: fixed; inset: 0; z-index: 28;
+    background: #050505;
+    display: flex; flex-direction: column;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  #levelFabricatorOverlay.hidden { display: none !important; }
+  #sg-container { width: 100%; flex: 1; position: relative; }
+  #sg-container canvas { display: block; }
+  #sg-controls-panel {
+    position: absolute; top: 10px; left: 10px; z-index: 29;
+    pointer-events: auto;
+    background: rgba(15, 15, 20, 0.9);
+    backdrop-filter: blur(12px);
+    padding: 10px; border-radius: 12px;
+    width: 200px;
+    display: flex; flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    cursor: default;
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    max-height: 92vh;
+    box-sizing: border-box;
+  }
+  #sg-controls-panel.collapsed { height: 30px; width: 60px; }
+  #sg-controls-panel.collapsed #sg-controls-content { display: none; }
+  #sg-controls-content {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-top: 6px; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  #sg-controls-content::-webkit-scrollbar { width: 4px; }
+  #sg-controls-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  #sg-controls-panel label {
+    font-size: 11px; font-weight: bold; text-transform: uppercase;
+    color: #aaa; letter-spacing: 0.5px;
+  }
+  #sg-controls-panel select, #sg-controls-panel input[type="range"] {
+    width: 100%; background: #222; color: white;
+    border: 1px solid #444; padding: 4px;
+    border-radius: 4px; font-size: 12px;
+  }
+  #sg-controls-panel button {
+    background: #3498db; color: white; border: none;
+    padding: 10px; border-radius: 6px; cursor: pointer;
+    font-weight: bold; transition: 0.2s; text-transform: uppercase;
+  }
+  #sg-controls-panel button:hover { background: #2980b9; }
+  #sg-controls-panel .drag-handle {
+    display: flex; justify-content: center; align-items: center;
+    cursor: move; background: rgba(255,255,255,0.1);
+    border-radius: 5px; user-select: none;
+    height: 20px; margin-bottom: 5px;
+  }
+  #sg-controls-panel .dot-grid {
+    width: 12px; height: 8px;
+    background-image: radial-gradient(circle, #888 1.5px, transparent 1.5px);
+    background-size: 4px 4px;
+  }
+  #sg-controls-panel .collapse-btn {
+    position: absolute; top: 5px; right: 5px;
+    width: 20px; height: 20px; padding: 0; font-size: 14px;
+    line-height: 18px; background: rgba(255,255,255,0.1);
+    border-radius: 4px; display: flex; align-items: center;
+    justify-content: center; color: white;
+  }
+  #sg-controls-panel .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 4px; width: 100%; box-sizing: border-box;
+  }
+  #sg-controls-panel .tabs {
+    display: flex; gap: 2px; margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  #sg-controls-panel .tab-btn {
+    flex: 1; font-size: 10px; padding: 5px 0;
+    background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;
+  }
+  #sg-controls-panel .tab-btn.active { background: #3498db; }
+  #sg-controls-panel .tab-content { display: none; }
+  #sg-controls-panel .tab-content.active { display: flex; flex-direction: column; }
+  #sg-controls-panel hr {
+    border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;
+  }
+  #sg-controls-panel .checkbox-group {
+    flex-direction: row; align-items: center; gap: 8px; padding: 5px 0;
+  }
+  #sg-controls-panel .checkbox-group input { width: 16px; height: 16px; cursor: pointer; }
+  #sg-stats-panel {
+    position: absolute; top: 10px; right: 10px; z-index: 29;
+    pointer-events: none; padding: 6px 10px;
+    font-size: 14px; font-family: Arial, sans-serif;
+    font-weight: bold; color: #00ff00;
+    display: flex; flex-direction: column;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  }
+  #sg-stats-panel .stat-item {
+    display: flex; justify-content: flex-end; align-items: center; gap: 12px;
+  }
+  #sg-fullscreen-btn {
+    background: none; border: none; color: #00ff00;
+    font-size: 20px; cursor: pointer; padding: 0;
+    pointer-events: auto; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    transition: transform 0.2s; font-family: Arial, sans-serif;
+  }
+  #sg-fullscreen-btn:hover { transform: scale(1.1); background: none; }
+  #sg-minimap-container {
+    position: absolute; bottom: 15px; right: 15px; z-index: 29;
+    width: 120px; height: 120px;
+    background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    display: flex; flex-direction: column;
+  }
+  #sg-minimap-container.collapsed { height: 30px !important; width: 60px !important; }
+  #sg-minimap-container.collapsed #sg-minimap-content { display: none; }
+  #sg-minimap-container.medium { width: 240px; height: 240px; }
+  #sg-minimap-container.large { width: 400px; height: 400px; }
+  #sg-minimap-handle { height: 20px; font-size: 14px; line-height: 20px; cursor: move; background: rgba(255,255,255,0.05); text-align: center; color: #aaa; }
+  #sg-minimap-content { position: relative; flex: 1; width: 100%; height: calc(100% - 20px); }
+  #sg-minimap-canvas { width: 100%; height: 100%; image-rendering: auto; }
+  #sg-minimap-controls { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; z-index: 20; }
+  .sg-minimap-btn {
+    width: 24px; height: 24px; padding: 0; font-size: 12px;
+    background: rgba(0,0,0,0.7); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: white; border: 1px solid rgba(255,255,255,0.2);
+  }
+  #sg-player-marker {
+    position: absolute; width: 12px; height: 12px;
+    background: #ffcc00; border-radius: 50%;
+    box-shadow: 0 0 10px #ffcc00, 0 0 20px rgba(255,204,0,0.5);
+    z-index: 10; pointer-events: none;
+  }
+  #sg-player-marker::after {
+    content: ''; position: absolute; bottom: 40%; left: 50%;
+    width: 20px; height: 18px;
+    transform: translateX(-50%);
+    background: linear-gradient(to top, rgba(255,204,0,0.9) 0%, rgba(255,204,0,0.4) 50%, transparent 100%);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    opacity: 0.9; pointer-events: none;
+  }
+  #sg-joystick-zone {
+    position: absolute; bottom: 20px; left: 20px; z-index: 30;
+    width: 100px; height: 100px; pointer-events: auto; display: none;
+  }
+  @media (pointer: coarse) { #sg-joystick-zone { display: block; } }
+  #sg-lv-fab-close {
+    position: absolute; top: 10px; right: 10px; z-index: 31;
+    width: 36px; height: 36px;
+    background: rgba(255,50,50,0.25); border: 1px solid rgba(255,100,100,0.4);
+    border-radius: 50%; color: #ff6464;
+    font-size: 18px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+  }
+  #sg-lv-fab-close:hover { background: rgba(255,50,50,0.45); color: #fff; }
+  #sg-lv-fab-btn {
+    margin-top: 10px; padding: 10px 28px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid rgba(0,221,221,0.35); background: rgba(0,221,221,0.08);
+    color: #00dddd; transition: all 0.15s ease;
+  }
+  #sg-lv-fab-btn:hover { background: rgba(0,221,221,0.18); color: #fff; }
+
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.128.0",
+    "three/addons/": "https://esm.sh/three@0.128.0/examples/jsm/",
+    "nipplejs": "https://esm.sh/nipplejs@0.10.1"
+  }
+}
+</script>
 </head>
 <body>
 <div id="game" role="application" aria-label="Kamikazzi 3D game world"></div>
@@ -1040,6 +1235,7 @@
   <div class="boot-panel"
     <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
     <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <img class="dev-splash" src="/assets/image/jt.png" alt="Developer" />
     <h2>AERO_COMMAND // KAMIKAZZI 3D</h2>
     <div class="boot-status" id="bootStatus" aria-live="polite">Initializing kernel...</div>
     <div class="boot-bar" id="bootBar"></div>
@@ -1083,6 +1279,7 @@
     <button id="communityPowerupBtn" aria-label="Browse community powerups" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(201,153,255,0.35);background:rgba(201,153,255,0.06);color:#c999ff;transition:all 0.15s ease;">⚡ Powerups</button>
     <button id="lobbyBtn" aria-label="Open multiplayer lobby" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(0,221,221,0.35);background:rgba(0,221,221,0.08);color:#00dddd;transition:all 0.15s ease;">👥 Lobby</button>
     <button id="legalBtn" aria-label="View legal and compliance information" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(152,203,255,0.35);background:rgba(152,203,255,0.08);color:#98cbff;transition:all 0.15s ease;">⚖️ Legal</button>
+    <button id="sg-lv-fab-btn" aria-label="Open Level Fabricator" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(0,221,221,0.35);background:rgba(0,221,221,0.08);color:#00dddd;transition:all 0.15s ease;">🌍 Level Fabricator</button>
     <button id="settingsBtn" aria-label="Open settings" data-i18n="btn.settings">⚙️ Settings</button>
     <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tilt your device or drag the screen<br>🕹️ Use joystick (bottom-left) for touch<br>❓ Press <strong>?</strong> for keyboard shortcuts</div>
   </div>
@@ -1327,7 +1524,66 @@
   <div class="lb-panel" style="max-width:540px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-  <!-- Building Marketplace overlay -->
+    <h3>🎨 Skin Lab</h3>
+
+    <div class="lb-body" style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Plane Skin -->
+      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Plane Skin</div>
+        <input id="skinPrompt" type="text" placeholder="e.g. flaming dragon camo" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Skin generation prompt" />
+        <!-- Style Preset Chips -->
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
+        <div id="skinStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Skin style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
+        <!-- Prompt Preview -->
+        <div id="skinPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+          <button id="generateSkinBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate plane skin">Generate Skin</button>
+          <div id="skinPreview" role="img" aria-label="Plane skin preview" style="width:64px;height:64px;border-radius:4px;border:1px solid rgba(152,203,255,0.2);background:rgba(0,0,0,0.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
+          <span id="skinStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+        </div>
+      </div>
+
+      <!-- Pilot Portrait -->
+      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Pilot Portrait</div>
+        <input id="portraitPrompt" type="text" placeholder="e.g. cyberpunk pilot with aviator goggles" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Pilot portrait generation prompt" />
+        <!-- Style Preset Chips for Portrait -->
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
+        <div id="portraitStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Portrait style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
+        <!-- Prompt Preview -->
+        <div id="portraitPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+          <button id="generatePortraitBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate pilot portrait">Generate Portrait</button>
+          <div id="portraitPreview" role="img" aria-label="Pilot portrait preview" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(152,203,255,0.2);background:rgba(0,0,0,0.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
+          <span id="portraitStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+        </div>
+      </div>
+
+      <!-- Building Palette -->
+      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Building Palette</div>
+        <input id="buildPrompt" type="text" placeholder="e.g. mediterranean seaside town" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Building palette generation prompt" />
+        <!-- Style Preset Chips for Building -->
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
+        <div id="buildStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Building palette style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
+        <!-- Prompt Preview -->
+        <div id="buildPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">
+          <button id="generateBuildBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate building palette">Generate Palette</button>
+          <div id="buildPaletteStrip" role="img" aria-label="Generated building color palette" style="display:flex;gap:3px;height:40px;flex:1;min-width:120px;border-radius:3px;overflow:hidden;border:1px solid rgba(152,203,255,0.15);background:rgba(0,0,0,0.3);"></div>
+          <span id="buildStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button id="applyBuildPaletteBtn" class="lb-close" style="margin:0;flex:1;border-color:rgba(0,221,221,0.4);color:#00dddd;display:none;" aria-label="Apply generated palette as building skin">Apply as Building Skin</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="lb-close" id="skinLabClose" aria-label="Close skin lab">Close</button>
+  </div>
+</div>
+
+<!-- Building Marketplace overlay -->
 <div id="marketplacePanel" class="hidden" role="dialog" aria-modal="true" aria-label="Building skins marketplace">
   <div class="mp-panel">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
@@ -1338,7 +1594,7 @@
   </div>
 </div>
 
-  <!-- Player Profile overlay -->
+<!-- Player Profile overlay -->
 <div id="profilePanel" class="hidden" role="dialog" aria-modal="true" aria-label="Pilot profile">
   <div class="lb-panel" style="max-width:560px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
@@ -1351,7 +1607,7 @@
   </div>
 </div>
 
-  <!-- Settings overlay -->
+<!-- Settings overlay -->
 <div id="settingsPanel" class="hidden" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="lb-panel" style="max-width:400px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
@@ -1384,7 +1640,7 @@
   </div>
 </div>
 
-  <!-- Community Powerup Registry overlay -->
+<!-- Community Powerup Registry overlay -->
 <div id="communityPowerupPanel" class="hidden" role="dialog" aria-modal="true" aria-label="Community powerups">
   <div class="lb-panel" style="max-width:560px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
@@ -1493,63 +1749,225 @@
   </div>
 </div>
 
-    <h3>🎨 Skin Lab</h3>
+<!-- Level Fabricator overlay -->
+<div id="levelFabricatorOverlay" class="hidden" role="dialog" aria-modal="true" aria-label="Level Fabricator terrain editor">
+  <div id="sg-container"></div>
+  <button id="sg-lv-fab-close" aria-label="Close Level Fabricator">✕</button>
 
-    <div class="lb-body" style="display:flex;flex-direction:column;gap:16px;">
-      <!-- Plane Skin -->
-      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Plane Skin</div>
-        <input id="skinPrompt" type="text" placeholder="e.g. flaming dragon camo" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Skin generation prompt" />
-        <!-- Style Preset Chips -->
-        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
-        <div id="skinStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Skin style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
-        <!-- Prompt Preview -->
-        <div id="skinPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-          <button id="generateSkinBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate plane skin">Generate Skin</button>
-          <div id="skinPreview" role="img" aria-label="Plane skin preview" style="width:64px;height:64px;border-radius:4px;border:1px solid rgba(152,203,255,0.2);background:rgba(0,0,0,0.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
-          <span id="skinStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+  <!-- Stats panel -->
+  <div id="sg-stats-panel" aria-live="polite" aria-atomic="true">
+    <span id="sg-fps-counter">FPS: 0</span>
+    <div class="stat-item">
+      <button id="sg-fullscreen-btn" aria-label="Toggle fullscreen" aria-pressed="false">⛶</button>
+    </div>
+  </div>
+
+  <!-- Controls panel -->
+  <div id="sg-controls-panel">
+    <div class="drag-handle" id="sg-controls-handle" aria-hidden="true"><div class="dot-grid"></div></div>
+    <button class="collapse-btn" id="sg-toggle-controls" aria-label="Toggle controls panel" aria-label="Toggle controls">−</button>
+    <div id="sg-controls-content">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-gen" aria-label="Terrain generation settings" aria-selected="true">Gen</button>
+        <button class="tab-btn" data-tab="tab-player" aria-label="Player settings">Player</button>
+        <button class="tab-btn" data-tab="tab-edit" aria-label="Edit terrain tools">Edit</button>
+      </div>
+
+      <!-- Gen Tab -->
+      <div id="tab-gen" class="tab-content active">
+        <div class="control-group">
+          <label>Preset</label>
+          <select id="sg-preset-select" aria-label="Select terrain preset">
+            <option value="default">Default</option>
+            <option value="circle_island">Circle Island</option>
+            <option value="square_island">Square Island</option>
+            <option value="doughnut">Doughnut</option>
+            <option value="lava_doughnut">Lava Doughnut</option>
+            <option value="ring_of_fire">Ring of Fire</option>
+            <option value="archipelago">Archipelago</option>
+            <option value="canyon">Canyon</option>
+            <option value="alpine">Alpine</option>
+            <option value="landlocked">Landlocked</option>
+            <option value="atoll">Atoll</option>
+            <option value="mars">Mars</option>
+            <option value="moon">Moon</option>
+            <option value="venus">Venus</option>
+            <option value="custom">Custom Heightmap</option>
+          </select>
+        </div>
+        <div class="control-group" id="sg-custom-upload-group" style="display:none;">
+          <label>Upload Heightmap</label>
+          <input type="file" id="sg-heightmap-input" accept="image/*" aria-label="Upload heightmap image file" />
+        </div>
+        <div class="control-group">
+          <label>Quality</label>
+          <select id="sg-quality-select" aria-label="Select terrain quality">
+            <option value="ultralow">Ultra Low</option>
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="ultra">Ultra</option>
+            <option value="extreme">Extreme</option>
+            <option value="original">Original (custom)</option>
+          </select>
+        </div>
+        <hr>
+        <div class="control-group">
+          <label>Size: <span id="sg-size-val">256</span></label>
+          <input type="range" id="sg-size-slider" min="64" max="1024" step="8" value="256" aria-label="Terrain size" />
+        </div>
+        <div class="control-group">
+          <label>Scale: <span id="sg-scale-val">40</span></label>
+          <input type="range" id="sg-scale-slider" min="10" max="200" step="1" value="40" aria-label="Terrain scale" />
+        </div>
+        <div class="control-group">
+          <label>Height: <span id="sg-height-val">25</span></label>
+          <input type="range" id="sg-height-slider" min="5" max="100" step="1" value="25" aria-label="Terrain height" />
+        </div>
+        <div class="control-group">
+          <label>Octaves: <span id="sg-octaves-val">4</span></label>
+          <input type="range" id="sg-octaves-slider" min="1" max="8" step="1" value="4" aria-label="Noise octaves" />
+        </div>
+        <div class="control-group">
+          <label>Falloff: <span id="sg-falloff-val">0.50</span></label>
+          <input type="range" id="sg-persistence-slider" min="0.1" max="0.9" step="0.05" value="0.5" aria-label="Noise persistence/falloff" />
+        </div>
+        <hr>
+        <div class="control-group checkbox-group">
+          <input type="checkbox" id="sg-water-toggle" checked aria-label="Toggle water visibility" />
+          <label for="sg-water-toggle">Show Water</label>
+        </div>
+        <hr>
+        <div class="control-group">
+          <label>Tree Density: <span id="sg-tree-density-val">1.0</span></label>
+          <input type="range" id="sg-tree-density-slider" min="0" max="50" step="0.5" value="1.0" aria-label="Tree density" />
+        </div>
+        <div class="control-group">
+          <label>City Density: <span id="sg-city-density-val">0.00</span></label>
+          <input type="range" id="sg-city-density-slider" min="0" max="5" step="0.1" value="0.0" aria-label="City density" />
+        </div>
+        <hr>
+        <button id="sg-regenerate-btn" aria-label="Regenerate terrain">🌱 Regenerate</button>
+        <button id="sg-reset-defaults-btn" aria-label="Reset all settings to defaults" style="background:#555;margin-top:4px;">Reset Defaults</button>
+      </div>
+
+      <!-- Player Tab -->
+      <div id="tab-player" class="tab-content">
+        <div class="control-group">
+          <label>Move Speed: <span id="sg-speed-val">80</span></label>
+          <input type="range" id="sg-speed-slider" min="10" max="300" step="5" value="80" aria-label="Player movement speed" />
+        </div>
+        <div class="control-group">
+          <label>Player Height: <span id="sg-pheight-val">10</span></label>
+          <input type="range" id="sg-pheight-slider" min="2" max="100" step="1" value="10" aria-label="Player height above terrain" />
+        </div>
+        <div class="control-group">
+          <label>View Mode</label>
+          <select id="sg-view-mode-select" aria-label="Select view mode">
+            <option value="player">First Person</option>
+            <option value="fly">Top-Down Fly</option>
+          </select>
+        </div>
+        <hr>
+        <div style="font-size:10px;color:#888;text-align:center;">
+          WASD / Joystick to move · Click + drag to look around · Scroll to zoom
         </div>
       </div>
 
-      <!-- Pilot Portrait -->
-      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Pilot Portrait</div>
-        <input id="portraitPrompt" type="text" placeholder="e.g. cyberpunk pilot with aviator goggles" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Pilot portrait generation prompt" />
-        <!-- Style Preset Chips for Portrait -->
-        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
-        <div id="portraitStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Portrait style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
-        <!-- Prompt Preview -->
-        <div id="portraitPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-          <button id="generatePortraitBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate pilot portrait">Generate Portrait</button>
-          <div id="portraitPreview" role="img" aria-label="Pilot portrait preview" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(152,203,255,0.2);background:rgba(0,0,0,0.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
-          <span id="portraitStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+      <!-- Edit Tab -->
+      <div id="sg-tab-edit" class="tab-content">
+        <div class="control-group">
+          <label>Tool</label>
+          <select id="sg-edit-tool" aria-label="Select edit tool">
+            <option value="none">None</option>
+            <option value="raise">Raise</option>
+            <option value="lower">Lower</option>
+            <option value="level">Level</option>
+            <option value="volcano">Volcano</option>
+            <option value="tree">Paint Trees</option>
+            <option value="city">Paint Buildings</option>
+            <option value="biome">Biome Brush</option>
+            <option value="axe">Axe (remove trees)</option>
+            <option value="demolish">Demolish (remove buildings)</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Building Palette -->
-      <div style="border:1px solid rgba(152,203,255,0.15);padding:14px;border-radius:4px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#00dddd;text-transform:uppercase;margin-bottom:10px;">Building Palette</div>
-        <input id="buildPrompt" type="text" placeholder="e.g. mediterranean seaside town" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="Building palette generation prompt" />
-        <!-- Style Preset Chips for Building -->
-        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(152,203,255,0.55);text-transform:uppercase;margin:10px 0 6px;">Style Preset</div>
-        <div id="buildStyleChips" class="skin-style-chips" role="radiogroup" aria-label="Building palette style presets" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
-        <!-- Prompt Preview -->
-        <div id="buildPromptPreview" style="font-size:10px;color:rgba(152,203,255,0.4);font-family:'JetBrains Mono',monospace;line-height:1.5;padding:6px 8px;margin-bottom:10px;background:rgba(0,0,0,0.2);border-radius:3px;min-height:18px;border:1px solid rgba(152,203,255,0.06);word-break:break-all;"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">
-          <button id="generateBuildBtn" class="lb-close" style="align-self:flex-start;margin:0;" aria-label="Generate building palette">Generate Palette</button>
-          <div id="buildPaletteStrip" role="img" aria-label="Generated building color palette" style="display:flex;gap:3px;height:40px;flex:1;min-width:120px;border-radius:3px;overflow:hidden;border:1px solid rgba(152,203,255,0.15);background:rgba(0,0,0,0.3);"></div>
-          <span id="buildStatus" aria-live="polite" style="font-size:11px;color:rgba(152,203,255,0.6);"></span>
+        <div class="control-group tool-prop" data-tools="raise lower level volcano tree city biome">
+          <label>Brush Size: <span id="sg-brush-size-val">20</span></label>
+          <input type="range" id="sg-brush-size-slider" min="5" max="200" step="1" value="20" aria-label="Edit brush size" />
         </div>
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <button id="applyBuildPaletteBtn" class="lb-close" style="margin:0;flex:1;border-color:rgba(0,221,221,0.4);color:#00dddd;display:none;" aria-label="Apply generated palette as building skin">Apply as Building Skin</button>
+        <div class="control-group tool-prop" data-tools="raise lower level biome">
+          <label>Strength: <span id="sg-brush-strength-val">1.0</span></label>
+          <input type="range" id="sg-brush-strength-slider" min="0.1" max="3.0" step="0.1" value="1.0" aria-label="Edit brush strength" />
         </div>
+        <div class="control-group tool-prop" data-tools="volcano tree city">
+          <label>Stamp Height: <span id="sg-stamp-height-val">0.8</span></label>
+          <input type="range" id="sg-stamp-height-slider" min="0.2" max="2.0" step="0.1" value="0.8" aria-label="Volcano stamp height" />
+        </div>
+        <div class="control-group tool-prop" data-tools="volcano">
+          <label>Noise: <span id="sg-v-noise-val">0.3</span></label>
+          <input type="range" id="sg-v-noise-slider" min="0" max="1.0" step="0.05" value="0.3" aria-label="Volcano noise amount" />
+        </div>
+        <div class="control-group tool-prop" data-tools="volcano">
+          <label>Detail: <span id="sg-v-detail-val">2</span></label>
+          <input type="range" id="sg-v-detail-slider" min="1" max="5" step="1" value="2" aria-label="Volcano detail level" />
+        </div>
+        <hr class="tool-prop" data-tools="tree">
+        <div class="control-group tool-prop" data-tools="tree">
+          <label>Tree Type</label>
+          <select id="sg-tree-type-select" aria-label="Select tree type to plant">
+            <option value="pine">Pine</option>
+            <option value="oak">Oak</option>
+            <option value="palm">Palm</option>
+            <option value="cactus">Cactus</option>
+          </select>
+        </div>
+        <hr class="tool-prop" data-tools="city">
+        <div class="control-group tool-prop" data-tools="city">
+          <label>Building Type</label>
+          <select id="sg-city-type-select" aria-label="Select building type to place">
+            <option value="rural">Rural</option>
+            <option value="suburban">Suburban</option>
+            <option value="urban">Urban</option>
+          </select>
+        </div>
+        <hr class="tool-prop" data-tools="biome">
+        <div class="control-group tool-prop" data-tools="biome">
+          <label>Target Height: <span id="sg-biome-range-val">0.5</span></label>
+          <input type="range" id="sg-biome-range-slider" min="0" max="1.2" step="0.05" value="0.5" aria-label="Biome elevation range" />
+        </div>
+        <div class="control-group tool-prop" data-tools="biome">
+          <label>Color</label>
+          <input type="color" id="sg-biome-color" value="#228b22" aria-label="Biome color picker" />
+        </div>
+        <div class="control-group tool-prop" data-tools="biome">
+          <button id="sg-add-biome-btn" aria-label="Add custom biome to terrain" style="background:#6b8e23;">Add Biome</button>
+        </div>
+        <hr>
+        <div class="control-group">
+          <label>Edit View Mode</label>
+          <select id="sg-edit-view-mode" aria-label="Select edit view mode">
+            <option value="player">First Person</option>
+            <option value="fly">Top-Down Fly</option>
+          </select>
+        </div>
+        <button id="sg-exit-edit-btn" aria-label="Exit edit mode and return to player view" style="background:#555;">Exit Edit Mode</button>
       </div>
     </div>
-
-    <button class="lb-close" id="skinLabClose" aria-label="Close skin lab">Close</button>
   </div>
+
+  <!-- Minimap -->
+  <div id="sg-minimap-container" aria-label="Terrain minimap">
+    <div id="sg-minimap-handle">🗺 Minimap</div>
+    <div id="sg-minimap-content">
+      <canvas id="sg-minimap-canvas" role="img" aria-label="Minimap terrain view"></canvas>
+      <div id="sg-player-marker" aria-hidden="true"></div>
+      <div id="sg-minimap-controls">
+        <button class="sg-minimap-btn" id="sg-toggle-minimap-size" aria-label="Toggle minimap size" title="Resize">◻</button>
+        <button class="sg-minimap-btn" id="sg-mode-minimap" aria-label="Toggle minimap view mode" title="Toggle mode">M</button>
+      </div>
+    </div>
+  </div>
+  <div id="sg-joystick-zone" aria-label="Touch joystick control"></div>
 </div>
 
 <script type="module">

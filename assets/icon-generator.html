@@ -60,12 +60,12 @@
   <div class="preview-card">
     <canvas id="canvas192" width="192" height="192"></canvas>
     <div class="label">192 × 192</div>
-    <a class="btn" id="dl192" download="icon-192.png">Download</a>
+    <a class="btn" id="dl192" download="icons/icon-192.png">Download</a>
   </div>
   <div class="preview-card">
     <canvas id="canvas512" width="512" height="512"></canvas>
     <div class="label">512 × 512</div>
-    <a class="btn" id="dl512" download="icon-512.png">Download</a>
+    <a class="btn" id="dl512" download="icons/icon-512.png">Download</a>
   </div>
 </div>
 
@@ -73,15 +73,15 @@
   <h3>How to use</h3>
   <ol style="margin-left:16px;">
     <li>Right-click each preview and choose <strong>"Save image as..."</strong>, OR click the download buttons below each canvas.</li>
-    <li>Save <code>icon-192.png</code> to <code>/assets/icon-192.png</code></li>
-    <li>Save <code>icon-512.png</code> to <code>/assets/icon-512.png</code></li>
-    <li>Also save the 512px version as <code>/assets/apple-touch-icon.png</code></li>
-    <li>The SVG at <code>/assets/icon.svg</code> is already set up as the favicon.</li>
+    <li>Save <code>icons/icon-192.png</code> to <code>/assets/icons/icon-192.png</code></li>
+    <li>Save <code>icons/icon-512.png</code> to <code>/assets/icons/icon-512.png</code></li>
+    <li>Also save the 512px version as <code>/assets/icons/apple-touch-icon.png</code></li>
+    <li>The SVG at <code>/assets/icons/icon.svg</code> is already set up as the favicon.</li>
   </ol>
 </div>
 
 <script>
-  const svgUrl = './icon.svg';
+  const svgUrl = './icons/icon.svg';
 
   async function renderToCanvas(canvasId, size) {
     const canvas = document.getElementById(canvasId);

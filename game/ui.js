@@ -222,6 +222,8 @@ export function setupUI({ world, rendererObj }) {
       if (progress < 100) {
         setTimeout(tick, Math.random() * 120 + 40);
       } else {
+        // Animate dev splash to full color before fade-out
+        if (bootScreen) bootScreen.classList.add('boot-done');
         setTimeout(() => {
           if (bootScreen) {
             bootScreen.style.opacity = '0';
@@ -702,7 +704,39 @@ export function setupUI({ world, rendererObj }) {
     });
   }
 
-  // ---- Legal & Compliance wiring ----
+  
+  // ---- Level Fabricator wiring ----
+  const lvFabBtn = document.getElementById('sg-lv-fab-btn');
+  const lvFabClose = document.getElementById('sg-lv-fab-close');
+  let _lfMounted = false;
+
+  async function openLevelFabricator() {
+    if (_lfMounted) return;
+    _lfMounted = true;
+    try {
+      const { mountLevelFabricator } = await import('./level-fabricator-init.js');
+      await mountLevelFabricator(world, rendererObj);
+    } catch (e) {
+      console.error("Failed to mount Level Fabricator:", e);
+      _lfMounted = false;
+    }
+  }
+
+  function closeLevelFabricator() {
+    if (!_lfMounted) return;
+    _lfMounted = false;
+    try {
+      import('./level-fabricator-init.js').then(({ destroyLevelFabricator }) => {
+        destroyLevelFabricator();
+      });
+    } catch (e) {
+      console.warn("Failed to destroy Level Fabricator:", e);
+    }
+  }
+
+  if (lvFabBtn) lvFabBtn.addEventListener('click', openLevelFabricator);
+  if (lvFabClose) lvFabClose.addEventListener('click', closeLevelFabricator);
+// ---- Legal & Compliance wiring ----
   function buildLegalHtml() {
     const sections = [
       {
@@ -2285,7 +2319,6 @@ export function setupUI({ world, rendererObj }) {
   }
 
   function start() {
-    if (!requireLegalConsent('start')) return;
     doStart();
   }
 

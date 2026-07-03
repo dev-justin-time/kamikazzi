@@ -39,10 +39,10 @@ const PRECACHE_URLS = [
   '/game/world/powerups.js',
   '/game/world/magnet_halo.js',
   '/game/puter-client.js',
-  '/assets/icon.svg',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png',
-  '/assets/apple-touch-icon.png',
+  '/assets/icons/icon.svg',
+  '/assets/icons/icon-192.png',
+  '/assets/icons/icon-512.png',
+  '/assets/icons/apple-touch-icon.png',
 ];
 
 // ---- Install: precache the app shell ----

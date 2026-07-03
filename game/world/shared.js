@@ -387,7 +387,7 @@ export const CRASH_SPLASH_URL = '/assets/image/1.webp';
 // per-session progression through 7 levels varies.
 export const LEVEL_BACKGROUNDS = [
   '/assets/image/CHICAGO.jpg',
-  '/assets/image/China City (1).jpeg',
+  '/assets/image/China City (1).jpg',
   '/assets/image/GLENDALE.png',
   '/assets/image/NEON.jpg',
   '/assets/image/NEW_YORK.jpg',
