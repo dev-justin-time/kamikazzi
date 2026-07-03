@@ -9,7 +9,7 @@
  * Version the cache so activate() cleans old caches on upgrade.
  */
 
-const CACHE_NAME = 'kamikazzi3d-v1';
+const CACHE_NAME = 'kamikazzi3d-v3';
 
 // ---- App shell — precached at install ----
 // Only the essential game files. Large assets (GLB model, audio, graffiti,
@@ -101,9 +101,15 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Local assets: cache-first (lazy-cached on first request)
+  // Local assets (images, audio, models): cache-first
   if (isLocal && url.pathname.startsWith('/assets/')) {
     event.respondWith(cacheFirst(event.request));
+    return;
+  }
+
+  // Local JavaScript modules: network-first (fresh code always loads)
+  if (isLocal && url.pathname.endsWith('.js')) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 

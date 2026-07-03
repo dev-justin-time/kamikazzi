@@ -19,7 +19,7 @@
 let _aiExport = null;
 let _puterExport = null;
 try {
-  const mod = await import('https://esm.sh/puter-js@latest');
+  const mod = await import('https://cdn.jsdelivr.net/npm/@heyputer/puter.js/+esm');
   _puterExport = mod.puter || mod.default || mod;
   _aiExport = mod.ai || null;
 } catch (_) {
@@ -193,13 +193,172 @@ export async function getSettings() {
 }
 
 // ---------------------------------------------------------------------------
-// Leaderboard (global top-10 via shared KV namespace hack + personal bests)
+// Structured KV Collection (per-entry keys + index + atomic vote counters)
 // ---------------------------------------------------------------------------
-// Puter kv is user-scoped, so true global leaderboard needs a shared key.
-// We write to a well-known key that all players read from. This is best-effort
-// (races possible) but works for casual arcade scores.
-const LEADERBOARD_KEY = 'kamikazzi3d_global_leaderboard';
-const MAX_LEADERBOARD_ENTRIES = 10;
+// Replaces monolithic array-in-a-single-key with per-entry storage.
+// Each entry gets its own KV key for isolated writes. An index key stores
+// entry IDs for listing without loading every entry. Vote counts use
+// puter.kv.incr() for atomic increment/decrement (no race conditions).
+//
+// Internal key scheme (cloudSet/cloudGet add CLOUD_PREFIX automatically):
+//   Entry:     coll_<name>_<id>         → kamikazzi3d_coll_<name>_<id>
+//   Index:     coll_<name>_idx          → kamikazzi3d_coll_<name>_idx
+//   Vote cnt:  coll_<name>_<id>_vc      → kamikazzi3d_coll_<name>_<id>_vc
+//
+// All methods fall back to localStorage when Puter KV is unavailable.
+// ---------------------------------------------------------------------------
+
+const COLL_PREFIX = 'coll_';
+const COLL_IDX = '_idx';
+const COLL_VC = '_vc';
+
+function _collId() {
+  return Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+function createKVCollection(name) {
+  const entryPre = COLL_PREFIX + name + '_';
+  const idxKey  = COLL_PREFIX + name + COLL_IDX;
+  const localPre = 'kv_' + name + '_';
+  const localIdx = 'kv_' + name + '_idx';
+
+  async function getIdx() {
+    const raw = await cloudGet(idxKey);
+    return Array.isArray(raw) ? raw : [];
+  }
+
+  async function setIdx(ids) {
+    await cloudSet(idxKey, ids);
+    try { localStorage.setItem(localIdx, JSON.stringify(ids)); } catch (_) {}
+  }
+
+  async function getEntry(id) {
+    const raw = await cloudGet(entryPre + id);
+    if (raw !== undefined) return raw;
+    try {
+      const local = localStorage.getItem(localPre + id);
+      return local ? JSON.parse(local) : null;
+    } catch (_) { return null; }
+  }
+
+  async function setEntry(id, data) {
+    await cloudSet(entryPre + id, data);
+    try { localStorage.setItem(localPre + id, JSON.stringify(data)); } catch (_) {}
+  }
+
+  async function delEntry(id) {
+    await cloudSet(entryPre + id, null);
+    try { localStorage.removeItem(localPre + id); } catch (_) {}
+  }
+
+  async function getVoteCount(id) {
+    // Read vote counter directly from KV (puter.kv.incr stores raw numbers,
+    // not JSON strings — so cloudGet with JSON.parse would fail).
+    const p = await resolvePuter();
+    if (p && p.kv && typeof p.kv.get === 'function') {
+      try {
+        const raw = await p.kv.get(CLOUD_PREFIX + entryPre + id + COLL_VC);
+        if (typeof raw === 'number') return Math.max(0, raw);
+        if (raw !== null && raw !== undefined) return Math.max(0, Number(raw));
+      } catch (_) {}
+    }
+    // Fallback: count from entry's votes array in localStorage
+    try {
+      const local = localStorage.getItem(localPre + id);
+      if (local) {
+        const entry = JSON.parse(local);
+        return (entry.votes || []).length;
+      }
+    } catch (_) {}
+    return -1;
+  }
+
+  return {
+    /** Create a new entry, add to index. Returns the entry with id. */
+    async create(data) {
+      const id = _collId();
+      const entry = { ...data, id, _createdAt: Date.now() };
+      await setEntry(id, entry);
+      const ids = await getIdx();
+      ids.unshift(id);
+      await setIdx(ids);
+      return entry;
+    },
+
+    /** List entries, newest first. Supports limit, filter fn, optional sort. */
+    async list(options = {}) {
+      const ids = await getIdx();
+      const entries = [];
+      for (const id of ids) {
+        const entry = await getEntry(id);
+        if (entry) {
+          entry._voteCount = await getVoteCount(id);
+          entries.push(entry);
+        }
+      }
+      let result = typeof options.filter === 'function'
+        ? entries.filter(options.filter)
+        : entries;
+      return result.slice(0, options.limit || 100);
+    },
+
+    /** Get a single entry by id. */
+    async get(id) {
+      const entry = await getEntry(id);
+      if (!entry) return null;
+      entry._voteCount = await getVoteCount(id);
+      return entry;
+    },
+
+    /** Update an entry (merges with existing). */
+    async update(id, data) {
+      const existing = await getEntry(id);
+      if (!existing) return null;
+      const updated = { ...existing, ...data, id };
+      if (data.votes === undefined) updated.votes = existing.votes;
+      await setEntry(id, updated);
+      return updated;
+    },
+
+    /** Remove an entry from both store and index. */
+    async remove(id) {
+      await delEntry(id);
+      const ids = await getIdx();
+      await setIdx(ids.filter(i => i !== id));
+    },
+
+    /**
+     * Atomically increment or decrement the vote counter for an entry.
+     * Uses puter.kv.incr() when available; safe from race conditions.
+     * Returns the new count, or -1 on failure.
+     */
+    async incr(id, delta = 1) {
+      const p = await resolvePuter();
+      if (p && p.kv && typeof p.kv.incr === 'function') {
+        try {
+          const fullKey = CLOUD_PREFIX + entryPre + id + COLL_VC;
+          const result = await p.kv.incr(fullKey, delta);
+          return Math.max(0, typeof result === 'number' ? result : 0);
+        } catch (_) {}
+      }
+      return -1;
+    },
+
+    /** Count total entries. */
+    async count() {
+      const ids = await getIdx();
+      return ids.length;
+    },
+  };
+}
+
+// Pre-initialized collection instances
+const leaderboardColl = createKVCollection('leaderboard');
+const powerupColl = createKVCollection('powerups');
+
+// ---------------------------------------------------------------------------
+// Leaderboard (per-entry KV with proper queryable index)
+// ---------------------------------------------------------------------------
 
 export async function submitLeaderboard(score, meta = {}) {
   const user = await getUser();
@@ -215,42 +374,31 @@ export async function submitLeaderboard(score, meta = {}) {
   await syncHighScore(score);
   await recordRun({ score, level: meta.level, distance: meta.distance, timeMs: meta.timeMs, timestamp: entry.timestamp, won: meta.won });
 
-  // Mission Records (personal leaderboard — Puter KV is user-scoped,
-  // so this stores the player's own top runs, not a true global board)
-  if (_cloudSyncEnabled) {
-    const p = await resolvePuter();
-    if (p && p.kv) {
-      try {
-        let board = await p.kv.get(LEADERBOARD_KEY);
-        board = board ? JSON.parse(board) : [];
-        board.push(entry);
-        board.sort((a, b) => b.score - a.score);
-        board = board.slice(0, MAX_LEADERBOARD_ENTRIES);
-        await p.kv.set(LEADERBOARD_KEY, JSON.stringify(board));
-      } catch (_) {}
+  // Store as a structured collection entry
+  try {
+    if (_cloudSyncEnabled) {
+      await leaderboardColl.create(entry);
     }
-  }
+  } catch (_) {}
+
   return entry;
 }
 
 export async function getLeaderboard(limit = 10, period = 'all') {
-  const p = await resolvePuter();
-  if (!p || !p.kv) return [];
-  try {
-    let board = await p.kv.get(LEADERBOARD_KEY);
-    board = board ? JSON.parse(board) : [];
+  // Build an efficient filter — only load matching entries
+  const now = Date.now();
+  let cutoff = 0;
+  if (period === 'week') cutoff = now - 7 * 24 * 60 * 60 * 1000;
+  else if (period === 'month') cutoff = now - 30 * 24 * 60 * 60 * 1000;
 
-    // Filter by time period if not 'all'
-    if (period && period !== 'all') {
-      const now = Date.now();
-      const cutoff = period === 'week'
-        ? now - 7 * 24 * 60 * 60 * 1000
-        : now - 30 * 24 * 60 * 60 * 1000; // month
-      board = board.filter(entry => entry.timestamp >= cutoff);
-    }
+  const entries = await leaderboardColl.list({
+    limit: 100,
+    filter: cutoff > 0 ? e => (e.timestamp || 0) >= cutoff : undefined,
+  });
 
-    return board.slice(0, limit);
-  } catch (_) { return []; }
+  // Sort by score descending
+  entries.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return entries.slice(0, limit);
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +410,7 @@ const SERVICE_NAME = 'kamikazzi-radio';
 
 async function resolvePuterFactory() {
   try {
-    const mod = await import('https://esm.sh/@heyputer/puter.js');
+    const mod = await import('https://cdn.jsdelivr.net/npm/@heyputer/puter.js/+esm');
     if (typeof mod === 'function') return mod;
     if (mod && typeof mod.default === 'function') return mod.default;
     if (mod && typeof mod.puter === 'function') return mod.puter;
@@ -1026,37 +1174,25 @@ export async function deleteGameSnapshot() {
 }
 
 // ---------------------------------------------------------------------------
-// Community Powerup Registry (shared KV collection)
+// Community Powerup Registry (per-entry KV collection + atomic vote counters)
 // ---------------------------------------------------------------------------
-// A shared Puter KV key stores community-submitted powerup ideas. Players
-// can submit new designs (name, color, shape, effect, description) and
-// vote on existing ones. The data model mirrors the POWERUP_TYPES catalog
-// in powerups.js so that community ideas are always render-ready.
+// Each powerup design is stored as its own KV entry. Vote counts use
+// puter.kv.incr() for atomic increments — no more monolithic read-modify-
+// write race conditions when multiple players vote simultaneously.
+// The votes array (storing usernames who voted) is kept in the entry for
+// the "has this user voted?" check, while the atomic counter is the
+// source of truth for the displayed tally.
 //
-// Data structure (stored as JSON under a single KV key):
-//   {
-//     items: [
-//       {
-//         id: string (random),
-//         name: string,
-//         color: number (hex),
-//         shape: 'box'|'cylinder'|'torus'|'octahedron'|'tetrahedron'|'icosahedron',
-//         effect: 'shield'|'boost'|'magnet'|'score2x'|'slowmo'|'stamina',
-//         description: string,
-//         author: string (username),
-//         votes: string[] (usernames who voted),
-//         timestamp: number (Date.now())
-//       }
-//     ]
-//   }
+// Data structure per entry:
+//   { id, name, color, shape, effect, description, author, votes[],
+//     timestamp, _voteCount (from atomic counter) }
 
-const COMMUNITY_POWERUPS_KEY = 'kamikazzi3d_community_powerups';
 const MAX_COMMUNITY_ITEMS = 100;
 
 /**
  * Submit a new community powerup design.
  * @param {object} design - { name, color, shape, effect, description? }
- * @returns {Promise<object|null>} the saved design entry, or null on failure
+ * @returns {Promise<object|null>} the saved design entry, or null
  */
 export async function submitCommunityPowerup(design) {
   if (!design || !design.name || !design.color || !design.shape || !design.effect) {
@@ -1064,38 +1200,30 @@ export async function submitCommunityPowerup(design) {
     return null;
   }
   const user = await getUser();
-  const author = user ? (user.username || user.name || 'Pilot') : 'Guest';
   const entry = {
-    id: Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36),
     name: design.name.trim(),
     color: Number(design.color) || 0x66ffff,
     shape: design.shape,
     effect: design.effect,
     description: (design.description || '').trim(),
-    author,
+    author: user ? (user.username || user.name || 'Pilot') : 'Guest',
     votes: [],
     timestamp: Date.now(),
   };
 
-  const p = await resolvePuter();
-  if (!p || !p.kv) {
-    // Fallback: store locally so it's still visible to this player
-    try {
-      const local = JSON.parse(localStorage.getItem(COMMUNITY_POWERUPS_KEY) || '{"items":[]}');
-      local.items.unshift(entry);
-      if (local.items.length > MAX_COMMUNITY_ITEMS) local.items.length = MAX_COMMUNITY_ITEMS;
-      localStorage.setItem(COMMUNITY_POWERUPS_KEY, JSON.stringify(local));
-    } catch (_) {}
-    return entry;
-  }
-
   try {
-    const raw = await p.kv.get(COMMUNITY_POWERUPS_KEY);
-    const data = raw ? JSON.parse(raw) : { items: [] };
-    data.items.unshift(entry);
-    if (data.items.length > MAX_COMMUNITY_ITEMS) data.items.length = MAX_COMMUNITY_ITEMS;
-    await p.kv.set(COMMUNITY_POWERUPS_KEY, JSON.stringify(data));
-    return entry;
+    const saved = await powerupColl.create(entry);
+    // Enforce max items
+    const count = await powerupColl.count();
+    if (count > MAX_COMMUNITY_ITEMS) {
+      const all = await powerupColl.list({ limit: count });
+      // Remove oldest entries beyond the cap
+      const toRemove = all.slice(MAX_COMMUNITY_ITEMS);
+      for (const old of toRemove) {
+        await powerupColl.remove(old.id);
+      }
+    }
+    return saved;
   } catch (e) {
     console.warn('submitCommunityPowerup failed', e);
     return null;
@@ -1103,33 +1231,18 @@ export async function submitCommunityPowerup(design) {
 }
 
 /**
- * Get all community powerup designs.
- * @returns {Promise<Array>} array of design entries, newest first
+ * Get all community powerup designs, newest first.
+ * @returns {Promise<Array>} array of design entries
  */
 export async function getCommunityPowerups() {
-  const p = await resolvePuter();
-  // Try cloud first
-  if (p && p.kv) {
-    try {
-      const raw = await p.kv.get(COMMUNITY_POWERUPS_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        // Sync down to local for offline access
-        try { localStorage.setItem(COMMUNITY_POWERUPS_KEY, JSON.stringify(data)); } catch (_) {}
-        return data.items || [];
-      }
-    } catch (_) {}
-  }
-  // Fallback to local
   try {
-    const local = JSON.parse(localStorage.getItem(COMMUNITY_POWERUPS_KEY) || '{"items":[]}');
-    return local.items || [];
+    return await powerupColl.list({ limit: MAX_COMMUNITY_ITEMS });
   } catch (_) { return []; }
 }
 
 /**
- * Toggle a vote on a community powerup. Adds the current user's username
- * to the votes array, or removes it if they already voted.
+ * Toggle a vote on a community powerup. Uses atomic incr/decr for the
+ * displayed count, and updates the votes array for the "did I vote?" check.
  * @param {string} itemId - the item's id field
  * @returns {Promise<number>} new vote count, or -1 on failure
  */
@@ -1139,25 +1252,27 @@ export async function voteCommunityPowerup(itemId) {
   const username = user ? (user.username || user.name || 'Pilot') : null;
   if (!username) return -1;
 
-  const p = await resolvePuter();
-  if (!p || !p.kv) return -1;
-
   try {
-    const raw = await p.kv.get(COMMUNITY_POWERUPS_KEY);
-    const data = raw ? JSON.parse(raw) : { items: [] };
-    const item = data.items.find(i => i.id === itemId);
-    if (!item) return -1;
+    const entry = await powerupColl.get(itemId);
+    if (!entry) return -1;
 
-    const idx = (item.votes || []).indexOf(username);
+    const votes = entry.votes || [];
+    const idx = votes.indexOf(username);
+    let newCount;
+
     if (idx >= 0) {
-      item.votes.splice(idx, 1); // un-vote
+      // Un-vote: remove from array + atomically decr
+      votes.splice(idx, 1);
+      await powerupColl.update(itemId, { votes });
+      newCount = await powerupColl.incr(itemId, -1);
     } else {
-      item.votes.push(username); // vote
+      // Vote: add to array + atomically incr
+      votes.push(username);
+      await powerupColl.update(itemId, { votes });
+      newCount = await powerupColl.incr(itemId, 1);
     }
-    await p.kv.set(COMMUNITY_POWERUPS_KEY, JSON.stringify(data));
-    // Sync local
-    try { localStorage.setItem(COMMUNITY_POWERUPS_KEY, JSON.stringify(data)); } catch (_) {}
-    return item.votes.length;
+
+    return newCount >= 0 ? newCount : votes.length;
   } catch (e) {
     console.warn('voteCommunityPowerup failed', e);
     return -1;

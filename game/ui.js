@@ -1066,7 +1066,7 @@ export function setupUI({ world, rendererObj }) {
   const portraitPromptPreview = document.getElementById('portraitPromptPreview');
 
   // Build style preset chips for both skin and portrait sections
-  function buildStyleChips(container, activePresetId, onChange) {
+  function renderStyleChips(container, activePresetId, onChange) {
     if (!container) return;
     container.innerHTML = '';
     for (const preset of _skinPresets) {
@@ -1112,19 +1112,19 @@ export function setupUI({ world, rendererObj }) {
   }
 
   // Init skin style chips
-  buildStyleChips(skinStyleChips, _skinActivePresetId, (presetId) => {
+  renderStyleChips(skinStyleChips, _skinActivePresetId, (presetId) => {
     _skinActivePresetId = presetId;
     savePreset(PRESET_KEYS.skin, presetId);
     updatePromptPreview(skinPrompt, presetId, skinPromptPreview);
   });
   // Init portrait style chips
-  buildStyleChips(portraitStyleChips, _portraitActivePresetId, (presetId) => {
+  renderStyleChips(portraitStyleChips, _portraitActivePresetId, (presetId) => {
     _portraitActivePresetId = presetId;
     savePreset(PRESET_KEYS.portrait, presetId);
     updatePromptPreview(portraitPrompt, presetId, portraitPromptPreview);
   });
   // Init building palette style chips
-  buildStyleChips(buildStyleChips, _buildActivePresetId, (presetId) => {
+  renderStyleChips(buildStyleChips, _buildActivePresetId, (presetId) => {
     _buildActivePresetId = presetId;
     savePreset(PRESET_KEYS.building, presetId);
     updateBuildPromptPreview();

@@ -1562,27 +1562,14 @@
 <script type="module" src="/game/puter-client.js"></script>
 <!-- removed inline puter integration (moved to /puter-client.js) -->
 
-<!-- Service Worker: PWA offline support -->
+<!-- Service Worker: unregister any existing SW to avoid stale cache issues -->
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
-      console.log('[SW] Registered, scope:', reg.scope);
-      reg.addEventListener('updatefound', () => {
-        const installing = reg.installing;
-        if (installing) {
-          installing.addEventListener('statechange', () => {
-            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] Update available — reload to activate');
-            }
-          });
-        }
-      });
-    }).catch(err => {
-      console.warn('[SW] Registration failed:', err);
-    });
-    // Check for updates every hour
-    setInterval(() => { navigator.serviceWorker.register('/sw.js', { scope: '/' }); }, 3600000);
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    for (const reg of regs) {
+      reg.unregister();
+      console.log('[SW] Unregistered:', reg.scope);
+    }
   });
 }
 </script>
