@@ -15,6 +15,13 @@ const meta = {
     }},
     { key: 'frame-all', label: 'Frame All', type: 'button', onClick: () => window.ProModelerApp?.frameAll() },
     { key: 'snap', label: 'Snap Selected to Grid', type: 'button', onClick: () => window.ProModelerApp?.snapToGrid() },
+    { key: 'sep1b', label: '──────────', type: 'label' },
+    { key: 'export-valley-gltf', label: '📤 Export Valley as GLTF', type: 'button', onClick: () => {
+      window.ProModelerApp?.exportValleyAsGLTF();
+    }},
+    { key: 'export-valley-glb', label: '📤 Export Valley as GLB', type: 'button', onClick: () => {
+      window.ProModelerApp?.exportValleyAsGLB();
+    }},
     { key: 'sep2', label: '──────────', type: 'label' },
     { key: 'open-map-maker', label: 'Open Map Maker (new tab)', type: 'button', onClick: () => {
       window.open('/studio/tools/map-maker/index.html', '_blank');

@@ -1316,6 +1316,29 @@ export class Studio {
     log('Generated wireframe valley');
   }
 
+  /** Export just the wireframe valley as a GLB/GLTF file */
+  exportValleyAsGLTF() {
+    const valley = this.scene.getObjectByName('Wireframe Valley');
+    if (!valley) { log('No wireframe valley found — generate one first', 'error'); return; }
+    // Temporarily select the valley so the exporter uses it as the root
+    const prevSelection = this.selectedObject;
+    this.selectObject(valley);
+    this._exportGLTF(valley, false); // false = .gltf (text), true would be .glb
+    // Restore previous selection
+    this.selectObject(prevSelection);
+    log('Exported valley as GLTF');
+  }
+
+  exportValleyAsGLB() {
+    const valley = this.scene.getObjectByName('Wireframe Valley');
+    if (!valley) { log('No wireframe valley found — generate one first', 'error'); return; }
+    const prevSelection = this.selectedObject;
+    this.selectObject(valley);
+    this._exportGLTF(valley, true);
+    this.selectObject(prevSelection);
+    log('Exported valley as GLB');
+  }
+
   /** Scatter primitive boxes on the valley floor to simulate a city */
   scatterCity() {
     const valley = this.scene.getObjectByName('Wireframe Valley');
