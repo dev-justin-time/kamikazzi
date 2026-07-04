@@ -34,6 +34,8 @@ export class Studio {
     this.currentFrame = 1;
     this.totalFrames = 250;
     this.isAnimationPlaying = false;
+    this.animationSpeed = 1;
+    this.loopAnimation = true;
     this.undoStack = [];
     this.redoStack = [];
     this._undoCapturePending = null;  // pre-drag state snapshot, null = no pending undo
@@ -546,28 +548,79 @@ export class Studio {
     log(`Keyframe at ${this.currentFrame}`);
   }
 
-  playAnimation() { this.isAnimationPlaying = true; log('Play'); }
-  pauseAnimation() { this.isAnimationPlaying = false; log('Pause'); }
-
-  _tickAnimation() {
-    this.currentFrame = (this.currentFrame % this.totalFrames) + 1;
+  _applyKeyframesAtFrame(frame) {
     this.objects.forEach(obj => {
       if (!this.keyframes.has(obj.uuid)) return;
       const kfs = this.keyframes.get(obj.uuid).sort((a, b) => a.frame - b.frame);
       let prev, next;
       for (const k of kfs) {
-        if (k.frame <= this.currentFrame) prev = k;
-        if (k.frame >= this.currentFrame && !next) next = k;
+        if (k.frame <= frame) prev = k;
+        if (k.frame >= frame && !next) next = k;
       }
       if (prev && next) {
-        const t = (this.currentFrame - prev.frame) / (next.frame - prev.frame || 1);
+        const t = (frame - prev.frame) / (next.frame - prev.frame || 1);
         obj.position.lerpVectors(prev.position, next.position, t);
         obj.scale.lerpVectors(prev.scale, next.scale, t);
         obj.rotation.x = THREE.MathUtils.lerp(prev.rotation.x, next.rotation.x, t);
         obj.rotation.y = THREE.MathUtils.lerp(prev.rotation.y, next.rotation.y, t);
         obj.rotation.z = THREE.MathUtils.lerp(prev.rotation.z, next.rotation.z, t);
+      } else if (prev) {
+        obj.position.copy(prev.position);
+        obj.scale.copy(prev.scale);
+        obj.rotation.copy(prev.rotation);
       }
     });
+  }
+
+  setCurrentFrame(val) {
+    this.currentFrame = Math.max(1, Math.min(Math.round(val), this.totalFrames));
+    this._applyKeyframesAtFrame(this.currentFrame);
+    this.render();
+  }
+
+  stepFrame(delta) {
+    this.setCurrentFrame(this.currentFrame + delta);
+  }
+
+  playAnimation() { this.isAnimationPlaying = true; log('Play'); }
+  pauseAnimation() { this.isAnimationPlaying = false; log('Pause'); }
+
+  setAnimationSpeed(val) {
+    this.animationSpeed = Math.max(0.1, Math.min(val, 10));
+    log(`Speed: ${this.animationSpeed.toFixed(1)}x`);
+  }
+
+  toggleLoop() {
+    this.loopAnimation = !this.loopAnimation;
+    log(`Loop ${this.loopAnimation ? 'ON' : 'OFF'}`);
+  }
+
+  _tickAnimation() {
+    const next = this.currentFrame + this.animationSpeed;
+    if (next > this.totalFrames) {
+      if (this.loopAnimation) {
+        this.currentFrame = 1;
+        this._applyKeyframesAtFrame(1);
+      } else {
+        this.currentFrame = this.totalFrames;
+        this._applyKeyframesAtFrame(this.totalFrames);
+        this.pauseAnimation();
+      }
+    } else {
+      this.currentFrame = Math.round(next);
+      this._applyKeyframesAtFrame(this.currentFrame);
+    }
+
+    // Live-update timeline UI if the Animate popup is open
+    const scrubber = document.querySelector('#popupContent [data-key="timeline-scrub"] input');
+    if (scrubber) {
+      scrubber.value = this.currentFrame;
+      const fl = document.querySelector('#popupContent [data-key="frame-label"] .ctrl-label');
+      if (fl) {
+        const totalKfs = Array.from(this.keyframes.values()).reduce((s, kfs) => s + kfs.length, 0);
+        fl.textContent = `Frame ${this.currentFrame} / ${this.totalFrames}  ·  ${totalKfs} keyframes total`;
+      }
+    }
   }
 
   // ── Import/Export ──
