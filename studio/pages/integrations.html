@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamakazii Studio 3D — Marketplace</title>
+
+    <!-- Marketplace Styles -->
+    <link rel="stylesheet" href="../marketplace/marketplace.css">
+
+    <!-- Font Awesome (icons used extensively by MarketplaceUI) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── Full-page reset to match the marketplace dark theme ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #1e1e1e;
+            color: #ccc;
+        }
+
+        /* ── Page chrome (header bar) ── */
+        #app-chrome {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+            padding: 0 20px;
+            background: #252526;
+            border-bottom: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        #app-chrome .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        #app-chrome .logo-area i {
+            font-size: 18px;
+            color: #60a5fa;
+        }
+
+        #app-chrome .chrome-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        #app-chrome .chrome-actions .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            display: inline-block;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ── Marketplace mounts into this area ── */
+        #marketplace-root {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* ── Override marketplace layout to fill the full container ── */
+        #marketplace-root .k3d-mkt-overlay {
+            height: 100%;
+        }
+
+        /* ── Initial loading state ── */
+        #marketplace-root .loading-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 16px;
+            color: #555;
+        }
+
+        #marketplace-root .loading-placeholder i {
+            font-size: 48px;
+            opacity: 0.3;
+            animation: marketplace-pulse 2s ease-in-out infinite;
+        }
+
+        #marketplace-root .loading-placeholder span {
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        @keyframes marketplace-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        /* ── Error state ── */
+        .marketplace-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 14px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .marketplace-error i {
+            font-size: 42px;
+            color: #ef4444;
+            opacity: 0.7;
+        }
+
+        .marketplace-error h2 {
+            font-size: 18px;
+            color: #ddd;
+            font-weight: 600;
+        }
+
+        .marketplace-error p {
+            font-size: 13px;
+            color: #888;
+            max-width: 480px;
+            line-height: 1.5;
+        }
+
+        .marketplace-error button {
+            margin-top: 8px;
+            padding: 8px 20px;
+            background: #60a5fa;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .marketplace-error button:hover {
+            background: #5b96ea;
+        }
+
+        /* ── Responsive: hide chrome on very narrow screens ── */
+        @media (max-width: 600px) {
+            #app-chrome .chrome-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <!-- Chrome header bar -->
+    <div id="app-chrome">
+        <div class="logo-area">
+            <i class="fas fa-cube"></i>
+            <span>Kamakazii Studio 3D</span>
+        </div>
+        <div class="chrome-actions">
+            <span class="status-dot"></span>
+            <span id="marketplace-status">Initializing...</span>
+        </div>
+    </div>
+
+    <!-- Mount point for the marketplace UI -->
+    <div id="marketplace-root">
+        <div class="loading-placeholder" id="marketplace-loading">
+            <i class="fas fa-store"></i>
+            <span>Loading Marketplace...</span>
+        </div>
+    </div>
+</div>
+
+<!--
+    Import map for Three.js (required by ModelPreviewRenderer in product detail view).
+    Uses the same version as the studio/pro editor for consistency.
+-->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+    }
+}
+</script>
+
+<!--
+    Main entry: Import and mount the marketplace.
+    Uses lazy dynamic import so the page can show a loading state
+    before the marketplace modules are fetched and parsed.
+-->
+<script type="module">
+    // ── Boot log helper ──
+    const log = (msg, type = 'info') => {
+        const method = type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'log';
+        console[method](`[MarketplaceBoot] ${msg}`);
+        const statusEl = document.getElementById('marketplace-status');
+        if (statusEl) statusEl.textContent = msg;
+    };
+
+    try {
+        log('Loading marketplace modules...');
+
+        // Dynamic imports for the marketplace system
+        const [{ MarketplaceAPI }, { MarketplaceUI }] = await Promise.all([
+            import('../marketplace/index.js'),
+            import('../marketplace/marketplace-ui.js'),
+        ]);
+
+        log('Modules loaded. Initializing API...');
+
+        // ── Create a minimal editorState object ──
+        // The marketplace subsystems expect an editorState (used internally
+        // for logging and system references). Provide a lightweight stub.
+        const editorState = {
+            ui: {
+                log: (msg, type) => log(`[Editor] ${msg} (${type})`),
+            },
+            // Optional: store reference to itself for marketplace to access
+            getState: () => ({}),
+        };
+
+        // ── Instantiate the MarketplaceAPI ──
+        const marketplaceAPI = new MarketplaceAPI(editorState, {
+            // No Stripe keys set by default — runs in simulation mode.
+            // Configure via: marketplaceAPI.configureStripe({ publishableKey: 'pk_...', checkoutEndpoint: '/api/checkout' })
+            publishableKey: null,
+            checkoutEndpoint: null,
+        });
+
+        // Initialize subsystems (seeds demo products, registers built-in plugins)
+        await marketplaceAPI.init();
+        log('API initialized. Mounting UI...');
+
+        // ── Mount the MarketplaceUI ──
+        const container = document.getElementById('marketplace-root');
+        const marketplaceUI = new MarketplaceUI(marketplaceAPI, container);
+
+        // Remove the loading placeholder and mount
+        marketplaceUI.mount();
+
+        // Expose for debugging / console access
+        window.__marketplace = {
+            api: marketplaceAPI,
+            ui: marketplaceUI,
+        };
+
+        log('Marketplace ready.', 'success');
+
+        // Update status indicator
+        const statusEl = document.getElementById('marketplace-status');
+        if (statusEl) {
+            statusEl.textContent = 'Ready';
+            statusEl.style.color = '#4ade80';
+        }
+
+    } catch (err) {
+        // ── Error state: show a friendly error and expose details to console ──
+        console.error('[MarketplaceBoot] Failed to load marketplace:', err);
+
+        const root = document.getElementById('marketplace-root');
+        root.innerHTML = `
+            <div class="marketplace-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Failed to Load Marketplace</h2>
+                <p>An error occurred during initialization. This may be due to network issues, a missing import map, or a browser compatibility problem.</p>
+                <p style="font-size:11px;color:#666;font-family:monospace;">${err.message || 'Unknown error'}</p>
+                <button onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Reload
+                </button>
+            </div>
+        `;
+
+        const statusEl = document.getElementById('marketplace-status');
+        if (statusEl) {
+            statusEl.textContent = 'Error';
+            statusEl.style.color = '#ef4444';
+        }
+    }
+</script>
+</body>
+</html>

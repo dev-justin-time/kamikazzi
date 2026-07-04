@@ -59,27 +59,76 @@ export class StudioShell {
 
   _renderIconBar() {
     const icons = [
+      // ── File & Selection ──
       { id: 'file',     label: 'File',         icon: '📁', desc: 'New, open, save, export projects' },
       { id: 'select',   label: 'Select',       icon: '🎯', desc: 'Click, box, lasso selection tools' },
       { id: 'edit',     label: 'Edit',         icon: '✏️', desc: 'Transform, snap, mirror, slice, merge' },
-      { id: 'transition', label: 'Transition', icon: '🔄', desc: 'Tween, morph, interpolate objects' },
+      { id: 'boolean',  label: 'Boolean',      icon: '🔲', desc: 'CSG boolean ops — union, subtract, intersect' },
+      { id: 'curve',    label: 'Curve',        icon: '📐', desc: 'Bezier/NURBS curves, path extrusion' },
+      { id: 'array',    label: 'Array',        icon: '🔁', desc: 'Linear, radial, grid array modifiers' },
+
+      // ── Sculpting & Modeling ──
       { id: 'object',   label: 'Object',       icon: '🧊', desc: 'Add primitives, properties, hierarchy' },
-      { id: 'texture',  label: 'Texture',      icon: '🎨', desc: 'UV mapping, bake, import textures' },
-      { id: 'paint',    label: 'Paint',        icon: '🖌️', desc: 'Vertex & texture paint, layers' },
-      { id: 'ai',       label: 'AI',           icon: '🤖', desc: 'AI generation, suggestions, texturing' },
+      { id: 'sculpt',   label: 'Sculpt',       icon: '🪨', desc: 'Clay, smooth, inflate, pinch, crease brushes' },
+      { id: 'remesh',   label: 'Remesh',       icon: '🔄', desc: 'Remesh, decimate, retopology solver' },
+      { id: 'deform',   label: 'Deform',       icon: '🌊', desc: 'Bend, twist, taper, stretch, lattice deform' },
+
+      // ── Animation & Rigging ──
+      { id: 'transition', label: 'Transition', icon: '🔄', desc: 'Tween, morph, interpolate objects' },
       { id: 'rig',      label: 'Rig',          icon: '🦴', desc: 'Bones, FK/IK, skinning, weights' },
       { id: 'mocap',    label: 'Mocap',        icon: '🎬', desc: 'Motion capture import & retarget' },
       { id: 'animate',  label: 'Animate',      icon: '⏯️', desc: 'Timeline, keyframes, clips, playback' },
+      { id: 'mixer',    label: 'Mixer',        icon: '🎛️', desc: 'Animation mixer — blend clips, cross-fade, layers' },
+      { id: 'constraints', label: 'Constraints', icon: '🔗', desc: 'IK/FK, parent, look-at, path constraints' },
+      { id: 'shapes',   label: 'Shape Keys',   icon: '🎭', desc: 'Blend shapes, morph targets, shape key editor' },
+
+      // ── Materials & Textures ──
+      { id: 'texture',  label: 'Texture',      icon: '🎨', desc: 'UV mapping, bake, import textures' },
+      { id: 'shaders',  label: 'Shaders',      icon: '✨', desc: 'Shader graph, custom materials, PBR editor' },
+      { id: 'decal',    label: 'Decal',        icon: '📋', desc: 'Project decals, stickers onto surfaces' },
+      { id: 'bake',     label: 'Bake',         icon: '🔥', desc: 'Bake normal/AO/curvature/lightmaps' },
+      { id: 'uv',       label: 'UV Tools',     icon: '🗾', desc: 'Unwrap, seam marking, island packing' },
+      { id: 'paint',    label: 'Paint',        icon: '🖌️', desc: 'Vertex & texture paint, layers' },
+
+      // ── AI & Pipeline ──
+      { id: 'ai',       label: 'AI',           icon: '🤖', desc: 'AI generation, suggestions, texturing' },
+      { id: 'script',   label: 'Script',       icon: '📜', desc: 'JS scripting console, automation, batch ops' },
+      { id: 'batch',    label: 'Batch',        icon: '📑', desc: 'Batch rename, recolor, rescale, merge' },
+      { id: 'snapshot', label: 'Snapshot',     icon: '📸', desc: 'Screenshot, GIF capture, turntable render' },
+
+      // ── Scene & Camera ──
       { id: 'camera',   label: 'Camera',       icon: '📷', desc: 'Camera management, FOV, presets' },
       { id: 'lighting', label: 'Lighting',     icon: '💡', desc: 'Lights, HDRI, environment' },
-      { id: 'game',     label: 'Game',         icon: '🎮', desc: 'Game mode export, physics setup' },
+      { id: 'sky',      label: 'Sky',          icon: '🌌', desc: 'Procedural atmosphere, HDRI skybox, sun' },
+      { id: 'weather',  label: 'Weather',      icon: '🌧️', desc: 'Rain, snow, fog, volumetric clouds, wind' },
+
+      // ── World Building ──
       { id: 'map',      label: 'Map',          icon: '🗺️', desc: 'Terrain generation, level editing' },
+      { id: 'terrain',  label: 'Terrain',       icon: '⛰️', desc: 'Heightmap editor, erosion, paint terrain' },
+      { id: 'water',    label: 'Water',        icon: '🌊', desc: 'Ocean, lake, river simulation with waves' },
+      { id: 'foliage',  label: 'Foliage',      icon: '🌿', desc: 'Grass, trees, vegetation scatter system' },
+      { id: 'game',     label: 'Game',         icon: '🎮', desc: 'Game mode export, physics setup' },
+      { id: 'physics',  label: 'Physics',      icon: '⚡', desc: 'Rigid body, soft body, cloth simulation' },
+
+      // ── VFX & Particles ──
+      { id: 'particles', label: 'Particles',   icon: '✨', desc: 'Fire, smoke, sparks, dust, magic emitters' },
+      { id: 'fire',     label: 'Fire FX',      icon: '🔥', desc: 'Campfire, explosion, smoke plume, embers' },
+      { id: 'trails',   label: 'Trails',       icon: '🌠', desc: 'Motion trails, ghost frames, smear effects' },
+
+      // ── Data & Analysis ──
+      { id: 'performance', label: 'Performance', icon: '📊', desc: 'FPS, draw calls, frame time, memory' },
+      { id: 'report',   label: 'Report',       icon: '📋', desc: 'Scene diagnostics, stats, material audit' },
+      { id: 'history',  label: 'History',      icon: '🕐', desc: 'Undo/redo history browser, snapshot compare' },
+
+      // ── Assets & Collaboration ──
       { id: 'inventory', label: 'Inventory',   icon: '📦', desc: 'Asset library, materials, textures' },
       { id: 'market',   label: 'Market',       icon: '🏪', desc: 'Asset marketplace, purchases' },
-      { id: 'profile',  label: 'Profile',      icon: '👤', desc: 'User settings, preferences' },
       { id: 'voxel',    label: 'Voxel',        icon: '🧱', desc: 'Sparse octree voxel editor (planned)' },
+      { id: 'extensions', label: 'Extensions', icon: '🔌', desc: 'Plugin manager, browse, install, configure' },
+      { id: 'publish',  label: 'Publish',      icon: '🚀', desc: 'Publish to marketplace, export as asset' },
+      { id: 'team',     label: 'Team',         icon: '👥', desc: 'Real-time collaboration, review, merge' },
       { id: 'chat',     label: 'Chat',         icon: '💬', desc: 'Collaboration, comments, AI chat' },
-      { id: 'performance', label: 'Performance', icon: '📊', desc: 'FPS, draw calls, frame time, memory usage' },
+      { id: 'profile',  label: 'Profile',      icon: '👤', desc: 'User settings, preferences' },
     ];
 
     this._iconBar.innerHTML = '';
