@@ -111,6 +111,12 @@ const meta = {
       type: 'button',
       onClick: () => { _getApp()?.selectAllBuildings(); },
     },
+    {
+      key: 'collision-grid',
+      label: '🔲 Toggle Collision Grid',
+      type: 'button',
+      onClick: () => { _getApp()?.toggleCollisionGrid(); },
+    },
     { key: 'sep1ba', label: '──────────', type: 'label' },
 
     // ── Utility Buttons ──

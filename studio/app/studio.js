@@ -1799,6 +1799,102 @@ export class Studio {
     log(`Selected ${buildings.length} building(s) grouped as "${group.name}"`);
   }
 
+  /** Toggle a collision-heatmap overlay showing occupied grid cells from the city scatter */
+  toggleCollisionGrid() {
+    // If the grid already exists, remove it and toggle off
+    if (this._collisionGridGroup) {
+      // Dispose geometries and materials to prevent GPU memory leaks
+      this._collisionGridGroup.traverse(c => {
+        if (c.isMesh) {
+          c.geometry?.dispose();
+          c.material?.dispose();
+        }
+      });
+      this.scene.remove(this._collisionGridGroup);
+      this._collisionGridGroup = null;
+      log('Collision grid OFF');
+      return;
+    }
+
+    const buildings = this.objects.filter(o => o.name && o.name.startsWith('Building_'));
+    if (buildings.length === 0) {
+      log('No city buildings found — scatter a city first', 'error');
+      return;
+    }
+
+    const cellSize = 0.5;
+    // cell -> { count: number, occupied: boolean }
+    const cellMap = new Map();
+    function cellKey(cx, cz) { return cx + ',' + cz; }
+
+    // Compute occupied cells from each building's footprint
+    buildings.forEach(b => {
+      const x = b.position.x;
+      const z = b.position.z;
+      // Approximate footprint from the geometry
+      const geo = b.geometry;
+      if (!geo) return;
+      // BoxGeometry params: width, height, depth — we stored them at creation time
+      // But we can't read them back from a BoxGeometry easily. Use bounding box instead.
+      const box = new THREE.Box3().setFromObject(b);
+      const size = box.getSize(new THREE.Vector3());
+      const halfW = size.x / 2;
+      const halfD = size.z / 2;
+
+      const minCX = Math.floor((x - halfW) / cellSize);
+      const maxCX = Math.floor((x + halfW) / cellSize);
+      const minCZ = Math.floor((z - halfD) / cellSize);
+      const maxCZ = Math.floor((z + halfD) / cellSize);
+
+      for (let cx = minCX; cx <= maxCX; cx++) {
+        for (let cz = minCZ; cz <= maxCZ; cz++) {
+          const key = cellKey(cx, cz);
+          cellMap.set(key, (cellMap.get(key) || 0) + 1);
+        }
+      }
+    });
+
+    if (cellMap.size === 0) {
+      log('No occupied cells found', 'error');
+      return;
+    }
+
+    // Find max count for normalization
+    let maxCount = 0;
+    cellMap.forEach(c => { if (c > maxCount) maxCount = c; });
+    maxCount = Math.max(maxCount, 1);
+
+    // Create the overlay group
+    const group = new THREE.Group();
+    group.name = '__collisionGrid';
+
+    const quadGeo = new THREE.PlaneGeometry(cellSize * 0.9, cellSize * 0.9);
+    quadGeo.rotateX(-Math.PI / 2); // lay flat
+    const color = new THREE.Color();
+
+    cellMap.forEach((count, key) => {
+      const [cx, cz] = key.split(',').map(Number);
+      const t = count / maxCount; // 0..1
+      // Heatmap: green (0) -> yellow (0.5) -> red (1)
+      color.setHSL(0.3 - t * 0.3, 1, 0.5 + t * 0.2);
+
+      const mat = new THREE.MeshBasicMaterial({
+        color: color.clone(),
+        transparent: true,
+        opacity: 0.35 + t * 0.3,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(quadGeo, mat);
+      mesh.position.set(cx * cellSize + cellSize / 2, -0.45, cz * cellSize + cellSize / 2);
+      group.add(mesh);
+    });
+
+    this.scene.add(group);
+    this._collisionGridGroup = group;
+    log(`Collision grid ON (${cellMap.size} occupied cells, max ${maxCount} overlaps)`);
+  }
+
   /** Scatter primitive boxes on the valley floor to simulate a city with collision avoidance */
   scatterCity() {
     const valley = this.scene.getObjectByName('Wireframe Valley');
