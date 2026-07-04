@@ -56,6 +56,7 @@ export class Studio {
     this._gizmoSize = 1;
     this._lastFrameTime = performance.now();
     this._frameDeltas = [];
+    this._showProfiler = true;
     this._easingFunctions = {
       linear: t => t,
       'ease-in': t => t * t,
@@ -239,6 +240,8 @@ export class Studio {
 
     // Nav-cube overlay
     this._createNavCube();
+    // Profiler overlay
+    this._createProfiler();
 
     // Start loop
     this._animate();
@@ -510,6 +513,40 @@ export class Studio {
     this._navCubeInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
   }
 
+  // ── Profiler Overlay ──
+  _createProfiler() {
+    const viewport = document.getElementById('viewport');
+    if (!viewport) return;
+
+    const el = document.createElement('div');
+    el.id = 'profiler';
+    el.style.cssText = 'position:absolute;top:6px;left:6px;z-index:10;font:11px/1.4 monospace;color:#0f0;pointer-events:none;user-select:none;text-shadow:0 0 4px rgba(0,0,0,0.8),0 0 2px #000;background:rgba(0,0,0,0.35);padding:4px 8px;border-radius:4px;white-space:pre;';
+    el.textContent = 'FPS: --\nDraw: --\nTri: --';
+    viewport.appendChild(el);
+    this._profilerEl = el;
+  }
+
+  _updateProfiler() {
+    if (!this._showProfiler || !this._profilerEl) { this._profilerEl && (this._profilerEl.style.display = 'none'); return; }
+    this._profilerEl.style.display = '';
+
+    const info = this.renderer.info;
+    const avgDelta = this._frameDeltas.length > 0
+      ? this._frameDeltas.reduce((s, d) => s + d, 0) / this._frameDeltas.length
+      : 16.67;
+    const fps = avgDelta > 0 ? Math.round(1000 / avgDelta) : 60;
+
+    this._profilerEl.textContent =
+      `FPS:  ${fps}` +
+      `\nDraw: ${info.render?.calls ?? 0}` +
+      `\nTri:  ${((info.render?.triangles ?? 0) / 1000).toFixed(1)}K`;
+  }
+
+  toggleProfiler() {
+    this._showProfiler = !this._showProfiler;
+    log(`Profiler overlay ${this._showProfiler ? 'ON' : 'OFF'}`);
+  }
+
   // ── Light Helpers ──
   _updateLightHelpers() {
     // Remove old helpers
@@ -570,6 +607,9 @@ export class Studio {
 
     // Update nav-cube orientation
     this._updateNavCube();
+
+    // Update profiler overlay
+    this._updateProfiler();
   }
 
   // ── Animation ──
