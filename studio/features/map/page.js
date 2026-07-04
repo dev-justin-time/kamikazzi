@@ -10,6 +10,9 @@ const meta = {
     { key: 'gen-valley', label: '🏔 Generate Wireframe Valley', type: 'button', onClick: () => {
       window.ProModelerApp?.generateWireframeValley();
     }},
+    { key: 'scatter-city', label: '🌆 Scatter City on Valley', type: 'button', onClick: () => {
+      window.ProModelerApp?.scatterCity();
+    }},
     { key: 'frame-all', label: 'Frame All', type: 'button', onClick: () => window.ProModelerApp?.frameAll() },
     { key: 'snap', label: 'Snap Selected to Grid', type: 'button', onClick: () => window.ProModelerApp?.snapToGrid() },
     { key: 'sep2', label: '──────────', type: 'label' },

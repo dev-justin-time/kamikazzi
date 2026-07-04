@@ -1316,6 +1316,65 @@ export class Studio {
     log('Generated wireframe valley');
   }
 
+  /** Scatter primitive boxes on the valley floor to simulate a city */
+  scatterCity() {
+    const valley = this.scene.getObjectByName('Wireframe Valley');
+    if (!valley || !valley.geometry) {
+      log('Generate a wireframe valley first (Map page)', 'error');
+      return;
+    }
+
+    this.pushUndo();
+
+    const posAttr = valley.geometry.attributes.position;
+    const vertex = new THREE.Vector3();
+    const localPoint = new THREE.Vector3();
+
+    // Sample buildings from vertex positions
+    const step = 4; // sample every Nth vertex to avoid overcrowding
+    const buildings = [];
+    const cityColors = [0x4a9eff, 0xf59e0b, 0xef4444, 0x22c55e, 0xa855f7, 0xec4899, 0x14b8a6, 0xf97316];
+
+    for (let i = 0; i < posAttr.count; i += step) {
+      vertex.fromBufferAttribute(posAttr, i);
+
+      // Skip edge vertices (low height = outer edges are higher)
+      const h = vertex.y;
+      if (h > -0.5) continue; // skip ridges/edges, keep valley floor
+
+      // Add slight random jitter to position
+      localPoint.copy(vertex);
+      localPoint.x += (Math.random() - 0.5) * 0.4;
+      localPoint.z += (Math.random() - 0.5) * 0.4;
+
+      // Random building dimensions
+      const bw = 0.25 + Math.random() * 0.45;
+      const bd = 0.25 + Math.random() * 0.45;
+      const bh = 0.3 + Math.random() * 3.5;
+
+      const geo = new THREE.BoxGeometry(bw, bh, bd);
+      const color = cityColors[Math.floor(Math.random() * cityColors.length)];
+      const mat = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.3 + Math.random() * 0.4,
+        metalness: 0.1 + Math.random() * 0.3,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      // Position on the valley surface (valley is at y = -1.5, vertex.y is local Y)
+      mesh.position.set(localPoint.x, -1.5 + localPoint.y + bh / 2, localPoint.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.name = 'Building_' + (i / step);
+
+      this.scene.add(mesh);
+      this.objects.push(mesh);
+      buildings.push(mesh);
+    }
+
+    log(`Scattered ${buildings.length} buildings on valley`);
+    this.frameAll();
+  }
+
   // ── Preset material ──
   applyMaterial(preset) {
     if (!this.selectedObject) return;
