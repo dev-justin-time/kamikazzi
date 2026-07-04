@@ -1516,7 +1516,7 @@ export class Studio {
     log('Exported valley as GLB');
   }
 
-  /** Scatter primitive boxes on the valley floor to simulate a city */
+  /** Scatter primitive boxes on the valley floor to simulate a city with collision avoidance */
   scatterCity() {
     const valley = this.scene.getObjectByName('Wireframe Valley');
     if (!valley || !valley.geometry) {
@@ -1530,10 +1530,49 @@ export class Studio {
     const vertex = new THREE.Vector3();
     const localPoint = new THREE.Vector3();
 
-    // Sample buildings from vertex positions
-    const step = 4; // sample every Nth vertex to avoid overcrowding
+    // ── Grid-based collision detection ──
+    // Cell size = 0.5 units. Each cell can hold at most one building.
+    const cellSize = 0.5;
+    const grid = new Map();
+
+    function gridKey(cx, cz) { return cx + ',' + cz; }
+
+    function isCellBlocked(x, z, bw, bd) {
+      // Compute the AABB of the building footprint
+      const halfW = bw / 2;
+      const halfD = bd / 2;
+      const minCX = Math.floor((x - halfW) / cellSize);
+      const maxCX = Math.floor((x + halfW) / cellSize);
+      const minCZ = Math.floor((z - halfD) / cellSize);
+      const maxCZ = Math.floor((z + halfD) / cellSize);
+      for (let cx = minCX; cx <= maxCX; cx++) {
+        for (let cz = minCZ; cz <= maxCZ; cz++) {
+          if (grid.has(gridKey(cx, cz))) return true;
+        }
+      }
+      return false;
+    }
+
+    function blockCells(x, z, bw, bd) {
+      const halfW = bw / 2;
+      const halfD = bd / 2;
+      const minCX = Math.floor((x - halfW) / cellSize);
+      const maxCX = Math.floor((x + halfW) / cellSize);
+      const minCZ = Math.floor((z - halfD) / cellSize);
+      const maxCZ = Math.floor((z + halfD) / cellSize);
+      for (let cx = minCX; cx <= maxCX; cx++) {
+        for (let cz = minCZ; cz <= maxCZ; cz++) {
+          grid.set(gridKey(cx, cz), true);
+        }
+      }
+    }
+
+    // ── Sample buildings from vertex positions ──
+    const step = 4; // sample every Nth vertex
     const buildings = [];
     const cityColors = [0x4a9eff, 0xf59e0b, 0xef4444, 0x22c55e, 0xa855f7, 0xec4899, 0x14b8a6, 0xf97316];
+
+    let attempts = 0;
 
     for (let i = 0; i < posAttr.count; i += step) {
       vertex.fromBufferAttribute(posAttr, i);
@@ -1541,6 +1580,8 @@ export class Studio {
       // Skip edge vertices (low height = outer edges are higher)
       const h = vertex.y;
       if (h > -0.5) continue; // skip ridges/edges, keep valley floor
+
+      attempts++;
 
       // Add slight random jitter to position
       localPoint.copy(vertex);
@@ -1551,6 +1592,12 @@ export class Studio {
       const bw = 0.25 + Math.random() * 0.45;
       const bd = 0.25 + Math.random() * 0.45;
       const bh = 0.3 + Math.random() * 3.5;
+
+      // ── Collision check: skip if footprint overlaps an existing building ──
+      if (isCellBlocked(localPoint.x, localPoint.z, bw, bd)) {
+        continue;
+      }
+      blockCells(localPoint.x, localPoint.z, bw, bd);
 
       const geo = new THREE.BoxGeometry(bw, bh, bd);
       const color = cityColors[Math.floor(Math.random() * cityColors.length)];
@@ -1571,7 +1618,7 @@ export class Studio {
       buildings.push(mesh);
     }
 
-    log(`Scattered ${buildings.length} buildings on valley`);
+    log(`Scattered ${buildings.length} buildings on valley (${attempts - buildings.length} rejected for overlap)`);
     this.frameAll();
   }
 
