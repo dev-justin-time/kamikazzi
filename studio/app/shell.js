@@ -77,6 +77,7 @@ export class StudioShell {
       { id: 'inventory', label: 'Inventory',   icon: '📦', desc: 'Asset library, materials, textures' },
       { id: 'market',   label: 'Market',       icon: '🏪', desc: 'Asset marketplace, purchases' },
       { id: 'profile',  label: 'Profile',      icon: '👤', desc: 'User settings, preferences' },
+      { id: 'voxel',    label: 'Voxel',        icon: '🧱', desc: 'Sparse octree voxel editor (planned)' },
       { id: 'chat',     label: 'Chat',         icon: '💬', desc: 'Collaboration, comments, AI chat' },
       { id: 'performance', label: 'Performance', icon: '📊', desc: 'FPS, draw calls, frame time, memory usage' },
     ];
