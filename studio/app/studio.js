@@ -950,6 +950,17 @@ export class Studio {
     return info;
   }
 
+  // ── Seeded PRNG (mulberry32) ──
+  _seededRandom(seed) {
+    let a = seed | 0;
+    return function() {
+      a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
   // ── Profile / Preferences ──
   setBackgroundColor(color) {
     this.scene.background = new THREE.Color(color);
@@ -1271,29 +1282,48 @@ export class Studio {
     log(`Mirrored ${axis}`);
   }
 
+  // ── Valley generator state ──
+  _valleyParams = {
+    seed: 0,
+    amplitude: 2.5,
+    ridgeCount: 3,
+    segments: 48,
+    noiseAmount: 0.3,
+  };
+
+  setValleyParam(key, val) {
+    if (key in this._valleyParams) {
+      this._valleyParams[key] = val;
+    }
+  }
+
   // ── Wireframe Valley ──
   generateWireframeValley() {
     this.pushUndo();
 
-    // Create segmented plane for terrain deformation
+    const params = this._valleyParams;
     const width = 20;
     const depth = 20;
-    const segW = 48;
-    const segD = 48;
+    const segW = params.segments;
+    const segD = params.segments;
     const geo = new THREE.PlaneGeometry(width, depth, segW, segD);
     geo.rotateX(-Math.PI / 2);
 
     const pos = geo.attributes.position;
     const vertex = new THREE.Vector3();
+    const rng = this._seededRandom(params.seed);
+
     for (let i = 0; i < pos.count; i++) {
       vertex.fromBufferAttribute(pos, i);
-      // Valley shape: lower in center along Z, higher at edges
       const distFromCenter = Math.abs(vertex.z) / (depth / 2);
       const distFromSide = Math.abs(vertex.x) / (width / 2);
-      // Smooth valley with ridges on the sides
-      const valley = Math.pow(distFromCenter, 1.5) * 2.5;
-      const ridges = Math.sin(distFromSide * Math.PI * 3) * 0.3 * (1 - distFromSide);
-      vertex.y = -valley + ridges + (Math.random() - 0.5) * 0.15;
+      // Valley shape: lower in center, higher at edges
+      const valley = Math.pow(distFromCenter, 1.5) * params.amplitude;
+      // Ridges along the sides (number controlled by ridgeCount)
+      const ridges = Math.sin(distFromSide * Math.PI * params.ridgeCount) * 0.3 * (1 - distFromSide);
+      // Seeded noise for organic feel
+      const noise = (rng() - 0.5) * params.noiseAmount;
+      vertex.y = -valley + ridges + noise;
       pos.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
     geo.computeVertexNormals();
