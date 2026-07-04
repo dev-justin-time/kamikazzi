@@ -1690,6 +1690,8 @@ export class Studio {
     segments: 48,
     noiseAmount: 0.3,
     buildingGap: 0,
+    streetInterval: 0,
+    streetWidth: 1,
   };
 
   setValleyParam(key, val) {
@@ -1943,6 +1945,31 @@ export class Studio {
       for (let cx = minCX; cx <= maxCX; cx++) {
         for (let cz = minCZ; cz <= maxCZ; cz++) {
           grid.set(gridKey(cx, cz), true);
+        }
+      }
+    }
+
+    // ── Carve streets: pre-block cells in a regular grid pattern ──
+    const interval = params.streetInterval || 0;
+    const sw = Math.max(1, Math.round(params.streetWidth || 1));
+    if (interval > 0) {
+      // Corrected modulo for negative numbers (JS % preserves sign)
+      const mod = (n, m) => ((n % m) + m) % m;
+      // Estimate grid bounds from the valley segments
+      const halfW = 10; // valley is 20 wide
+      const halfD = 10;
+      const minCX = Math.floor(-halfW / cellSize);
+      const maxCX = Math.ceil(halfW / cellSize);
+      const minCZ = Math.floor(-halfD / cellSize);
+      const maxCZ = Math.ceil(halfD / cellSize);
+      for (let cx = minCX; cx <= maxCX; cx++) {
+        for (let cz = minCZ; cz <= maxCZ; cz++) {
+          // Check if this cell falls on a street row or column
+          const inStreetX = mod(cx, interval) < sw;
+          const inStreetZ = mod(cz, interval) < sw;
+          if (inStreetX || inStreetZ) {
+            grid.set(gridKey(cx, cz), true);
+          }
         }
       }
     }

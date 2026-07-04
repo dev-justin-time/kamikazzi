@@ -112,7 +112,24 @@ const meta = {
       description: 'Padding around each building to prevent crowding (expands the collision footprint)',
       onChange: (val) => { _getApp()?.setValleyParam('buildingGap', val); },
     },
-    { key: 'sep-gap', label: '──────────', type: 'label' },
+    // ── Street Grid ──
+    {
+      key: 'street-interval',
+      label: 'Street Interval',
+      type: 'slider',
+      min: 0, max: 10, step: 1, default: 0,
+      description: 'Every N grid cells, carve a street (0 = no streets, organic layout)',
+      onChange: (val) => { _getApp()?.setValleyParam('streetInterval', val); },
+    },
+    {
+      key: 'street-width',
+      label: 'Street Width',
+      type: 'slider',
+      min: 1, max: 4, step: 1, default: 1,
+      description: 'How many cell widths the street occupies',
+      onChange: (val) => { _getApp()?.setValleyParam('streetWidth', val); },
+    },
+    { key: 'sep-street', label: '──────────', type: 'label' },
 
     // ── Building Batch Select ──
     {
