@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProModeler Studio - Premium 3D Modeling Suite</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Top Menu Bar -->
+        <div class="menu-bar">
+            <div class="menu-section">
+                <div class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span>ProModeler Studio</span>
+                </div>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        File
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="new">New Project</div>
+                            <div class="dropdown-item" data-action="open">Open</div>
+                            <div class="dropdown-item" data-action="save">Save</div>
+                            <div class="dropdown-item" data-action="export">Export</div>
+                            <div class="dropdown-item" data-action="import">Import</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        Edit
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="undo">Undo</div>
+                            <div class="dropdown-item" data-action="redo">Redo</div>
+                            <div class="dropdown-item" data-action="duplicate">Duplicate</div>
+                            <div class="dropdown-item" data-action="delete">Delete</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        Add
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="add-cube">Cube</div>
+                            <div class="dropdown-item" data-action="add-sphere">Sphere</div>
+                            <div class="dropdown-item" data-action="add-cylinder">Cylinder</div>
+                            <div class="dropdown-item" data-action="add-plane">Plane</div>
+                            <div class="dropdown-item" data-action="add-torus">Torus</div>
+                            <div class="dropdown-item" data-action="add-icosahedron">Icosahedron</div>
+                            <div class="dropdown-item" data-action="add-cone">Cone</div>
+                            <div class="dropdown-item" data-action="add-tube">Tube</div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item" data-action="add-cloth">Cloth (Physics)</div>
+                            <div class="dropdown-item" data-action="add-fluid">Fluid (Physics)</div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item" data-action="add-light">Light</div>
+                            <div class="dropdown-item" data-action="add-camera">Camera</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        Generate
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="gen-terrain">Terrain</div>
+                            <div class="dropdown-item" data-action="gen-tree">Tree</div>
+                            <div class="dropdown-item" data-action="gen-rock">Rock</div>
+                            <div class="dropdown-item" data-action="gen-building">Building</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        View
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="wireframe">Wireframe</div>
+                            <div class="dropdown-item" data-action="solid">Solid</div>
+                            <div class="dropdown-item" data-action="material">Material Preview</div>
+                            <div class="dropdown-item" data-action="rendered">Rendered</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        Tools
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="sculpt">Sculpt Mode</div>
+                            <div class="dropdown-item" data-action="texture-paint">Texture Paint</div>
+                            <div class="dropdown-item" data-action="vertex-paint">Vertex Paint</div>
+                            <div class="dropdown-item" data-action="animate">Animation</div>
+                            <div class="dropdown-item" data-action="particles">Particles</div>
+                            <div class="dropdown-item" data-action="physics">Physics</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        Render
+                        <div class="dropdown">
+                            <div class="dropdown-item" data-action="render-image">Render Image</div>
+                            <div class="dropdown-item" data-action="render-animation">Render Animation</div>
+                            <div class="dropdown-item" data-action="render-settings">Render Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-info">
+                <span>Project: Untitled</span>
+                <div class="save-status">●</div>
+            </div>
+        </div>
+
+        <!-- Main Toolbar -->
+        <div class="main-toolbar">
+            <div class="mobile-toggle-btn" data-toggle="left-sidebar">
+                <i class="fas fa-bars"></i>
+            </div>
+
+            <div class="tool-group">
+                <div class="tool-item active" data-tool="select" title="Select">
+                    <i class="fas fa-mouse-pointer"></i>
+                </div>
+                <div class="tool-item" data-tool="move" title="Move">
+                    <i class="fas fa-arrows-alt"></i>
+                </div>
+                <div class="tool-item" data-tool="rotate" title="Rotate">
+                    <i class="fas fa-redo"></i>
+                </div>
+                <div class="tool-item" data-tool="scale" title="Scale">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </div>
+            </div>
+            <div class="separator"></div>
+            <div class="tool-group">
+                <div class="tool-item" data-tool="extrude" title="Extrude">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <div class="tool-item" data-tool="bevel" title="Bevel">
+                    <i class="fas fa-cut"></i>
+                </div>
+                <div class="tool-item" data-tool="knife" title="Knife">
+                    <i class="fas fa-slash"></i>
+                </div>
+                <div class="tool-item" data-tool="subdivide" title="Subdivide">
+                    <i class="fas fa-th"></i>
+                </div>
+            </div>
+            <div class="separator"></div>
+            <div class="tool-group">
+                <div class="tool-item" data-tool="brush" title="Sculpt Brush">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <div class="tool-item" data-tool="grab" title="Grab">
+                    <i class="fas fa-hand-rock"></i>
+                </div>
+                <div class="tool-item" data-tool="smooth" title="Smooth">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="tool-item" data-tool="inflate" title="Inflate">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+            </div>
+            <div class="separator"></div>
+            <div class="view-controls">
+                <div class="view-mode">
+                    <select id="viewMode">
+                        <option value="solid">Solid</option>
+                        <option value="wireframe">Wireframe</option>
+                        <option value="material">Material</option>
+                        <option value="rendered">Rendered</option>
+                    </select>
+                </div>
+                <div class="viewport-shading">
+                    <div class="shading-option active" data-shading="solid">
+                        <i class="fas fa-circle"></i>
+                    </div>
+                    <div class="shading-option" data-shading="material">
+                        <i class="fas fa-circle-half-stroke"></i>
+                    </div>
+                    <div class="shading-option" data-shading="rendered">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mobile-toggle-btn" data-toggle="right-sidebar">
+                <i class="fas fa-cog"></i>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="sidebar-overlay"></div>
+            <!-- Left Sidebar -->
+            <div class="sidebar left-sidebar">
+                <div class="panel-tabs">
+                    <div class="tab active" data-panel="outliner">Outliner</div>
+                    <div class="tab" data-panel="assets">Assets</div>
+                    <div class="tab" data-panel="modifiers">Modifiers</div>
+                </div>
+                
+                <!-- Outliner Panel -->
+                <div class="panel outliner-panel active">
+                    <div class="panel-header">
+                        <h3>Scene Outliner</h3>
+                        <div class="panel-actions">
+                            <i class="fas fa-plus" title="Add Object"></i>
+                            <i class="fas fa-eye" title="Toggle Visibility"></i>
+                            <i class="fas fa-filter" title="Filter"></i>
+                        </div>
+                    </div>
+                    <div class="outliner-tree">
+                        <div class="tree-item">
+                            <i class="fas fa-cube"></i>
+                            <span>Scene</span>
+                            <div class="item-actions">
+                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="tree-item nested">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Light</span>
+                            <div class="item-actions">
+                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="tree-item nested">
+                            <i class="fas fa-video"></i>
+                            <span>Camera</span>
+                            <div class="item-actions">
+                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="tree-item nested selected">
+                            <i class="fas fa-cube"></i>
+                            <span>Cube</span>
+                            <div class="item-actions">
+                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Panel -->
+                <div class="panel assets-panel">
+                    <div class="panel-header">
+                        <h3>Asset Library</h3>
+                        <div class="panel-actions">
+                            <i class="fas fa-upload" title="Import Asset"></i>
+                            <i class="fas fa-folder" title="Browse Folder"></i>
+                        </div>
+                    </div>
+                    <div class="asset-categories">
+                        <div class="category active">Models</div>
+                        <div class="category">Materials</div>
+                        <div class="category">Textures</div>
+                        <div class="category">HDRIs</div>
+                        <div class="category" data-source="cloud" style="color: #4a9eff;"> <i class="fas fa-cloud"></i> Store</div>
+                    </div>
+                    <div class="asset-grid">
+                        <div class="asset-item">
+                            <div class="asset-thumbnail">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <span>Default Cube</span>
+                        </div>
+                        <div class="asset-item">
+                            <div class="asset-thumbnail">
+                                <i class="fas fa-circle"></i>
+                            </div>
+                            <span>UV Sphere</span>
+                        </div>
+                        <div class="asset-item">
+                            <div class="asset-thumbnail">
+                                <i class="fas fa-cylinder"></i>
+                            </div>
+                            <span>Cylinder</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modifiers Panel -->
+                <div class="panel modifiers-panel">
+                    <div class="panel-header">
+                        <h3>Modifiers</h3>
+                        <div class="panel-actions">
+                            <i class="fas fa-plus" title="Add Modifier"></i>
+                        </div>
+                    </div>
+                    <div class="modifier-list">
+                        <div class="modifier-item">
+                            <div class="modifier-header">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Subdivision Surface</span>
+                                <div class="modifier-controls">
+                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                            <div class="modifier-settings">
+                                <div class="setting">
+                                    <label>Levels:</label>
+                                    <input type="range" min="0" max="5" value="2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Viewport -->
+            <div class="viewport-container">
+                <div class="viewport-header">
+                    <div class="viewport-info">
+                        <span>Perspective View</span>
+                        <div class="viewport-stats">
+                            <span>Verts: 8</span>
+                            <span>Faces: 6</span>
+                            <span>Tris: 12</span>
+                        </div>
+                    </div>
+                    <div class="viewport-controls">
+                        <div class="control-group">
+                            <button class="viewport-btn" data-view="front">Front</button>
+                            <button class="viewport-btn" data-view="right">Right</button>
+                            <button class="viewport-btn" data-view="top">Top</button>
+                            <button class="viewport-btn active" data-view="perspective">Persp</button>
+                        </div>
+                        <div class="control-group">
+                            <button class="viewport-btn" data-action="frame-all">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                            <button class="viewport-btn" data-action="frame-selected">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="viewport" class="viewport"></div>
+                
+                <div class="viewport-overlay">
+                    <div class="texture-paint-panel" id="texturePaintPanel">
+                        <div class="panel-header">
+                            <h3>Texture Paint</h3>
+                            <div class="panel-actions">
+                                <i class="fas fa-times" onclick="document.querySelector('[data-action=texture-paint]').click()"></i>
+                            </div>
+                        </div>
+                        <div class="paint-brush-controls">
+                            <div class="brush-size-control">
+                                <label>Color</label>
+                                <div class="color-input">
+                                    <input type="color" id="brushColor" value="#ff4444">
+                                </div>
+                            </div>
+                            <div class="brush-size-control">
+                                <label>Size</label>
+                                <input type="range" id="brushSize" min="1" max="100" value="15">
+                            </div>
+                            <div class="brush-size-control">
+                                <label>Opacity</label>
+                                <input type="range" id="brushOpacity" min="0" max="1" step="0.1" value="1">
+                            </div>
+                        </div>
+
+                        <div class="paint-layers-section">
+                            <div class="layers-header-row">
+                                <label>Layers</label>
+                                <i class="fas fa-plus" id="addPaintLayerBtn" title="New Layer"></i>
+                            </div>
+                            <div class="layers-list" id="paintLayersList">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="texture-paint-panel" id="vertexPaintPanel" style="display:none;">
+                        <div class="panel-header">
+                            <h3>Vertex Paint</h3>
+                            <div class="panel-actions">
+                                <i class="fas fa-times" onclick="document.querySelector('[data-action=vertex-paint]').click()"></i>
+                            </div>
+                        </div>
+                        <div class="paint-brush-controls">
+                            <div class="brush-size-control">
+                                <label>Color</label>
+                                <div class="color-input">
+                                    <input type="color" id="vertexBrushColor" value="#ffff00">
+                                </div>
+                            </div>
+                            <div class="brush-size-control">
+                                <label>Size</label>
+                                <input type="range" id="vertexBrushSize" min="0.1" max="2.0" step="0.1" value="0.5">
+                            </div>
+                            <div class="brush-size-control">
+                                <label>Strength</label>
+                                <input type="range" id="vertexBrushStrength" min="0" max="1" step="0.1" value="0.5">
+                            </div>
+                        </div>
+                        <div style="font-size:11px; color:#888; padding:8px;">
+                            Paints directly onto mesh vertices. Requires sufficient geometry density.
+                        </div>
+                    </div>
+
+                    <div class="gizmo-container">
+                        <div class="transform-gizmo">
+                            <div class="gizmo-axis x-axis"></div>
+                            <div class="gizmo-axis y-axis"></div>
+                            <div class="gizmo-axis z-axis"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="viewport-navigation">
+                        <div class="nav-cube">
+                            <div class="cube-face front" data-dir="front">F</div>
+                            <div class="cube-face back" data-dir="back">B</div>
+                            <div class="cube-face left" data-dir="left">L</div>
+                            <div class="cube-face right" data-dir="right">R</div>
+                            <div class="cube-face top" data-dir="top">T</div>
+                            <div class="cube-face bottom" data-dir="bottom">Bo</div>
+                        </div>
+                    </div>
+                    
+                    <div class="performance-monitor" id="perfMonitor">
+                        <div class="perf-metric">
+                            <span>FPS:</span>
+                            <span id="fpsCounter">60</span>
+                        </div>
+                        <div class="perf-metric">
+                            <span>Draw Calls:</span>
+                            <span id="drawCalls">12</span>
+                        </div>
+                        <div class="perf-metric">
+                            <span>Triangles:</span>
+                            <span id="triangles">2.4k</span>
+                        </div>
+                        <div class="perf-metric">
+                            <span>Memory:</span>
+                            <span id="memoryUsage">45MB</span>
+                        </div>
+                    </div>
+
+                    <div id="joystick"></div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar right-sidebar">
+                <div class="panel-tabs">
+                    <div class="tab active" data-panel="properties">Properties</div>
+                    <div class="tab" data-panel="materials">Materials</div>
+                    <div class="tab" data-panel="lighting">Lighting</div>
+                    <div class="tab" data-panel="render">Render</div>
+                </div>
+
+                <!-- Properties Panel -->
+                <div class="panel properties-panel active">
+                    <div class="panel-header">
+                        <h3>Object Properties</h3>
+                    </div>
+                    
+                    <div class="property-group">
+                        <h4>Transform</h4>
+                        <div class="property-row">
+                            <label>Location</label>
+                            <div class="vector-input">
+                                <input type="number" value="0" step="0.1" class="x-input">
+                                <input type="number" value="0" step="0.1" class="y-input">
+                                <input type="number" value="0" step="0.1" class="z-input">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Rotation</label>
+                            <div class="vector-input">
+                                <input type="number" value="0" step="1" class="x-input">
+                                <input type="number" value="0" step="1" class="y-input">
+                                <input type="number" value="0" step="1" class="z-input">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Scale</label>
+                            <div class="vector-input">
+                                <input type="number" value="1" step="0.1" class="x-input">
+                                <input type="number" value="1" step="0.1" class="y-input">
+                                <input type="number" value="1" step="0.1" class="z-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <h4>Geometry</h4>
+                        <div class="property-row">
+                            <label>Subdivisions</label>
+                            <input type="number" value="1" min="1" max="10">
+                        </div>
+                        <div class="property-row">
+                            <label>Smooth Shading</label>
+                            <input type="checkbox">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Panel -->
+                <div class="panel materials-panel">
+                    <div class="panel-header">
+                        <h3>Material Editor</h3>
+                        <div class="panel-actions">
+                            <i class="fas fa-plus" title="New Material"></i>
+                            <i class="fas fa-copy" title="Duplicate"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="material-preview">
+                        <div class="preview-sphere"></div>
+                        <div class="preview-controls">
+                            <button class="preview-btn active" data-preview="sphere">Sphere</button>
+                            <button class="preview-btn" data-preview="cube">Cube</button>
+                            <button class="preview-btn" data-preview="plane">Plane</button>
+                        </div>
+                    </div>
+
+                    <div class="material-properties">
+                        <div class="property-group">
+                            <h4>Surface</h4>
+                            <div class="property-row">
+                                <label>Base Color</label>
+                                <div class="color-input">
+                                    <input type="color" value="#ffffff">
+                                    <input type="text" value="#FFFFFF">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <label>Metallic</label>
+                                <input type="range" min="0" max="1" step="0.01" value="0">
+                                <span class="value">0.0</span>
+                            </div>
+                            <div class="property-row">
+                                <label>Roughness</label>
+                                <input type="range" min="0" max="1" step="0.01" value="0.5">
+                                <span class="value">0.5</span>
+                            </div>
+                            <div class="property-row">
+                                <label>Normal</label>
+                                <div class="texture-slot">
+                                    <div class="texture-preview"></div>
+                                    <button class="load-texture">Load</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lighting Panel -->
+                <div class="panel lighting-panel">
+                    <div class="panel-header">
+                        <h3>Lighting</h3>
+                        <div class="panel-actions">
+                            <i class="fas fa-plus" title="Add Light"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="light-list">
+                        <div class="light-item active">
+                            <div class="light-header">
+                                <i class="fas fa-sun"></i>
+                                <span>Key Light</span>
+                                <div class="light-controls">
+                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                            <div class="light-properties">
+                                <div class="property-row">
+                                    <label>Type</label>
+                                    <select>
+                                        <option>Directional</option>
+                                        <option>Point</option>
+                                        <option>Spot</option>
+                                        <option>Area</option>
+                                    </select>
+                                </div>
+                                <div class="property-row">
+                                    <label>Color</label>
+                                    <input type="color" value="#ffffff">
+                                </div>
+                                <div class="property-row">
+                                    <label>Intensity</label>
+                                    <input type="range" min="0" max="10" step="0.1" value="1">
+                                    <span class="value">1.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="environment-section">
+                        <h4>Environment</h4>
+                        <div class="property-row">
+                            <label>HDRI</label>
+                            <div class="texture-slot">
+                                <div class="texture-preview"></div>
+                                <button class="load-texture">Load</button>
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Strength</label>
+                            <input type="range" min="0" max="5" step="0.1" value="1">
+                            <span class="value">1.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Render Panel -->
+                <div class="panel render-panel">
+                    <div class="panel-header">
+                        <h3>Render Settings</h3>
+                    </div>
+                    
+                    <div class="render-controls">
+                        <button class="render-btn primary">
+                            <i class="fas fa-play"></i>
+                            Render Image
+                        </button>
+                        <button class="render-btn">
+                            <i class="fas fa-film"></i>
+                            Render Animation
+                        </button>
+                    </div>
+
+                    <div class="property-group">
+                        <h4>Output</h4>
+                        <div class="property-row">
+                            <label>Resolution</label>
+                            <div class="resolution-input">
+                                <input type="number" value="1920">
+                                <span>×</span>
+                                <input type="number" value="1080">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Format</label>
+                            <select>
+                                <option>PNG</option>
+                                <option>JPEG</option>
+                                <option>EXR</option>
+                                <option>TIFF</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <h4>Quality</h4>
+                        <div class="property-row">
+                            <label>Samples</label>
+                            <input type="range" min="1" max="1000" value="128">
+                            <span class="value">128</span>
+                        </div>
+                        <div class="property-row">
+                            <label>Max Bounces</label>
+                            <input type="range" min="1" max="50" value="12">
+                            <span class="value">12</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel -->
+        <div class="bottom-panel">
+            <div class="panel-tabs">
+                <div class="tab active" data-panel="timeline">Timeline</div>
+                <div class="tab" data-panel="node-editor">Node Editor</div>
+                <div class="tab" data-panel="console">Console</div>
+                <div class="tab" data-panel="plugins">Plugins</div>
+            </div>
+
+            <!-- Timeline Panel -->
+            <div class="panel timeline-panel active">
+                <div class="timeline-controls">
+                    <button class="timeline-btn" data-action="play">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="timeline-btn" data-action="pause">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="timeline-btn" data-action="stop">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                    <div class="frame-input">
+                        <input type="number" value="1" min="1">
+                        <span>/</span>
+                        <span class="total-frames">250</span>
+                    </div>
+                    
+                    <div class="animation-controls">
+                        <div class="frame-rate-control">
+                            <label>FPS:</label>
+                            <input type="number" value="24" min="1" max="60" id="frameRate">
+                        </div>
+                        <div class="frame-rate-control">
+                            <label>Speed:</label>
+                            <input type="range" min="0.1" max="2" step="0.1" value="1" id="animSpeed">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-editor">
+                    <div class="timeline-tracks">
+                        <div class="track-header">
+                            <div class="track-name">Cube</div>
+                            <div class="track-controls">
+                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="track-timeline">
+                            <div class="keyframe" style="left: 10%"></div>
+                            <div class="keyframe" style="left: 30%"></div>
+                            <div class="keyframe" style="left: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Node Editor Panel -->
+            <div class="panel node-editor-panel">
+                <div class="node-editor-canvas">
+                    <div class="node-editor-grid"></div>
+                    <div class="shader-node" style="left: 100px; top: 50px;">
+                        <div class="node-header">Material Output</div>
+                        <div class="node-inputs">
+                            <div class="node-socket input">
+                                <div class="socket"></div>
+                                <span>Surface</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shader-node" style="left: 300px; top: 50px;">
+                        <div class="node-header">Principled BSDF</div>
+                        <div class="node-inputs">
+                            <div class="node-socket input">
+                                <div class="socket"></div>
+                                <span>Base Color</span>
+                            </div>
+                            <div class="node-socket input">
+                                <div class="socket"></div>
+                                <span>Metallic</span>
+                            </div>
+                        </div>
+                        <div class="node-outputs">
+                            <div class="node-socket output">
+                                <span>BSDF</span>
+                                <div class="socket"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Panel -->
+            <div class="panel console-panel">
+                <div class="console-output">
+                    <div class="console-line info">ProModeler Studio initialized</div>
+                    <div class="console-line success">Scene loaded successfully</div>
+                    <div class="console-line warning">No HDRI environment found</div>
+                </div>
+                <div class="console-input">
+                    <span class="prompt">></span>
+                    <input type="text" placeholder="Enter command...">
+                </div>
+            </div>
+
+            <!-- Plugins Panel -->
+            <div class="panel plugins-panel">
+                <div class="plugin-grid">
+                    <div class="plugin-item installed">
+                        <div class="plugin-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <div class="plugin-info">
+                            <h4>Auto-Retopology</h4>
+                            <p>Automatic mesh optimization</p>
+                            <div class="plugin-status">Installed</div>
+                        </div>
+                        <div class="plugin-actions">
+                            <button class="plugin-btn">Settings</button>
+                        </div>
+                    </div>
+                    <div class="plugin-item">
+                        <div class="plugin-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="plugin-info">
+                            <h4>Nature Pack</h4>
+                            <p>Trees, rocks, and vegetation</p>
+                            <div class="plugin-price">$29.99</div>
+                        </div>
+                        <div class="plugin-actions">
+                            <button class="plugin-btn primary">Install</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="status-item">Ready</span>
+                <span class="status-item">GPU: RTX 4090</span>
+                <span class="status-item">Memory: 2.1GB / 24GB</span>
+            </div>
+            <div class="status-right">
+                <span class="status-item">FPS: 60</span>
+                <span class="status-item">Render: Cycles</span>
+                <div class="progress-indicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">Processing...</div>
+        </div>
+    </div>
+
+    <!-- Hidden model import input -->
+    <input id="modelImport" type="file" accept=".gltf,.glb" style="display:none" />
+    <!-- Hidden project open input -->
+    <input id="projectOpen" type="file" accept=".json" style="display:none" />
+
+    <!-- Minimal pre-module error surface to pinpoint syntax issues -->
+    <script>
+      (function () {
+        function showErrorBanner(msg) {
+          var el = document.getElementById('bootErrorBanner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = 'bootErrorBanner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#300;color:#f88;font:12px/1.4 monospace;padding:8px 12px;border-bottom:1px solid #a00;white-space:pre-wrap';
+            document.body.appendChild(el);
+          }
+          el.textContent = '[Boot Error] ' + msg;
+        }
+        window.addEventListener('error', function (e) {
+          // Catches SyntaxError from module parse as well
+          var loc = e.filename ? (' at ' + e.filename + (e.lineno ? (':' + e.lineno + (e.colno ? (':' + e.colno) : '')) : '')) : '';
+          showErrorBanner((e.message || 'Unknown error') + loc);
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) {
+          showErrorBanner('Unhandled Promise Rejection: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason || '')));
+        });
+      })();
+    </script>
+    <script>
+      // Lightweight parenthesis checker to pinpoint an extra ')'
+      (async function () {
+        try {
+          const res = await fetch('app.js', { cache: 'no-store' });
+          const src = await res.text();
+          let line = 1, col = 0, i = 0, stack = 0;
+          let inS = false, inD = false, inB = false, inSL = false, inML = false, esc = false;
+          while (i < src.length) {
+            const ch = src[i], nxt = src[i + 1];
+            col++;
+            if (ch === '\n') { line++; col = 0; inSL = false; }
+            if (inSL) { i++; continue; }
+            if (inML) { if (ch === '*' && nxt === '/') { inML = false; i += 2; col++; continue; } i++; continue; }
+            if (!inS && !inD && !inB) {
+              if (ch === '/' && nxt === '/') { inSL = true; i += 2; col++; continue; }
+              if (ch === '/' && nxt === '*') { inML = true; i += 2; col++; continue; }
+            }
+            if (inS) { if (!esc && ch === '\'') inS = false; esc = ch === '\\' && !esc; i++; continue; }
+            if (inD) { if (!esc && ch === '"') inD = false; esc = ch === '\\' && !esc; i++; continue; }
+            if (inB) { if (!esc && ch === '`') inB = false; esc = ch === '\\' && !esc; i++; continue; }
+
+            if (ch === '\'') inS = true;
+            else if (ch === '"') inD = true;
+            else if (ch === '`') inB = true;
+            else if (ch === '(') stack++;
+            else if (ch === ')') {
+              if (stack === 0) {
+                const context = src.split('\n')[line - 1] || '';
+                const caret = ' '.repeat(Math.max(0, col - 1)) + '^';
+                const msg = `Unmatched ')' detected in app.js at ${line}:${col}\n${context}\n${caret}`;
+                const el = document.getElementById('bootErrorBanner') || (function(){const d=document.createElement('div');d.id='bootErrorBanner';d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#300;color:#f88;font:12px/1.4 monospace;padding:8px 12px;border-bottom:1px solid #a00;white-space:pre-wrap';document.body.appendChild(d);return d;})();
+                el.textContent = '[Syntax Scan] ' + msg;
+                break;
+              }
+              stack--;
+            }
+            i++;
+          }
+        } catch (e) {
+          // silent
+        }
+      })();
+    </script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/",
+                "dat.gui": "https://unpkg.com/dat.gui@0.7.9/build/dat.gui.module.js",
+                "nipplejs": "https://esm.sh/nipplejs@0.9.1",
+                "cannon-es": "https://esm.sh/cannon-es@0.20.0",
+                "jszip": "https://esm.sh/jszip@3.10.1"
+            }
+        }
+    </script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>

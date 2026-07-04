@@ -1,0 +1,418 @@
+if (ext === 'obj') {
+        return new Promise((resolve, reject) => {
+            const loader = new OBJLoader();
+            let url;
+            if (source instanceof File) {
+                url = URL.createObjectURL(source);
+                loader.load(url, (obj) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    obj.name = nameHint || 'OBJ_Model';
+                    obj.traverse(c => c.userData.isEditable = true);
+                    // center/scale similar to GLTF handling
+                    const box = new THREE.Box3().setFromObject(obj);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                    const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                    obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                    // Adjust so object's lowest point sits on floor (y=0)
+                    const scaledBoxObj = new THREE.Box3().setFromObject(obj);
+                    const minYObj = scaledBoxObj.min.y;
+                    if (isFinite(minYObj)) {
+                      obj.position.y -= minYObj;
+                    }
+
+                    // Rotate object to face the camera horizontally
+                    if (this.camera) {
+                      const lookAtPos = this.camera.position.clone();
+                      lookAtPos.y = obj.position.y; // project camera to model height so only yaw is applied
+                      obj.lookAt(lookAtPos);
+                    }
+
+                    this.scene.add(obj);
+                    // clear animations context
+                    this.mixer = null; this.actions = {}; this.animations = [];
+                    this.selectObject(obj);
+                    resolve();
+                }, undefined, (err) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    reject(err);
+                });
+            } else if (typeof source === 'string') {
+                loader.load(source, (obj) => {
+                    obj.name = nameHint || 'OBJ_Model';
+                    obj.traverse(c => c.userData.isEditable = true);
+                    const box = new THREE.Box3().setFromObject(obj);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                    const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                    obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                    obj.position.y += (size.y || 1) * scaleFactor / 2;
+                    this.scene.add(obj);
+                    this.mixer = null; this.actions = {}; this.animations = [];
+                    this.selectObject(obj);
+                    resolve();
+                }, undefined, (err) => reject(err));
+            } else {
+                // fallback: if provided as multi-file, try using url via OBJLoader
+                if (source && source.url) {
+                    loader.load(source.url, (obj) => {
+                        obj.name = nameHint || 'OBJ_Model';
+                        obj.traverse(c => c.userData.isEditable = true);
+                        const box = new THREE.Box3().setFromObject(obj);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                        const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                        obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        obj.position.y += (size.y || 1) * scaleFactor / 2;
+                        this.scene.add(obj);
+                        this.mixer = null; this.actions = {}; this.animations = [];
+                        this.selectObject(obj);
+                        resolve();
+                    }, undefined, (err) => reject(err));
+                } else {
+                    reject(new Error('Unsupported OBJ source.'));
+                }
+            }
+        });
+    } else if (ext === 'stl') {
+        return new Promise((resolve, reject) => {
+            const loader = new STLLoader();
+            const applyMesh = (geometry) => {
+                const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.name = nameHint || 'STL_Model';
+                mesh.userData.isEditable = true;
+                // center/scale
+                const box = new THREE.Box3().setFromObject(mesh);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                // Move mesh so its bottom sits at y=0
+                const scaledBoxMesh = new THREE.Box3().setFromObject(mesh);
+                const minYMesh = scaledBoxMesh.min.y;
+                if (isFinite(minYMesh)) {
+                  mesh.position.y -= minYMesh;
+                }
+
+                // Face the camera on the horizontal plane
+                if (this.camera) {
+                  const lookAtPos = this.camera.position.clone();
+                  lookAtPos.y = mesh.position.y;
+                  mesh.lookAt(lookAtPos);
+                }
+
+                this.scene.add(mesh);
+                this.mixer = null; this.actions = {}; this.animations = [];
+                this.selectObject(mesh);
+                resolve();
+            };
+
+            if (source instanceof File) {
+                const url = URL.createObjectURL(source);
+                loader.load(url, (geom) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    applyMesh(geom);
+                }, undefined, (err) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    reject(err);
+                });
+            } else if (typeof source === 'string') {
+                loader.load(source, (geom) => applyMesh(geom), undefined, (err) => reject(err));
+            } else if (source && source.url) {
+                loader.load(source.url, (geom) => applyMesh(geom), undefined, (err) => reject(err));
+            } else {
+                reject(new Error('Unsupported STL source.'));
+            }
+        });
+    } else {
+        // fallback to glTF loader (keeps existing multi-file behavior)
+        // Before invoking GLTF loader, detect if the package hints at Draco compression and load DRACOLoader lazily if so.
+        try {
+            // Determine whether Draco decoder likely required:
+            const needsDraco = (() => {
+                if (typeof source === 'string') {
+                    return /\.drc$/i.test(source) || /draco/i.test(source);
+                }
+                if (source instanceof File) {
+                    return /\.drc$/i.test(source.name);
+                }
+                if (source && typeof source === 'object' && source.files) {
+                    return Object.keys(source.files).some(n => /\.drc$/i.test(n));
+                }
+                return false;
+            })();
+
+            if (needsDraco && !this._dracoAttached) {
+                // Lazy-load DRACOLoader and attach to this.gltfLoader
+                try {
+                    const { DRACOLoader } = await import('three/addons/loaders/DRACOLoader.js');
+                    const draco = new DRACOLoader();
+                    // prefer CDN decoder path or let developer set custom; try to set a safe public path
+                    try { draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/'); } catch (e) {}
+                    try { this.gltfLoader.setDRACOLoader(draco); } catch (e) { console.warn('Failed to set DRACOLoader on GLTFLoader', e); }
+                    this._dracoAttached = true;
+                } catch (e) {
+                    console.warn('Failed to dynamically load DRACOLoader; continuing without it:', e);
+                    // notify user via UI
+                    if (this.ui && this.ui.showStatus) this.ui.showStatus('Draco decoder failed to load; compressed models may not import.', 5000);
+                }
+            }
+        } catch (e) {
+            console.warn('Error while checking for Draco necessity:', e);
+        }
+
+        return this.importGltfModel(source);
+    }
+
+    // OBJ (existing)
+    if (ext === 'obj') {
+        return new Promise((resolve, reject) => {
+            const loader = new OBJLoader();
+            let url;
+            if (source instanceof File) {
+                url = URL.createObjectURL(source);
+                loader.load(url, (obj) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    obj.name = nameHint || 'OBJ_Model';
+                    obj.traverse(c => c.userData.isEditable = true);
+                    const box = new THREE.Box3().setFromObject(obj);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                    const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                    obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                    const scaledBoxObj = new THREE.Box3().setFromObject(obj);
+                    const minYObj = scaledBoxObj.min.y;
+                    if (isFinite(minYObj)) {
+                      obj.position.y -= minYObj;
+                    }
+
+                    if (this.camera) {
+                      const lookAtPos = this.camera.position.clone();
+                      lookAtPos.y = obj.position.y;
+                      obj.lookAt(lookAtPos);
+                    }
+
+                    this.scene.add(obj);
+                    this.mixer = null; this.actions = {}; this.animations = [];
+                    this.selectObject(obj);
+                    resolve();
+                }, undefined, (err) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    reject(err);
+                });
+            } else if (typeof source === 'string') {
+                loader.load(source, (obj) => {
+                    obj.name = nameHint || 'OBJ_Model';
+                    obj.traverse(c => c.userData.isEditable = true);
+                    const box = new THREE.Box3().setFromObject(obj);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                    const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                    obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                    obj.position.y += (size.y || 1) * scaleFactor / 2;
+                    this.scene.add(obj);
+                    this.mixer = null; this.actions = {}; this.animations = [];
+                    this.selectObject(obj);
+                    resolve();
+                }, undefined, (err) => reject(err));
+            } else {
+                if (source && source.url) {
+                    loader.load(source.url, (obj) => {
+                        obj.name = nameHint || 'OBJ_Model';
+                        obj.traverse(c => c.userData.isEditable = true);
+                        const box = new THREE.Box3().setFromObject(obj);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                        const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                        obj.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        obj.position.y += (size.y || 1) * scaleFactor / 2;
+                        this.scene.add(obj);
+                        this.mixer = null; this.actions = {}; this.animations = [];
+                        this.selectObject(obj);
+                        resolve();
+                    }, undefined, (err) => reject(err));
+                } else {
+                    reject(new Error('Unsupported OBJ source.'));
+                }
+            }
+        });
+    } else if (ext === 'stl') {
+        return new Promise((resolve, reject) => {
+            const loader = new STLLoader();
+            const applyMesh = (geometry) => {
+                const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.name = nameHint || 'STL_Model';
+                mesh.userData.isEditable = true;
+                const box = new THREE.Box3().setFromObject(mesh);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                const scaledBoxMesh = new THREE.Box3().setFromObject(mesh);
+                const minYMesh = scaledBoxMesh.min.y;
+                if (isFinite(minYMesh)) {
+                  mesh.position.y -= minYMesh;
+                }
+
+                if (this.camera) {
+                  const lookAtPos = this.camera.position.clone();
+                  lookAtPos.y = mesh.position.y;
+                  mesh.lookAt(lookAtPos);
+                }
+
+                this.scene.add(mesh);
+                this.mixer = null; this.actions = {}; this.animations = [];
+                this.selectObject(mesh);
+                resolve();
+            };
+
+            if (source instanceof File) {
+                const url = URL.createObjectURL(source);
+                loader.load(url, (geom) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    applyMesh(geom);
+                }, undefined, (err) => {
+                    try { URL.revokeObjectURL(url); } catch (e) {}
+                    reject(err);
+                });
+            } else if (typeof source === 'string') {
+                loader.load(source, (geom) => applyMesh(geom), undefined, (err) => reject(err));
+            } else if (source && source.url) {
+                loader.load(source.url, (geom) => applyMesh(geom), undefined, (err) => reject(err));
+            } else {
+                reject(new Error('Unsupported STL source.'));
+            }
+        });
+    } else if (ext === 'fbx' || ext === 'ply') {
+        return new Promise((resolve, reject) => {
+            try {
+                let loader;
+                if (ext === 'fbx') loader = new FBXLoader();
+                else loader = new PLYLoader();
+
+                if (source instanceof File) {
+                    const url = URL.createObjectURL(source);
+                    loader.load(url, (obj) => {
+                        try { URL.revokeObjectURL(url); } catch (e) {}
+                        // PLYLoader returns geometry, FBXLoader returns Object3D
+                        let root;
+                        if (ext === 'ply') {
+                            const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+                            root = new THREE.Mesh(obj, material);
+                        } else {
+                            root = obj;
+                        }
+                        root.name = nameHint || (ext === 'fbx' ? 'FBX_Model' : 'PLY_Model');
+                        root.traverse && root.traverse(c => { if (c.isMesh) c.userData.isEditable = true; });
+                        // scale/center
+                        const box = new THREE.Box3().setFromObject(root);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                        const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                        root.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        const scaledBox = new THREE.Box3().setFromObject(root);
+                        const minY = scaledBox.min.y;
+                        if (isFinite(minY)) root.position.y -= minY;
+                        if (this.camera) {
+                            const lookAtPos = this.camera.position.clone(); lookAtPos.y = root.position.y;
+                            root.lookAt && root.lookAt(lookAtPos);
+                        }
+                        this.scene.add(root);
+                        this.mixer = null; this.actions = {}; this.animations = [];
+                        this.selectObject(root);
+                        resolve();
+                    }, undefined, (err) => {
+                        try { URL.revokeObjectURL(url); } catch (e) {}
+                        reject(err);
+                    });
+                } else if (typeof source === 'string') {
+                    loader.load(source, (obj) => {
+                        let root = (ext === 'ply') ? new THREE.Mesh(obj, new THREE.MeshStandardMaterial({ color: 0xaaaaaa })) : obj;
+                        root.name = nameHint || (ext === 'fbx' ? 'FBX_Model' : 'PLY_Model');
+                        root.traverse && root.traverse(c => { if (c.isMesh) c.userData.isEditable = true; });
+                        const box = new THREE.Box3().setFromObject(root);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                        const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                        root.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        const scaledBox = new THREE.Box3().setFromObject(root);
+                        const minY = scaledBox.min.y;
+                        if (isFinite(minY)) root.position.y -= minY;
+                        if (this.camera) {
+                            const lookAtPos = this.camera.position.clone(); lookAtPos.y = root.position.y;
+                            root.lookAt && root.lookAt(lookAtPos);
+                        }
+                        this.scene.add(root);
+                        this.mixer = null; this.actions = {}; this.animations = [];
+                        this.selectObject(root);
+                        resolve();
+                    }, undefined, (err) => reject(err));
+                } else if (source && source.url) {
+                    loader.load(source.url, (obj) => {
+                        let root = (ext === 'ply') ? new THREE.Mesh(obj, new THREE.MeshStandardMaterial({ color: 0xaaaaaa })) : obj;
+                        root.name = nameHint || (ext === 'fbx' ? 'FBX_Model' : 'PLY_Model');
+                        root.traverse && root.traverse(c => { if (c.isMesh) c.userData.isEditable = true; });
+                        const box = new THREE.Box3().setFromObject(root);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x || 1, size.y || 1, size.z || 1);
+                        const scaleFactor = maxDim > 0 ? 2 / maxDim : 1;
+                        root.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        const scaledBox = new THREE.Box3().setFromObject(root);
+                        const minY = scaledBox.min.y;
+                        if (isFinite(minY)) root.position.y -= minY;
+                        if (this.camera) {
+                            const lookAtPos = this.camera.position.clone(); lookAtPos.y = root.position.y;
+                            root.lookAt && root.lookAt(lookAtPos);
+                        }
+                        this.scene.add(root);
+                        this.mixer = null; this.actions = {}; this.animations = [];
+                        this.selectObject(root);
+                        resolve();
+                    }, undefined, (err) => reject(err));
+                } else {
+                    reject(new Error(`Unsupported ${ext.toUpperCase()} source.`));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        });
+    } else {
+        // fallback to glTF loader...
+        try {
+            const needsDraco = (() => {
+                if (typeof source === 'string') {
+                    return /\.drc$/i.test(source) || /draco/i.test(source);
+                }
+                if (source instanceof File) {
+                    return /\.drc$/i.test(source.name);
+                }
+                if (source && typeof source === 'object' && source.files) {
+                    return Object.keys(source.files).some(n => /\.drc$/i.test(n));
+                }
+                return false;
+            })();
+
+            if (needsDraco && !this._dracoAttached) {
+                try {
+                    const { DRACOLoader } = await import('three/addons/loaders/DRACOLoader.js');
+                    const draco = new DRACOLoader();
+                    try { draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/'); } catch (e) {}
+                    try { this.gltfLoader.setDRACOLoader(draco); } catch (e) { console.warn('Failed to set DRACOLoader on GLTFLoader', e); }
+                    this._dracoAttached = true;
+                } catch (e) {
+                    console.warn('Failed to dynamically load DRACOLoader; continuing without it:', e);
+                    if (this.ui && this.ui.showStatus) this.ui.showStatus('Draco decoder failed to load; compressed models may not import.', 5000);
+                }
+            }
+        } catch (e) {
+            console.warn('Error while checking for Draco necessity:', e);
+        }
+
+        return this.importGltfModel(source);
+    }

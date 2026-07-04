@@ -1,0 +1,386 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #050505;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#stats-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    pointer-events: none;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    color: #00ff00;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+#fullscreen-btn {
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    pointer-events: auto;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    transition: transform 0.2s;
+    font-family: Arial, sans-serif;
+}
+
+#fullscreen-btn:hover {
+    transform: scale(1.1);
+    background: none;
+}
+
+#controls-panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    pointer-events: auto;
+    background: rgba(15, 15, 20, 0.9);
+    backdrop-filter: blur(12px);
+    padding: 10px;
+    border-radius: 12px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    cursor: default;
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    max-height: 92vh;
+    box-sizing: border-box;
+}
+
+#controls-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+#controls-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+#controls-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+}
+
+.drag-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: move;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    user-select: none;
+    height: 20px;
+    margin-bottom: 5px;
+}
+
+.dot-grid {
+    width: 12px;
+    height: 8px;
+    background-image: radial-gradient(circle, #888 1.5px, transparent 1.5px);
+    background-size: 4px 4px;
+}
+
+.collapse-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    font-size: 14px;
+    line-height: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+#controls-panel.collapsed {
+    height: 30px;
+    width: 60px;
+}
+
+#controls-panel.collapsed #controls-content {
+    display: none;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    font-size: 10px;
+    padding: 5px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px 4px 0 0;
+}
+
+.tab-btn.active {
+    background: #3498db;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 8px 0;
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+}
+
+.checkbox-group input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+label {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #aaa;
+    letter-spacing: 0.5px;
+}
+
+select, input[type="range"], input[type="file"] {
+    width: 100%;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+#minimap-container {
+    pointer-events: auto;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 120px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+#minimap-handle {
+    height: 20px;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+#minimap-container.collapsed {
+    height: 30px !important;
+    width: 60px !important;
+}
+
+#minimap-container.collapsed #minimap-content {
+    display: none;
+}
+
+#minimap-content {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: calc(100% - 20px);
+}
+
+#minimap-container.medium {
+    width: 240px;
+    height: 240px;
+}
+
+#minimap-container.large {
+    width: 400px;
+    height: 400px;
+}
+
+#minimap-canvas {
+    width: 100%;
+    height: 100%;
+    image-rendering: auto;
+}
+
+#minimap-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+}
+
+.minimap-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 12px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+#player-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ffcc00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffcc00, 0 0 20px rgba(255, 204, 0, 0.5);
+    z-index: 10;
+    pointer-events: none;
+    /* transform: translate(-50%, -50%) rotate(...) is set in JS */
+}
+
+/* The Cone Effect / Vision Tracker - Yellow dot emitting a bright golden vision cone */
+#player-marker::after {
+    content: '';
+    position: absolute;
+    bottom: 40%; 
+    left: 50%;
+    width: 20px;
+    height: 18px;
+    transform: translateX(-50%);
+    background: linear-gradient(to top, rgba(255, 204, 0, 0.9) 0%, rgba(255, 204, 0, 0.4) 50%, transparent 100%);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+#joystick-zone {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    pointer-events: auto;
+    display: none;
+}
+
+@media (pointer: coarse) {
+    #joystick-zone {
+        display: block;
+    }
+}
+
+@media (max-width: 600px) {
+    #controls-panel {
+        width: 160px;
+        padding: 10px;
+    }
+    #minimap-container {
+        width: 100px;
+        height: 100px;
+    }
+    #minimap-container.medium {
+        width: 180px;
+        height: 180px;
+    }
+    #minimap-container.large {
+        width: 260px;
+        height: 260px;
+    }
+}

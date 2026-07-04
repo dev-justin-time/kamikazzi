@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Editor</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="top-menu">
+      <div class="menu-left">
+        <!-- New File menu: moved file management, import/export and object creation here -->
+        <div class="menu-item" id="menu-file">
+          File
+          <div class="dropdown" id="file-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">File</div>
+              <button class="dropdown-btn" id="newSceneBtn">New Scene</button>
+              <button class="dropdown-btn" id="openSceneBtn">Open Scene...</button>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <label style="color:#bbb;font-size:12px;margin:0">Recent</label>
+                <select id="recentFiles" style="flex:1;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444">
+                  <option value="">No recent files</option>
+                </select>
+              </div>
+              <button class="dropdown-btn" id="openFileManagerBtn">Open File Manager</button>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <button class="dropdown-btn" id="saveSceneBtn" style="flex:1;background:#28a745">Save Scene</button>
+                <button class="dropdown-btn" id="saveAsBtn" style="flex:1">Save As...</button>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                <label style="color:#bbb;margin:0">Autosave</label>
+                <input type="checkbox" id="autosaveToggle" style="width:18px;height:18px" />
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Import</div>
+              <label style="color:#bbb;font-size:12px">Model File</label>
+              <input id="gltfInput" type="file" accept=".gltf, .glb, .obj, .stl, .bin, .png, .jpg, .jpeg" style="background:#222;color:#eee;border-radius:4px;padding:6px;border:1px solid #444" />
+              <button class="dropdown-btn" id="openImportBtn">Open Import Window</button>
+              <button class="dropdown-btn" id="importTexturesBtn">Import Textures</button>
+
+              <!-- New import controls for multi-file packages / pre-bundled assets -->
+              <div style="margin-top:8px;">
+                <button class="dropdown-btn" id="importZipBtn">Import ZIP Package</button>
+                <button class="dropdown-btn" id="importSimbaBtn">Import simba.glb</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">New Abilities</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="dropdown-btn" id="ability-voxel">Voxel Generator</button>
+                <button class="dropdown-btn" id="ability-retopo">Auto Retopology</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Import from URL</div>
+              <input id="gltfUrlInput" type="text" placeholder="e.g., https://example.com/model.glb" style="background:#222;color:#eee;border-radius:4px;padding:6px;border:1px solid #444" />
+              <button class="dropdown-btn" id="loadUrlBtn">Load from URL</button>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Export</div>
+              <button class="dropdown-btn" id="exportBtn">Export Scene</button>
+              <label style="color:#bbb;font-size:12px">Export Selected</label>
+              <select id="exportModelSelect" style="width:100%;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444">
+                <option value="glb">GLB (binary glTF)</option>
+                <option value="gltf">glTF (JSON + external files)</option>
+                <option value="obj">OBJ</option>
+                <option value="json">Scene JSON</option>
+              </select>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button id="exportModelBtn" class="dropdown-btn" style="flex:1">Export Selected</button>
+                <button id="exportAllBtn" class="dropdown-btn" style="flex:1;background:#17a2b8">Export All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+
+        <!-- Objects menu (moved object creation from File into its own top menu) -->
+        <div class="menu-item" id="menu-objects">
+          Objects
+          <div class="dropdown" id="objects-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Create</div>
+              <button class="dropdown-btn" id="addCubeBtn">Add Cube</button>
+              <button class="dropdown-btn" id="addSphereBtn">Add Sphere</button>
+              <button class="dropdown-btn" id="addCylinderBtn">Add Cylinder</button>
+              <button class="dropdown-btn" id="addPlaneBtn">Add Plane</button>
+              <button class="dropdown-btn" id="addLightBtn">Add Light</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera menu: new comprehensive camera tools -->
+        <div class="menu-item" id="menu-camera">
+          Camera
+          <div class="dropdown" id="camera-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Projection</div>
+              <button class="dropdown-btn" id="proj-persp">Perspective</button>
+              <button class="dropdown-btn" id="proj-ortho">Orthographic</button>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Lens / Clipping</div>
+              <label style="color:#bbb;font-size:12px">FOV</label>
+              <input id="camera-fov" type="range" min="20" max="110" value="75" style="width:100%;" />
+              <label style="color:#bbb;font-size:12px">Near</label>
+              <input id="camera-near" type="number" step="0.01" value="0.1" style="width:100%;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444" />
+              <label style="color:#bbb;font-size:12px">Far</label>
+              <input id="camera-far" type="number" step="1" value="1000" style="width:100%;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444" />
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Presets</div>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="preset-front" style="flex:1">Front</button>
+                <button class="dropdown-btn" id="preset-back" style="flex:1">Back</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <button class="dropdown-btn" id="preset-left" style="flex:1">Left</button>
+                <button class="dropdown-btn" id="preset-right" style="flex:1">Right</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Actions</div>
+              <button class="dropdown-btn" id="camera-frame">Frame Selection</button>
+              <button class="dropdown-btn" id="camera-reset">Reset Camera</button>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                <label style="color:#bbb;margin:0">Lock Orbit</label>
+                <input id="camera-lock" type="checkbox" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rigging menu: detailed rigging tools and workflows -->
+        <div class="menu-item" id="menu-rigging">
+          Rigging
+          <div class="dropdown" id="rigging-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Bone Tools</div>
+              <button class="dropdown-btn" id="rig-add-bone">Add Bone</button>
+              <button class="dropdown-btn" id="rig-remove-bone">Remove Bone</button>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="rig-mirror-bones" style="flex:1">Mirror Bones</button>
+                <button class="dropdown-btn" id="rig-auto-rig" style="flex:1;background:#28a745">Auto Rig</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+                <label style="color:#bbb;margin:0">FK / IK</label>
+                <button class="dropdown-btn" id="rig-toggle-fkik" style="width:110px">Toggle FK/IK</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Skinning / Weights</div>
+              <button class="dropdown-btn" id="rig-bind-skin">Bind Skin</button>
+              <button class="dropdown-btn" id="rig-weight-paint">Weight Paint Mode</button>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <button class="dropdown-btn" id="rig-normalize-weights" style="flex:1">Normalize</button>
+                <button class="dropdown-btn" id="rig-clear-weights" style="flex:1">Clear Weights</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+                <label style="color:#bbb;margin:0">Brush Size</label>
+                <input id="rig-weight-brush-size" type="range" min="1" max="200" value="32" style="flex:1" />
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Pose & Rest</div>
+              <button class="dropdown-btn" id="rig-zero-pose">Zero Pose</button>
+              <button class="dropdown-btn" id="rig-rest-pose">Set Rest Pose</button>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <label style="color:#bbb;margin:0">Bone Length</label>
+                <input id="rig-bone-length" type="number" step="0.01" value="1" style="width:96px;padding:6px;border-radius:4px;border:1px solid #444;background:#222;color:#eee" />
+                <label style="color:#bbb;margin:0 0 0 6px">Bone Roll</label>
+                <input id="rig-bone-roll" type="number" step="0.1" value="0" style="width:96px;padding:6px;border-radius:4px;border:1px solid #444;background:#222;color:#eee" />
+                <button class="dropdown-btn" id="rig-apply-bone-params" style="width:110px">Apply</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Advanced</div>
+              <button class="dropdown-btn" id="rig-transfer-weights">Transfer Weights</button>
+              <button class="dropdown-btn" id="rig-bake-poses">Bake Poses</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animation menu: playback, keyframe and timeline controls -->
+        <div class="menu-item" id="menu-animation">
+          Animation
+          <div class="dropdown" id="animation-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Playback</div>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="anim-play">Play</button>
+                <button class="dropdown-btn" id="anim-pause">Pause</button>
+                <button class="dropdown-btn" id="anim-stop">Stop</button>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                <label style="color:#bbb;margin:0">Loop</label>
+                <input id="anim-loop" type="checkbox" />
+                <label style="color:#bbb;margin:0 0 0 8px">Speed</label>
+                <input id="anim-speed" type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" />
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Keyframes</div>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="anim-add-kf">Add Keyframe</button>
+                <button class="dropdown-btn" id="anim-remove-kf">Remove Keyframe</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Scrub / Frames</div>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="anim-prev-frame">Prev Frame</button>
+                <button class="dropdown-btn" id="anim-next-frame">Next Frame</button>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                <label style="color:#bbb;margin:0">Frame</label>
+                <input id="anim-frame-input" type="number" min="1" value="1" style="width:80px;padding:6px;border-radius:4px;border:1px solid #444;background:#222;color:#eee" />
+                <select id="anim-clip-select" style="flex:1;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444;margin-left:8px">
+                  <option value="">No clips</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">View</div>
+              <div style="display:flex;gap:8px;">
+                <button class="dropdown-btn" id="anim-open-timeline" style="flex:1">Open Timeline</button>
+                <button class="dropdown-btn" id="anim-focus-selection" style="flex:1">Focus Selection</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Integrations menu: cloud store, plugins, collaboration and webhooks -->
+        <div class="menu-item" id="menu-integrations">
+          Integrations
+          <div class="dropdown" id="integrations-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Cloud & Store</div>
+              <button class="dropdown-btn" id="integrations-cloud">Asset Store</button>
+              <button class="dropdown-btn" id="integrations-sync">Cloud Sync</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Plugins</div>
+              <button class="dropdown-btn" id="integrations-plugins">Plugin Manager</button>
+              <button class="dropdown-btn" id="integrations-market">Marketplace</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Collaboration</div>
+              <button class="dropdown-btn" id="integrations-collab">Live Session</button>
+              <button class="dropdown-btn" id="integrations-comments">Comments</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Automation</div>
+              <button class="dropdown-btn" id="integrations-webhooks">Webhooks</button>
+              <button class="dropdown-btn" id="integrations-ci">CI / Pipeline</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" id="menu-edit">
+          Edit Tools
+          <div class="dropdown" id="edit-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Mirror</div>
+              <button class="dropdown-btn" id="mirror-x">Mirror X</button>
+              <button class="dropdown-btn" id="mirror-y">Mirror Y</button>
+              <button class="dropdown-btn" id="mirror-z">Mirror Z</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Merge</div>
+              <button class="dropdown-btn" id="merge-selection">Merge Selection</button>
+              <button class="dropdown-btn" id="merge-close">Merge Close Vertices</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Subdivide</div>
+              <button class="dropdown-btn" id="subdivide-simple">Simple Subdivide</button>
+              <button class="dropdown-btn" id="subdivide-smooth">Smooth Subdivide</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">UV</div>
+              <button class="dropdown-btn" id="uv-unwrap">Unwrap</button>
+              <button class="dropdown-btn" id="uv-relax">Relax UVs</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Slice</div>
+              <button class="dropdown-btn" id="slice-x">Slice X</button>
+              <button class="dropdown-btn" id="slice-y">Slice Y</button>
+              <button class="dropdown-btn" id="slice-z">Slice Z</button>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Rotate</div>
+              <button class="dropdown-btn" id="rotate-x">Rotate X 90°</button>
+              <button class="dropdown-btn" id="rotate-y">Rotate Y 90°</button>
+              <button class="dropdown-btn" id="rotate-z">Rotate Z 90°</button>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Vertex Paint</div>
+              <button class="dropdown-btn" id="paint-fill">Fill Color</button>
+              <button class="dropdown-btn" id="paint-brush">Brush Mode</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Texture menu -->
+        <div class="menu-item" id="menu-texture">
+          Texture
+          <div class="dropdown" id="texture-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Actions</div>
+              <button class="dropdown-btn" id="texture-bake">Bake Texture</button>
+              <button class="dropdown-btn" id="texture-import">Import Texture</button>
+              <button class="dropdown-btn" id="texture-remove">Remove Texture</button>
+              <button class="dropdown-btn" id="texture-add-sticker">Add Sticker</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">UV Tools</div>
+              <button class="dropdown-btn" id="texture-uv-scale">Set UV Scale</button>
+              <button class="dropdown-btn" id="texture-auto-atlas">Auto Atlas</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Paint menu -->
+        <div class="menu-item" id="menu-paint">
+          Paint
+          <div class="dropdown" id="paint-dropdown">
+            <div class="dropdown-section">
+              <div class="dropdown-title">Modes</div>
+              <button class="dropdown-btn" id="paint-brush">Brush</button>
+              <button class="dropdown-btn" id="paint-eraser">Eraser</button>
+              <button class="dropdown-btn" id="paint-fill">Fill</button>
+            </div>
+            <div class="dropdown-section">
+              <div class="dropdown-title">Brush</div>
+              <label style="color:#bbb;font-size:12px">Size</label>
+              <input id="paint-size" class="dropdown-btn" type="range" min="1" max="128" value="16" style="appearance:none;height:32px" />
+              <label style="color:#bbb;font-size:12px">Opacity</label>
+              <input id="paint-opacity" class="dropdown-btn" type="range" min="0.01" max="1" step="0.01" value="1" style="appearance:none;height:32px" />
+              <label style="color:#bbb;font-size:12px">Color</label>
+              <input id="paint-color" type="color" value="#ffcc66" style="width:100%;padding:8px;border-radius:4px;border:1px solid #444;background:#222;color:#eee" />
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Material</div>
+              <label style="color:#bbb;font-size:12px">Metalness</label>
+              <input id="mat-metalness" class="dropdown-btn" type="range" min="0" max="1" step="0.01" value="0" style="appearance:none;height:28px" />
+              <label style="color:#bbb;font-size:12px">Roughness</label>
+              <input id="mat-roughness" class="dropdown-btn" type="range" min="0" max="1" step="0.01" value="0.5" style="appearance:none;height:28px" />
+              <label style="color:#bbb;font-size:12px">Emissive Color</label>
+              <input id="mat-emissive" type="color" value="#000000" style="width:100%;padding:6px;border-radius:4px;border:1px solid #444;background:#222;color:#eee" />
+              <label style="color:#bbb;font-size:12px">Emissive Intensity</label>
+              <input id="mat-emissive-int" class="dropdown-btn" type="range" min="0" max="5" step="0.1" value="0" style="appearance:none;height:28px" />
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <select id="mat-preset" style="flex:1;padding:8px;border-radius:4px;background:#222;color:#eee;border:1px solid #444">
+                  <option value="">Material Presets</option>
+                  <option value="plastic">Plastic (low metal, mid rough)</option>
+                  <option value="metal">Metal (high metal, low rough)</option>
+                  <option value="matte">Matte (no metal, high rough)</option>
+                  <option value="gloss">Glossy (no metal, low rough)</option>
+                  <option value="emissive">Emissive</option>
+                </select>
+                <button id="mat-apply" class="dropdown-btn" style="width:110px">Apply</button>
+              </div>
+            </div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-title">Actions</div>
+              <button class="dropdown-btn" id="paint-toggle-mode">Toggle Paint Mode</button>
+              <button class="dropdown-btn" id="paint-clear">Clear Paint (remove maps)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app-container">
+        <canvas id="renderCanvas"></canvas>
+        <div id="ui-panel">
+            <h2>3D Editor</h2>
+
+            <div class="section">
+              <h3 style="margin:6px 0;color:#ddd">Status</h3>
+              <div id="status-message"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+      // Minimal bootstrap guard + lightweight compatibility shims (Phase 2)
+      (function () {
+        // Prevent duplicate boot (multiple entrypoints)
+        if (window.__ProModelerBoot) {
+          // If another entrypoint already booted, show a non-blocking banner and avoid reloading main.
+          const existing = document.getElementById('bootWarningBanner') || (function(){
+            const b = document.createElement('div');
+            b.id = 'bootWarningBanner';
+            b.style.cssText = 'position:fixed;top:44px;left:12px;right:12px;z-index:10010;background:#332;color:#ffdd88;padding:8px;border-radius:6px;border:1px solid #554;font-size:13px';
+            b.textContent = 'ProModeler: another app entrypoint was already initialized — skipping duplicate bootstrap.';
+            document.body.appendChild(b);
+            return b;
+          })();
+          console.warn('Duplicate boot prevented by bootstrap guard.');
+          return;
+        }
+        window.__ProModelerBoot = true;
+
+        // Create a small status helper in DOM so code can report graceful failures
+        const statusEl = document.getElementById('status-message') || (function(){
+          const el = document.createElement('div');
+          el.id = 'status-message';
+          el.style.cssText = 'color:#ffd; padding:6px; font-size:13px';
+          // try to append into #ui-panel if present, otherwise body
+          const panel = document.getElementById('ui-panel');
+          (panel || document.body).appendChild(el);
+          return el;
+        })();
+
+        function logStatus(msg, level = 'info') {
+          try {
+            statusEl.textContent = msg;
+            if (level === 'error') statusEl.style.color = '#ff7777';
+            else statusEl.style.color = '#ffd';
+            console[level === 'error' ? 'error' : 'log']('[Boot] ' + msg);
+          } catch (e) { console.log('[Boot]', msg); }
+        }
+
+        // Provide compatibility shims for optional heavy subsystems so missing imports don't break initialization.
+        window.ProModelerShims = window.ProModelerShims || {};
+        const sh = window.ProModelerShims;
+
+        // physics (cannon-es)
+        if (!sh.PhysicsPlaceholder) {
+          sh.PhysicsPlaceholder = {
+            enabled: false,
+            init: () => { logStatus('Physics shim active (cannon-es missing). Physics disabled.', 'info'); return Promise.resolve(); },
+            setEnabled: () => { logStatus('Physics unavailable in this environment.', 'warning'); }
+          };
+        }
+
+        // nipplejs mobile joystick shim
+        if (!sh.NipplePlaceholder) {
+          sh.NipplePlaceholder = {
+            create: () => {
+              console.warn('nipplejs not present, joystick disabled.');
+              return { on: () => {}, destroy: () => {} };
+            }
+          };
+        }
+
+        // Audio shim
+        if (!sh.AudioPlaceholder) {
+          sh.AudioPlaceholder = {
+            init: async () => { logStatus('Audio shim active (AudioContext missing or blocked).', 'info'); },
+            playTestTone: () => { logStatus('Audio unavailable', 'warning'); }
+          };
+        }
+
+        // Import/Export facade shim (safe fallback)
+        if (!sh.ImportExportPlaceholder) {
+          sh.ImportExportPlaceholder = {
+            importModel: async (src) => { throw new Error('ImportExport facade not available in this build.'); },
+            exportSceneAsFormat: async (fmt) => { throw new Error('Export not available.'); }
+          };
+        }
+
+        // Expose a small boot check utility that main can call to validate systems list
+        window.ProModelerBootCheck = function (expectedSystems = []) {
+          const report = { found: [], missing: [] };
+          expectedSystems.forEach(name => {
+            const present = !!(window.ProModelerApp && window.ProModelerApp[name]) || !!(window.ProModelerShims && window.ProModelerShims[name]);
+            if (present) report.found.push(name); else report.missing.push(name);
+          });
+
+          // Log concise status and show to user if core systems missing
+          if (report.missing.length > 0) {
+            logStatus('Bootstrap: missing systems: ' + report.missing.join(', '), 'error');
+            console.warn('Bootstrap missing systems:', report.missing);
+          } else {
+            logStatus('Bootstrap: all expected systems present: ' + report.found.join(', '), 'info');
+          }
+          return report;
+        };
+
+        // small UX: clear status after short time unless it's an error
+        const originalLog = logStatus;
+        setTimeout(() => {
+          try {
+            if (statusEl && statusEl.textContent && !/missing|unavailable/i.test(statusEl.textContent)) statusEl.textContent = '';
+          } catch (e) {}
+        }, 5000);
+      })();
+    </script>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

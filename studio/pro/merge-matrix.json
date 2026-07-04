@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-07-03T00:00:00Z",
+  "summary": "Inventory & categorization of uploaded/modified project files, with detected overlaps and potential conflicts for merge planning.",
+  "files": {
+    "UI & UX": [
+      "index.html",
+      "index (1).html",
+      "index (2).html",
+      "import-model.html",
+      "style.css",
+      "styles(1).css",
+      "Yn704YJHRl2K5eMaCQ5SKQ@2k.webp"
+    ],
+    "Core Entry / Boot": [
+      "app(2).js",
+      "main.js",
+      "index.html",
+      "index (1).html",
+      "index (2).html"
+    ],
+    "Managers": [
+      "UIManager.js",
+      "ui-manager.js",
+      "ImportExportManager.js (import-export-manager.js)",
+      "import-export-manager.js",
+      "CameraManager (camera-manager.js)",
+      "animations-manager.js",
+      "NodeEditorSystem.js"
+    ],
+    "Systems": [
+      "InputManager.js",
+      "ProceduralSystem.js",
+      "PhysicsSystem.js",
+      "SculptSystem.js",
+      "TexturePaintSystem.js",
+      "VertexPaintSystem.js",
+      "AudioSystem.js",
+      "CloudSystem.js",
+      "Objects-manager.js",
+      "objects-manager.js"
+    ],
+    "Editor Core": [
+      "model-editor.js",
+      "app(2).js",
+      "main.js"
+    ],
+    "Import/Export & Asset tooling": [
+      "import-model.html",
+      "simba.glb",
+      "import-export-manager.js",
+      "ImportExportManager (wrapper)"
+    ],
+    "Helpers / Styles / Assets": [
+      "styles(1).css",
+      "style.css",
+      "Yn704YJHRl2K5eMaCQ5SKQ@2k.webp"
+    ],
+    "Feature Lists / Docs": [
+      "features/animation-features.js",
+      "features/materials-features.js",
+      "features/rendering-features.js",
+      "features/performance-features.js",
+      "features/rigging-features.js",
+      "features/uv-texturing-features.js",
+      "features/import-export-features.js",
+      "features/collaboration-features.js",
+      "features/sculpting-features.js",
+      "features/interaction-features.js",
+      "plan.md"
+    ],
+    "Misc / Entry glue": [
+      "InputManager.js",
+      "camera-manager.js",
+      "animations-manager.js"
+    ]
+  },
+  "overlaps_and_conflicts": {
+    "multiple_entrypoints": {
+      "description": "Several HTML files and multiple JS entry modules provide app boot logic.",
+      "files": [
+        "index.html",
+        "index (1).html",
+        "index (2).html",
+        "main.js",
+        "app(2).js"
+      ],
+      "risk": "High - duplicate app initialization and differing importmaps/versions may cause runtime conflicts."
+    },
+    "duplicate_ui_managers": {
+      "description": "Two UI manager implementations with similar responsibilities exist.",
+      "files": [
+        "UIManager.js",
+        "ui-manager.js"
+      ],
+      "risk": "Medium - both wire UI and expect DOM elements; may cause null access or duplicated listeners."
+    },
+    "objects_manager_variants": {
+      "description": "objects-manager.js vs ObjectsManager usage in different modules.",
+      "files": [
+        "objects-manager.js",
+        "ObjectsManager references in app(2).js/main.js"
+      ],
+      "risk": "Low/Medium - name and API are compatible but ensure single canonical import path."
+    },
+    "import_export_wrappers": {
+      "description": "Multiple wrappers/implementations exist (import-export-manager.js, ImportExportManager in app(2).js).",
+      "files": [
+        "import-export-manager.js",
+        "import-export-manager.js (duplicate listed)",
+        "app(2).js",
+        "main.js",
+        "model-editor.js"
+      ],
+      "risk": "Medium - ensure a single facade and that ModelEditor delegates to it to avoid fragmentation."
+    },
+    "three_version_mismatch": {
+      "description": "Different HTML importmaps reference differing three.js versions (0.158.0, 0.164.1, 0.164.1 in various files).",
+      "files": [
+        "index (1).html",
+        "index (2).html",
+        "index.html"
+      ],
+      "risk": "High - incompatible APIs across versions can break runtime behavior."
+    },
+    "nipplejs_and_physics_loading": {
+      "description": "nipplejs is referenced in InputManager and importmaps; cannon-es referenced in PhysicsSystem and import maps.",
+      "files": [
+        "InputManager.js",
+        "PhysicsSystem.js",
+        "index (1).html"
+      ],
+      "risk": "Medium - must lazy-load or guard when libs not present."
+    }
+  },
+  "recommendations": {
+    "canonical_entry": "Choose one HTML entry (prefer index (2).html or index.html) and standardize app bootstrap to a single main.js/app.js to avoid duplicate initialization.",
+    "ui_manager": "Merge UIManager implementations into the single safe ui-manager.js pattern with safe-get helpers (already present) and remove duplicate UIManager.js or adapt to be a light wrapper.",
+    "import_export": "Use import-export-manager.js as the single facade and have ModelEditor and app modules delegate to it.",
+    "three_version": "Standardize three.js importmap to one stable version across all HTML entries; update examples/addons imports to match.",
+    "lazy_load": "Load optional heavy libs (cannon-es, nipplejs, draco) lazily and guard initialization when absent.",
+    "namespaces": "Ensure module filenames & exports use consistent casing/paths to avoid duplicate imports (ObjectsManager vs objects-manager.js)."
+  }
+}

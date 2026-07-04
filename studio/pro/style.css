@@ -1,0 +1,318 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    overflow: hidden;
+    background-color: #333;
+    color: #eee;
+}
+
+/* Top menu bar */
+#top-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(40,40,40,0.95);
+  z-index: 30;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.menu-left { display:flex; gap:12px; align-items:center; }
+
+.menu-item {
+  position: relative;
+  color: #eee;
+  padding: 8px 12px;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+}
+
+.menu-item:hover { background: rgba(255,255,255,0.03); }
+
+/* Dropdowns: allow internal scrolling and visible custom scrollbar.
+   Max height ensures the menu fits on small screens and supports sliders and many controls. */
+/* Dropdown container: cap overall height and enable smooth scrolling.
+   Keep layout flexible but ensure internal sections have stable heights on small screens. */
+.dropdown {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  min-width: 260px;
+  max-width: 420px;
+  max-height: 60vh; /* hard ceiling so dropdown never exceeds viewport height */
+  background: #2d2d2d;
+  border: 1px solid #444;
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+
+  /* Scroll handling */
+  overflow: hidden; /* hide outer overflow; inner sections scroll separately */
+}
+
+/* Make dropdown content scrollable in separate sections so long menus remain usable on mobile
+   without the dropdown itself growing taller than the viewport. */
+.dropdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 6px 6px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+
+  /* Allow each section to scroll if its content exceeds this stable height.
+     Using max-height ensures the entire dropdown fits on one screen while letting
+     users scroll within long sections (e.g. many buttons or long forms). */
+  max-height: 40vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* If dropdown contains many sections, let the inner sections shrink before the container overflows */
+.dropdown > .dropdown-section:first-child {
+  flex-shrink: 0;
+}
+
+/* Keep the overall dropdown accessible: if content still exceeds total height, allow outer scroll fallback */
+@media (max-height: 640px) {
+  .dropdown {
+    max-height: 54vh;
+  }
+  .dropdown-section {
+    max-height: 36vh;
+  }
+}
+
+/* preserve previous scrollbar styling for inner scrollable areas */
+.dropdown-section::-webkit-scrollbar {
+  width: 10px;
+}
+.dropdown-section::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dropdown-section::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  border: 2px solid rgba(45,45,45,0.9);
+}
+
+/* when open, keep flex layout */
+.menu-item.open > .dropdown { display: flex; }
+
+/* Slight right padding so content doesn't touch scrollbar */
+.dropdown::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  border: 2px solid rgba(45,45,45,0.9);
+}
+
+.dropdown-section { display:flex; flex-direction:column; gap:6px; padding:8px 6px 6px 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+.dropdown-section:last-child { border-bottom: none; padding-bottom: 0; }
+
+.dropdown-title {
+  font-size: 12px;
+  color: #bbb;
+  margin-bottom: 2px;
+}
+
+/* Buttons inside dropdown keep original look but ensure touch target size */
+.dropdown-btn {
+  background: #3a3a3a;
+  color: #eee;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 44px; /* touch-friendly */
+}
+
+.dropdown-btn:hover { background: #505050; }
+
+/* Range (sliders) styling — subtle, consistent within dropdowns */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  background: transparent;
+  margin: 6px 0;
+}
+
+/* Track */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  background: linear-gradient(90deg,#444,#3a3a3a);
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.4);
+}
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  background: linear-gradient(90deg,#444,#3a3a3a);
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.4);
+}
+
+/* Thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffd166;
+  border: 2px solid #6b6b6b;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffd166;
+  border: 2px solid #6b6b6b;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* adjust app-container to sit below menu */
+#app-container { margin-top: 44px; height: calc(100vh - 44px); }
+
+#app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+#renderCanvas {
+    flex-grow: 1;
+    display: block;
+    background-color: #222;
+    cursor: grab; /* Indicate interactivity and potential for dragging/panning */
+}
+
+#ui-panel {
+    width: 280px;
+    background-color: #444;
+    padding: 15px;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#ui-panel h2 {
+    text-align: center;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#ui-panel h3 {
+    color: #ccc;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 5px;
+}
+
+.section {
+    background-color: #555;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
+}
+
+.control-group {
+    margin-bottom: 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ddd;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+input[type="color"] {
+    width: calc(100% - 10px);
+    height: 35px;
+    border: none;
+    padding: 2px;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid #777;
+    border-radius: 3px;
+}
+
+#exportBtn {
+    background-color: #28a745;
+}
+
+#exportBtn:hover {
+    background-color: #218838;
+}
+
+#deleteBtn {
+    background-color: #dc3545;
+}
+
+#deleteBtn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+#status-message {
+    margin-top: auto; /* Pushes the status message to the bottom */
+    padding: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.9em;
+    min-height: 20px;
+}

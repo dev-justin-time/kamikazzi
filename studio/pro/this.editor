@@ -1,0 +1,4 @@
+if (typeof this.editor.exportSelectedModel === 'function') {
+  return this.editor.exportSelectedModel(useFormat);
+}
+throw new Error('Editor does not provide exportSelectedModel.');

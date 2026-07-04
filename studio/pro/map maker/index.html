@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced 3D Terrain Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.160.0",
+                "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+                "nipplejs": "https://esm.sh/nipplejs@0.10.1",
+                "simplex-noise": "https://esm.sh/simplex-noise@4.0.1"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="ui-overlay">
+        <div id="stats-panel">
+            <div class="stat-item">
+                <span id="fps-counter">FPS: 0</span>
+                <button id="fullscreen-btn" title="Fullscreen">⛶</button>
+            </div>
+        </div>
+
+        <div id="controls-panel">
+            <div id="controls-handle" class="drag-handle">
+                <div class="dot-grid"></div>
+            </div>
+            <button id="toggle-controls" class="collapse-btn">−</button>
+            
+            <div class="control-group">
+                <label>View Mode</label>
+                <select id="view-mode-select">
+                    <option value="player">Player View</option>
+                    <option value="fly">Fly View (Map)</option>
+                </select>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-gen">Gen</button>
+                <button class="tab-btn" data-tab="tab-player">Player</button>
+                <button class="tab-btn" data-tab="tab-edit" id="tab-edit-btn">Edit</button>
+            </div>
+
+            <div id="controls-content">
+                <!-- Generation Tab -->
+                <div id="tab-gen" class="tab-content active">
+                    <button id="regenerate-btn">Regenerate</button>
+                    <button id="reset-defaults-btn" style="margin-top: 5px; background: #7f8c8d; font-size: 11px; padding: 6px;">Set To Default</button>
+                    <div class="control-group">
+                        <label>Quality</label>
+                        <select id="quality-select">
+                            <option value="ultralow">Ultra Low (64)</option>
+                            <option value="low">Low (128)</option>
+                            <option value="medium" selected>Medium (256)</option>
+                            <option value="high">High (512)</option>
+                            <option value="ultra">Ultra (1024)</option>
+                            <option value="extreme">Ultra High (2048)</option>
+                            <option value="original">Original (Custom)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Preset</label>
+                        <select id="preset-select">
+                            <option value="default">Endless Land</option>
+                            <option value="circle_island">Circle Island</option>
+                            <option value="square_island">Square Island</option>
+                            <option value="doughnut">Doughnut</option>
+                            <option value="lava_doughnut">Lava Doughnut</option>
+                            <option value="ring_of_fire">Ring of Fire</option>
+                            <option value="mars">Mars</option>
+                            <option value="moon">Moon</option>
+                            <option value="venus">Venus</option>
+                            <option value="archipelago">Archipelago</option>
+                            <option value="canyon">Grand Canyon</option>
+                            <option value="alpine">Alpine Peaks</option>
+                            <option value="landlocked">Landlocked</option>
+                            <option value="atoll">Atoll</option>
+                            <option value="custom">Custom (Upload)</option>
+                        </select>
+                    </div>
+                    <div id="custom-upload-group" class="control-group" style="display: none;">
+                        <label>Heightmap Image</label>
+                        <input type="file" id="heightmap-input" accept="image/*">
+                    </div>
+                    <div class="control-group">
+                        <label>Octaves: <span id="octaves-val">4</span></label>
+                        <input type="range" id="octaves-slider" min="1" max="8" step="1" value="4">
+                    </div>
+                    <div class="control-group">
+                        <label>Falloff: <span id="falloff-val">0.5</span></label>
+                        <input type="range" id="persistence-slider" min="0.1" max="0.9" step="0.05" value="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label>Size: <span id="size-val">256</span></label>
+                        <input type="range" id="size-slider" min="64" max="2048" step="64" value="256">
+                    </div>
+                    <div class="control-group">
+                        <label>Tree Count: <span id="tree-density-val">1.0</span></label>
+                        <input type="range" id="tree-density-slider" min="0" max="50.0" step="0.5" value="1.0">
+                    </div>
+                    <div class="control-group">
+                        <label>Scale: <span id="scale-val">40</span></label>
+                        <input type="range" id="scale-slider" min="10" max="200" value="40">
+                    </div>
+                    <div class="control-group">
+                        <label>Height: <span id="height-val">25</span></label>
+                        <input type="range" id="height-slider" min="5" max="500" value="25">
+                    </div>
+                    <div class="control-group checkbox-group">
+                        <input type="checkbox" id="water-toggle" checked>
+                        <label for="water-toggle" style="cursor: pointer;">Water</label>
+                    </div>
+                    <div class="control-group">
+                        <label>City Density: <span id="city-density-val">0.00</span></label>
+                        <input type="range" id="city-density-slider" min="0" max="1.0" step="0.05" value="0.00">
+                    </div>
+                </div>
+
+                <!-- Player Tab -->
+                <div id="tab-player" class="tab-content">
+                    <div class="control-group">
+                        <label>Speed: <span id="speed-val">80</span></label>
+                        <input type="range" id="speed-slider" min="10" max="500" value="80">
+                    </div>
+                    <div class="control-group">
+                        <label>Height: <span id="pheight-val">10</span></label>
+                        <input type="range" id="pheight-slider" min="1" max="100" value="10">
+                    </div>
+                </div>
+
+                <!-- Edit/Landscaping Tab -->
+                <div id="tab-edit" class="tab-content">
+                    <div class="control-group">
+                        <label>Tool</label>
+                        <select id="edit-tool">
+                            <option value="none">None</option>
+                            <option value="raise">Raise</option>
+                            <option value="lower">Lower</option>
+                            <option value="volcano">Volcano Stamp</option>
+                            <option value="level">Level</option>
+                            <option value="biome">Biome Tool</option>
+                            <option value="tree">Seeds</option>
+                            <option value="city">City Tool</option>
+                            <option value="axe">Axe</option>
+                            <option value="demolish">Demolish</option>
+                        </select>
+                    </div>
+                    <div class="control-group tool-prop" data-tools="raise lower level volcano biome tree city axe demolish">
+                        <label>Brush Size: <span id="brush-size-val">20</span></label>
+                        <input type="range" id="brush-size-slider" min="2" max="100" value="20">
+                    </div>
+                    <div class="control-group tool-prop" data-tools="raise lower level biome tree city axe demolish">
+                        <label>Brush Strength: <span id="brush-strength-val">1.5</span></label>
+                        <input type="range" id="brush-strength-slider" min="0.1" max="15.0" step="0.1" value="1.5">
+                    </div>
+                    <div class="control-group tool-prop" data-tools="volcano">
+                        <label>Stamp Height: <span id="stamp-height-val">0.8</span></label>
+                        <input type="range" id="stamp-height-slider" min="0.1" max="3.0" step="0.1" value="0.8">
+                    </div>
+                    <div class="control-group tool-prop" data-tools="volcano">
+                        <label>Volcano Noise: <span id="v-noise-val">0.2</span></label>
+                        <input type="range" id="v-noise-slider" min="0.0" max="1.0" step="0.05" value="0.2">
+                    </div>
+                    <div class="control-group tool-prop" data-tools="volcano">
+                        <label>Noise Detail: <span id="v-detail-val">2</span></label>
+                        <input type="range" id="v-detail-slider" min="1" max="5" step="1" value="2">
+                    </div>
+                    <div class="control-group tool-prop" data-tools="tree">
+                        <label>Type</label>
+                        <select id="tree-type-select">
+                            <option value="pine">Pine Tree</option>
+                            <option value="oak">Oak Tree</option>
+                            <option value="palm">Palm Tree</option>
+                            <option value="cactus">Cactus</option>
+                        </select>
+                    </div>
+                    <div class="control-group tool-prop" data-tools="city">
+                        <label>City Density</label>
+                        <select id="city-type-select">
+                            <option value="rural">Rural (Small Houses)</option>
+                            <option value="suburban">Suburban (Blocks)</option>
+                            <option value="urban">Urban (Skyscrapers)</option>
+                        </select>
+                    </div>
+                    <hr class="tool-prop" data-tools="biome tree city volcano level raise lower">
+                    <div class="control-group tool-prop" data-tools="biome">
+                        <label>Custom Biome</label>
+                        <div style="display:flex; gap: 5px;">
+                            <input type="color" id="biome-color" value="#ff00ff" style="flex:1">
+                            <button id="add-biome-btn" style="padding: 2px 8px; font-size: 10px;">Apply</button>
+                        </div>
+                        <label>Range: <span id="biome-range-val">0.5</span></label>
+                        <input type="range" id="biome-range-slider" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                    <button id="exit-edit-btn" style="margin-top: 10px; background: #e67e22;">Back to Player</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="minimap-container">
+            <div id="minimap-handle" class="drag-handle">
+                <div class="dot-grid"></div>
+            </div>
+            <button id="toggle-minimap-collapse" class="collapse-btn">−</button>
+            <div id="minimap-content">
+                <canvas id="minimap-canvas"></canvas>
+                <div id="player-marker"></div>
+                <div id="minimap-controls">
+                    <button id="mode-minimap" class="minimap-btn" title="Cycle Mode">M</button>
+                    <button id="toggle-minimap-size" class="minimap-btn" title="Resize">⤢</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="joystick-zone"></div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

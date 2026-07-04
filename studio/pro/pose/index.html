@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D A-Pose Model Animator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="open-customize-panel" class="open-panel-btn" style="display: none;">Show Customize</button>
+    <div id="customization-panel">
+        <button id="close-customize-panel" class="panel-toggle-btn">&times;</button>
+        <h3>Customize</h3>
+        <div class="control-group">
+            <label for="body-color">Body Color</label>
+            <input type="color" id="body-color" value="#dddddd">
+        </div>
+        <div class="control-group">
+            <label for="edit-mode-toggle">Simple Edit Mode</label>
+            <label class="switch">
+                <input type="checkbox" id="edit-mode-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div id="edit-panel" style="display: none;">
+            <h4>Edit Selected Part</h4>
+            <p id="selected-part-name">No part selected</p>
+            <div id="part-list-container">
+                <h5>Click to Select Part</h5>
+                <ul id="part-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+            <div class="control-group slider-group">
+                <label for="rot-x">Rotation X: <span id="rot-x-value">0</span></label>
+                <input type="range" id="rot-x" min="-180" max="180" step="1" value="0">
+            </div>
+            <div class="control-group slider-group">
+                <label for="rot-y">Rotation Y: <span id="rot-y-value">0</span></label>
+                <input type="range" id="rot-y" min="-180" max="180" step="1" value="0">
+            </div>
+            <div class="control-group slider-group">
+                <label for="rot-z">Rotation Z: <span id="rot-z-value">0</span></label>
+                <input type="range" id="rot-z" min="-180" max="180" step="1" value="0">
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="body-texture">Body Texture</label>
+            <input type="file" id="body-texture" accept="image/*">
+            <button id="remove-texture-button">Remove</button>
+        </div>
+        <div class="control-group">
+             <button id="edit-shader-button">Edit Shader</button>
+        </div>
+        <div id="shader-editor-panel" style="display: none;">
+            <h4>Material Properties</h4>
+            <div class="control-group slider-group">
+                <label for="roughness-slider">Roughness: <span id="roughness-value">0.8</span></label>
+                <input type="range" id="roughness-slider" min="0" max="1" step="0.01" value="0.8">
+            </div>
+            <div class="control-group slider-group">
+                <label for="metalness-slider">Metalness: <span id="metalness-value">0.0</span></label>
+                <input type="range" id="metalness-slider" min="0" max="1" step="0.01" value="0.0">
+            </div>
+            <div class="control-group">
+                <label for="emissive-color">Emissive Color</label>
+                <input type="color" id="emissive-color" value="#000000">
+            </div>
+            <div class="control-group slider-group">
+                <label for="emissive-intensity">Intensity: <span id="emissive-intensity-value">0.0</span></label>
+                <input type="range" id="emissive-intensity" min="0" max="2" step="0.01" value="0.0">
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="face-texture">Face Texture</label>
+            <input type="file" id="face-texture" accept="image/*">
+            <button id="remove-face-texture-button">Remove</button>
+        </div>
+        <div class="control-group">
+             <button id="edit-face-shader-button">Edit Face Shader</button>
+        </div>
+        <div id="face-shader-editor-panel" style="display: none;">
+            <h4>Face Material Properties</h4>
+            <div class="control-group slider-group">
+                <label for="face-roughness-slider">Roughness: <span id="face-roughness-value">0.8</span></label>
+                <input type="range" id="face-roughness-slider" min="0" max="1" step="0.01" value="0.8">
+            </div>
+            <div class="control-group slider-group">
+                <label for="face-metalness-slider">Metalness: <span id="face-metalness-value">0.0</span></label>
+                <input type="range" id="face-metalness-slider" min="0" max="1" step="0.01" value="0.0">
+            </div>
+            <div class="control-group">
+                <label for="face-emissive-color">Emissive Color</label>
+                <input type="color" id="face-emissive-color" value="#000000">
+            </div>
+            <div class="control-group slider-group">
+                <label for="face-emissive-intensity">Intensity: <span id="face-emissive-intensity-value">0.0</span></label>
+                <input type="range" id="face-emissive-intensity" min="0" max="2" step="0.01" value="0.0">
+            </div>
+        </div>
+        <div class="control-group slider-group">
+            <label for="arm-length">Arm Length: <span id="arm-length-value">2.0</span></label>
+            <input type="range" id="arm-length" min="0.5" max="20" step="0.1" value="2.0">
+        </div>
+        <div class="control-group slider-group">
+            <label for="leg-length">Leg Length: <span id="leg-length-value">2.0</span></label>
+            <input type="range" id="leg-length" min="0.5" max="20" step="0.1" value="2.0">
+        </div>
+        <div class="control-group slider-group">
+            <label for="torso-height">Torso Height: <span id="torso-height-value">1.0</span></label>
+            <input type="range" id="torso-height" min="0.5" max="2.0" step="0.1" value="1.0">
+        </div>
+        <div class="control-group">
+            <label for="pose-select">Preset Poses</label>
+            <select id="pose-select">
+                <option value="default">Default A-Pose</option>
+                <option value="t-pose">T-Pose</option>
+                <option value="sitting">Sitting</option>
+                <option value="dog-pose">Dog Pose</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="right-panel-wrapper">
+        <button id="open-json-panel" class="open-panel-btn" style="display: none;">Show JSON</button>
+        <button id="open-environment-panel" class="open-panel-btn" style="display: none;">Show Environment</button>
+    </div>
+
+    <div id="environment-panel" style="display: none;">
+        <button id="close-environment-panel" class="panel-toggle-btn">&times;</button>
+        <h3>Environment</h3>
+        <div class="control-group">
+            <label for="ground-texture">Ground Texture</label>
+            <select id="ground-texture">
+                <option value="/concretefloor038b.png">Concrete</option>
+                <option value="/dirt_texture.png">Dirt</option>
+                <option value="/brick_texture.png">Bricks</option>
+                <option value="custom">Custom...</option>
+            </select>
+            <input type="file" id="custom-ground-texture" accept="image/*" style="display: none;">
+        </div>
+        <div class="control-group">
+            <label for="wall-texture">Wall Texture</label>
+            <select id="wall-texture">
+                <option value="/concretewall004a.png">Concrete Blocks</option>
+                <option value="/brick_texture.png">Bricks</option>
+                <option value="/dirt_texture.png">Dirt</option>
+                <option value="custom">Custom...</option>
+            </select>
+            <input type="file" id="custom-wall-texture" accept="image/*" style="display: none;">
+        </div>
+        <div class="control-group">
+            <label for="background-color">Background Color</label>
+            <input type="color" id="background-color" value="#000000">
+        </div>
+        <div class="control-group">
+            <label for="fog-color">Fog Color</label>
+            <input type="color" id="fog-color" value="#000000">
+        </div>
+        <div class="control-group slider-group">
+            <label for="fog-near">Fog Near: <span id="fog-near-value">0</span></label>
+            <input type="range" id="fog-near" min="0" max="50" step="1" value="0">
+        </div>
+        <div class="control-group slider-group">
+            <label for="fog-far">Fog Far: <span id="fog-far-value">60</span></label>
+            <input type="range" id="fog-far" min="10" max="200" step="1" value="60">
+        </div>
+    </div>
+
+    <div id="ui-container">
+        <input type="text" id="animation-prompt" placeholder="Enter animation description (e.g., jumping jacks)">
+        <input type="number" id="iterations" value="10" min="2" max="50" title="Keyframes">
+        <button id="animate-button">Animate</button>
+        <button id="export-button" title="Export to GLB">Export</button>
+        <button id="import-json-button" title="Import Keyframe JSON">Import</button>
+
+        <!-- Model import UI -->
+        <label for="import-model-input" style="display:none;">Import Model</label>
+        <input type="file" id="import-model-input" accept=".glb,.gltf,.obj" style="display: none;">
+        <button id="import-model-button" title="Import model (.glb .gltf .obj)">Import Model</button>
+        <button id="remove-imported-model-button" title="Remove imported model" style="display:none;">Remove Model</button>
+
+        <div class="speed-control-group">
+            <label for="animation-speed">Speed: <span id="animation-speed-value">1.0</span></label>
+            <input type="range" id="animation-speed" min="0.1" max="5" step="0.1" value="1.0" title="Animation Speed">
+        </div>
+        <button id="reset-button" title="Reset Model Pose">Reset</button>
+        <div id="audio-toggle" class="enabled" title="Toggle Sound">🔊</div>
+        <div id="loading" style="display: none;">Generating animation...</div>
+    </div>
+    <div id="json-output-container" style="display: none;">
+        <button id="close-json-panel" class="panel-toggle-btn">&times;</button>
+        <h3>Generated Keyframes (JSON)</h3>
+        <pre><code id="json-output"></code></pre>
+    </div>
+    <div id="json-import-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Import Animation JSON</h3>
+            <p>Paste your keyframe JSON below and click "Load". The format should be an object with a "keyframes" array.</p>
+            <textarea id="json-import-textarea" placeholder='{ "keyframes": [ ... ] }'></textarea>
+            <div class="modal-buttons">
+                <button id="load-json-button">Load Animation</button>
+                <button id="cancel-json-import-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
