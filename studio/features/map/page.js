@@ -104,6 +104,15 @@ const meta = {
       onClick: () => { _getApp()?.scatterCity(); },
     },
 
+    // ── Building Batch Select ──
+    {
+      key: 'select-buildings',
+      label: '🏢 Select All Buildings',
+      type: 'button',
+      onClick: () => { _getApp()?.selectAllBuildings(); },
+    },
+    { key: 'sep1ba', label: '──────────', type: 'label' },
+
     // ── Utility Buttons ──
     { key: 'frame-all', label: 'Frame All', type: 'button', onClick: () => _getApp()?.frameAll() },
     { key: 'snap', label: 'Snap Selected to Grid', type: 'button', onClick: () => _getApp()?.snapToGrid() },

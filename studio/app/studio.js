@@ -1557,6 +1557,36 @@ export class Studio {
     log('Exported valley as GLB');
   }
 
+  /** Select all building meshes (named Building_*) and group them for batch editing */
+  selectAllBuildings() {
+    const buildings = this.objects.filter(o => o.name && o.name.startsWith('Building_'));
+    if (buildings.length === 0) {
+      log('No city buildings found — scatter a city first (Map page)', 'error');
+      return;
+    }
+
+    this.pushUndo();
+
+    // Create a group to hold all buildings
+    const group = new THREE.Group();
+    group.name = 'City Buildings (' + buildings.length + ')';
+
+    buildings.forEach(b => {
+      this.scene.remove(b);
+      group.add(b);
+    });
+
+    this.scene.add(group);
+    // Keep group in this.objects; individual buildings are still accessible via group.children
+    // Replace building entries in objects with the group
+    this.objects = this.objects.filter(o => !o.name || !o.name.startsWith('Building_'));
+    this.objects.push(group);
+
+    this.selectObject(group);
+    this.frameSelected();
+    log(`Selected ${buildings.length} building(s) grouped as "${group.name}"`);
+  }
+
   /** Scatter primitive boxes on the valley floor to simulate a city with collision avoidance */
   scatterCity() {
     const valley = this.scene.getObjectByName('Wireframe Valley');
