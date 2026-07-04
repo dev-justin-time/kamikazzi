@@ -547,6 +547,140 @@ export class Studio {
     log(`Profiler overlay ${this._showProfiler ? 'ON' : 'OFF'}`);
   }
 
+  /** Run a stress-test benchmark: duplicate selected object `count` times in RAF batches,
+   *  record the performance curve, and download the results. Cleans up after itself. */
+  runBenchmark(count = 100) {
+    if (!this.selectedObject || !this.selectedObject.isMesh) {
+      log('Select a mesh object to benchmark', 'error');
+      return;
+    }
+    if (this._benchmarkRunning) {
+      log('Benchmark already running', 'error');
+      return;
+    }
+
+    const template = this.selectedObject;
+    const origName = template.name;
+    const batchSize = 10;
+    const totalBatches = Math.ceil(count / batchSize);
+    let batchesDone = 0;
+    let totalAdded = 0;
+    const created = [];
+    const curve = [];
+    this._benchmarkRunning = true;
+
+    // Detach transform controls during benchmark to avoid interference
+    this.transformControls.detach();
+    this._wasPlaying = this.isAnimationPlaying;
+    this.isAnimationPlaying = false;
+
+    log(`Benchmark: duplicating "${origName}" × ${count} (${batchSize}/frame, ${totalBatches} batches)`);
+
+    // ── Record a data point ──
+    const record = () => {
+      const info = this.renderer.info;
+      const avgDelta = this._frameDeltas.length > 0
+        ? this._frameDeltas.reduce((s, d) => s + d, 0) / this._frameDeltas.length
+        : 16.67;
+      curve.push({
+        objects: this.objects.length,
+        added: totalAdded,
+        fps: avgDelta > 0 ? Math.round(1000 / avgDelta) : 60,
+        frameTimeMs: Math.round(avgDelta * 10) / 10,
+        drawCalls: info.render?.calls ?? 0,
+        triangles: info.render?.triangles ?? 0,
+        geometries: info.memory?.geometries ?? 0,
+      });
+    };
+
+    // ── Record baseline ──
+    // Wait 2 frames for the renderer to settle before recording baseline
+    let settleFrames = 2;
+
+    const tick = () => {
+      if (settleFrames > 0) {
+        settleFrames--;
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      if (batchesDone === 0) {
+        // Record baseline BEFORE adding anything
+        record();
+      }
+
+      if (batchesDone >= totalBatches) {
+        // Benchmark complete — download curve and clean up
+        this._benchmarkRunning = false;
+        this.isAnimationPlaying = this._wasPlaying;
+
+        // Clean up: remove all created objects
+        created.forEach(obj => {
+          this.scene.remove(obj);
+          this.objects = this.objects.filter(o => o !== obj);
+        });
+
+        // Re-select the original template
+        this.selectObject(template);
+
+        // Update benchmark info in the popup if open
+        const benchInfo = document.getElementById('bench-result');
+        if (benchInfo && curve.length >= 2) {
+          const start = curve[0];
+          const end = curve[curve.length - 1];
+          benchInfo.textContent = `✔ Done: ${count} objects. FPS ${start.fps} → ${end.fps}  ·  Draw ${start.drawCalls} → ${end.drawCalls}  ·  File saved.`;
+          benchInfo.style.color = '#4ade80';
+        }
+
+        // Download the curve
+        const snapshot = {
+          timestamp: new Date().toISOString(),
+          config: { template: origName, count, batchSize, batches: totalBatches },
+          curve,
+        };
+        const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const date = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        a.download = `benchmark_${origName}_${date}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        const start = curve[0];
+        const end = curve[curve.length - 1];
+        log(`Benchmark done: ${count} objects added. FPS ${start.fps} → ${end.fps}, Draw ${start.drawCalls} → ${end.drawCalls}`);
+        return;
+      }
+
+      // Add a batch of objects
+      for (let i = 0; i < batchSize && totalAdded < count; i++) {
+        const clone = template.clone();
+        // Scatter them in a grid pattern so they don't overlap
+        const row = Math.floor(totalAdded / 10);
+        const col = totalAdded % 10;
+        clone.position.x = (col - 4.5) * 1.5;
+        clone.position.z = (row - 5) * 1.5;
+        clone.name = template.name + '_bench_' + totalAdded;
+        this.scene.add(clone);
+        this.objects.push(clone);
+        created.push(clone);
+        totalAdded++;
+      }
+
+      batchesDone++;
+
+      // Record after this batch (using next frame's render)
+      requestAnimationFrame(() => {
+        record();
+        // Schedule next batch
+        requestAnimationFrame(tick);
+      });
+    };
+
+    // Start the benchmark loop
+    requestAnimationFrame(tick);
+  }
+
   /** Capture current performance data and download as a timestamped JSON snapshot */
   savePerformanceSnapshot() {
     const data = this.getPerformanceData();

@@ -150,6 +150,78 @@ export function render(container, state) {
   });
   container.appendChild(snapshotBtn);
 
+  // Separator
+  const sep3 = document.createElement('div');
+  sep3.style.cssText = 'margin:12px 0;height:1px;background:#333;';
+  container.appendChild(sep3);
+
+  // Benchmark section header
+  const benchHeader = document.createElement('div');
+  benchHeader.textContent = 'Stress Test Benchmark';
+  benchHeader.style.cssText = 'font-size:13px;font-weight:600;color:#eee;margin-bottom:4px;';
+  container.appendChild(benchHeader);
+
+  const benchDesc = document.createElement('div');
+  benchDesc.textContent = 'Duplicates the selected mesh in batches and records the performance curve.';
+  benchDesc.style.cssText = 'font-size:11px;color:#888;margin-bottom:8px;';
+  container.appendChild(benchDesc);
+
+  // Benchmark count slider (in meta controls, updated via DOM query)
+  let benchCount = 100;
+
+  const countRow = document.createElement('div');
+  countRow.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-bottom:8px;';
+  const countLabel = document.createElement('label');
+  countLabel.textContent = 'Object Count';
+  countLabel.style.cssText = 'font-size:12px;color:#aaa;';
+  const countSlider = document.createElement('input');
+  countSlider.type = 'range';
+  countSlider.min = 10;
+  countSlider.max = 500;
+  countSlider.step = 10;
+  countSlider.value = 100;
+  countSlider.style.cssText = 'width:100%;accent-color:#a855f7;';
+  const countVal = document.createElement('span');
+  countVal.textContent = '100';
+  countVal.style.cssText = 'font-size:11px;color:#888;text-align:right;';
+  countSlider.addEventListener('input', () => {
+    benchCount = parseInt(countSlider.value);
+    countVal.textContent = benchCount;
+  });
+  countRow.appendChild(countLabel);
+  countRow.appendChild(countSlider);
+  countRow.appendChild(countVal);
+  container.appendChild(countRow);
+
+  // Run Benchmark button
+  const benchBtn = document.createElement('button');
+  benchBtn.textContent = '🚀 Run Benchmark';
+  benchBtn.style.cssText = 'width:100%;padding:10px;border:none;border-radius:4px;background:#a855f7;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:background .15s;';
+  benchBtn.addEventListener('mouseenter', () => benchBtn.style.background = '#9333ea');
+  benchBtn.addEventListener('mouseleave', () => benchBtn.style.background = '#a855f7');
+  benchBtn.addEventListener('click', () => {
+    const app = _getApp();
+    if (!app) return;
+    benchBtn.textContent = '⏳ Benchmarking...';
+    benchBtn.disabled = true;
+    benchBtn.style.opacity = '0.6';
+    app.runBenchmark(benchCount);
+    // Re-enable after a short delay (benchmark runs async)
+    setTimeout(() => {
+      benchBtn.textContent = '🚀 Run Benchmark';
+      benchBtn.disabled = false;
+      benchBtn.style.opacity = '1';
+    }, benchCount * 50 + 2000); // rough estimate of benchmark duration
+  });
+  container.appendChild(benchBtn);
+
+  // Result info
+  const benchInfo = document.createElement('div');
+  benchInfo.id = 'bench-result';
+  benchInfo.style.cssText = 'font-size:11px;color:#888;margin-top:6px;';
+  benchInfo.textContent = 'Select a mesh, set count, then click Run.';
+  container.appendChild(benchInfo);
+
   // ── Live-update timer ──
   let timer = null;
 
