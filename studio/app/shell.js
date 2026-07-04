@@ -78,6 +78,7 @@ export class StudioShell {
       { id: 'market',   label: 'Market',       icon: '🏪', desc: 'Asset marketplace, purchases' },
       { id: 'profile',  label: 'Profile',      icon: '👤', desc: 'User settings, preferences' },
       { id: 'chat',     label: 'Chat',         icon: '💬', desc: 'Collaboration, comments, AI chat' },
+      { id: 'performance', label: 'Performance', icon: '📊', desc: 'FPS, draw calls, frame time, memory usage' },
     ];
 
     this._iconBar.innerHTML = '';

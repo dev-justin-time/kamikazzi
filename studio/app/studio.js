@@ -54,6 +54,8 @@ export class Studio {
     this._currentEasing = 'linear';
     this._gridSnapEnabled = true;
     this._gizmoSize = 1;
+    this._lastFrameTime = performance.now();
+    this._frameDeltas = [];
     this._easingFunctions = {
       linear: t => t,
       'ease-in': t => t * t,
@@ -554,8 +556,15 @@ export class Studio {
     this.controls.update();
     if (this.isAnimationPlaying) this._tickAnimation();
     if (this.isRecording) this._recordFrame();
+    // Track frame time
+    const now = performance.now();
+    const delta = now - this._lastFrameTime;
+    this._lastFrameTime = now;
+    this._frameDeltas.push(delta);
+    if (this._frameDeltas.length > 30) this._frameDeltas.shift();
     this.render();
-    const fps = Math.round(1 / 0.016);
+    const avgDelta = this._frameDeltas.reduce((s, d) => s + d, 0) / this._frameDeltas.length;
+    const fps = avgDelta > 0 ? Math.round(1000 / avgDelta) : 60;
     const el = document.getElementById('statusRight');
     if (el) el.textContent = `FPS: ${fps} | Objects: ${this.objects.length}`;
 
@@ -1280,6 +1289,34 @@ export class Studio {
     this.pushUndo();
     this.selectedObject.scale[axis] *= -1;
     log(`Mirrored ${axis}`);
+  }
+
+  // ── Performance Monitor ──
+  getPerformanceData() {
+    const info = this.renderer.info;
+    const avgDelta = this._frameDeltas.length > 0
+      ? this._frameDeltas.reduce((s, d) => s + d, 0) / this._frameDeltas.length
+      : 16.67;
+    const fps = avgDelta > 0 ? Math.round(1000 / avgDelta) : 60;
+    const mem = performance.memory; // Chrome-only
+    return {
+      fps,
+      frameTime: Math.round(avgDelta * 10) / 10,
+      drawCalls: info.render?.calls ?? 0,
+      triangles: info.render?.triangles ?? 0,
+      points: info.render?.points ?? 0,
+      lines: info.render?.lines ?? 0,
+      geometries: info.memory?.geometries ?? 0,
+      textures: info.memory?.textures ?? 0,
+      programs: info.programs?.length ?? 0,
+      objects: this.objects.length,
+      lights: this.lights.length,
+      jsHeapUsed: mem?.usedJSHeapSize ?? 0,
+      jsHeapTotal: mem?.totalJSHeapSize ?? 0,
+      jsHeapLimit: mem?.jsHeapSizeLimit ?? 0,
+      pixelRatio: this.renderer.getPixelRatio(),
+      renderer: this.renderer.info.render ? 'WebGL' : 'WebGPU',
+    };
   }
 
   // ── Game / Optimization Tools ──
