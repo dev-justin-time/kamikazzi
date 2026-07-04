@@ -183,6 +183,27 @@ export class Studio {
       this.frameSelected();
     });
 
+    // Keyboard shortcuts (on document so they work when focus is in popups/sidebar)
+    document.addEventListener('keydown', (e) => {
+      // Ignore when typing in input/textarea/select elements
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      const key = e.key.toLowerCase();
+      // Ctrl+Z → Undo
+      if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        this.undo();
+        return;
+      }
+      // Ctrl+Shift+Z or Ctrl+Y → Redo
+      if ((e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        this.redo();
+        return;
+      }
+    });
+
     // Nav-cube overlay
     this._createNavCube();
 
