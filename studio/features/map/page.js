@@ -103,6 +103,16 @@ const meta = {
       type: 'button',
       onClick: () => { _getApp()?.scatterCity(); },
     },
+    // ── Building Gap ──
+    {
+      key: 'building-gap',
+      label: 'Minimum Gap',
+      type: 'slider',
+      min: 0, max: 2, step: 0.05, default: 0,
+      description: 'Padding around each building to prevent crowding (expands the collision footprint)',
+      onChange: (val) => { _getApp()?.setValleyParam('buildingGap', val); },
+    },
+    { key: 'sep-gap', label: '──────────', type: 'label' },
 
     // ── Building Batch Select ──
     {

@@ -1689,6 +1689,7 @@ export class Studio {
     ridgeCount: 3,
     segments: 48,
     noiseAmount: 0.3,
+    buildingGap: 0,
   };
 
   setValleyParam(key, val) {
@@ -1972,11 +1973,12 @@ export class Studio {
       const bd = 0.25 + Math.random() * 0.45;
       const bh = 0.3 + Math.random() * 3.5;
 
-      // ── Collision check: skip if footprint overlaps an existing building ──
-      if (isCellBlocked(localPoint.x, localPoint.z, bw, bd)) {
+      // ── Collision check: skip if footprint (+ gap) overlaps an existing building ──
+      const gap = params.buildingGap || 0;
+      if (isCellBlocked(localPoint.x, localPoint.z, bw + gap, bd + gap)) {
         continue;
       }
-      blockCells(localPoint.x, localPoint.z, bw, bd);
+      blockCells(localPoint.x, localPoint.z, bw + gap, bd + gap);
 
       const geo = new THREE.BoxGeometry(bw, bh, bd);
       const color = cityColors[Math.floor(Math.random() * cityColors.length)];
