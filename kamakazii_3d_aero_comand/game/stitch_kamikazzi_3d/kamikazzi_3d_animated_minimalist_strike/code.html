@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // ZERO-G_STRIKE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#d5e4f9",
+                    "surface-tint": "#ffb4aa",
+                    "on-error": "#690005",
+                    "surface-container-low": "#0e1c2c",
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-tertiary-fixed": "#241a00",
+                    "error": "#ffb4ab",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#002020",
+                    "inverse-primary": "#bc1416",
+                    "tertiary": "#e1c471",
+                    "on-surface-variant": "#e5bdb8",
+                    "surface-variant": "#283646",
+                    "on-tertiary-container": "#4f3d00",
+                    "surface-dim": "#061423",
+                    "primary-fixed": "#ffdad5",
+                    "outline": "#ac8884",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#930008",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "secondary-fixed": "#00fbfb",
+                    "inverse-on-surface": "#243142",
+                    "surface": "#061423",
+                    "tertiary-fixed": "#ffe08a",
+                    "on-secondary": "#003737",
+                    "surface-bright": "#2d3a4b",
+                    "on-background": "#d5e4f9",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "on-tertiary": "#3d2f00",
+                    "primary": "#ffb4aa",
+                    "surface-container-highest": "#283646",
+                    "surface-container-lowest": "#020f1e",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "secondary-container": "#00fbfb",
+                    "on-primary": "#690004",
+                    "secondary": "#ffffff",
+                    "background": "#061423",
+                    "primary-container": "#c01818",
+                    "outline-variant": "#5c403c",
+                    "surface-container": "#132030",
+                    "tertiary-container": "#c4a959",
+                    "secondary-fixed-dim": "#00dddd",
+                    "on-secondary-container": "#007070",
+                    "on-primary-fixed": "#410001",
+                    "surface-container-high": "#1d2b3b",
+                    "on-surface": "#d5e4f9",
+                    "on-primary-container": "#ffd2cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "edge-margin": "2rem",
+                    "bracket-padding": "0.5rem",
+                    "hud-gutter": "1rem",
+                    "stack-gap": "1.5rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Stick No Bills"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "body-jp": ["Noto Sans JP"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "display-xl": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent, rgba(0, 255, 255, 0.03) 50%, transparent);
+            animation: scanline 12s linear infinite;
+        }
+        .grid-background {
+            background-image: linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Zero-G Tactical Motion Language */
+        @keyframes monitor-flicker {
+            0% { opacity: 0; transform: scaleY(0.005) scaleX(0); }
+            5% { opacity: 0.8; transform: scaleY(0.01) scaleX(1); }
+            10% { opacity: 0.3; }
+            15% { opacity: 1; transform: scaleY(1) scaleX(1); }
+            20% { opacity: 0.8; }
+            25% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes jitter {
+            0% { transform: translate(0,0); }
+            10% { transform: translate(-1px, 1px); }
+            20% { transform: translate(1px, -1px); }
+            30% { transform: translate(-1px, -1px); }
+            40% { transform: translate(1px, 1px); }
+            50% { transform: translate(0,0); }
+        }
+
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-5deg); }
+            21% { transform: skew(10deg); }
+            22% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        @keyframes drift-depth {
+            0% { transform: translateZ(0); }
+            100% { transform: translateZ(50px); }
+        }
+
+        .tactical-entrance {
+            animation: monitor-flicker 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        .telemetry-jitter {
+            animation: jitter 0.2s infinite alternate;
+            animation-play-state: paused;
+        }
+        .telemetry-jitter:hover, .group:hover .telemetry-jitter {
+            animation-play-state: running;
+        }
+
+        .staggered-item {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .staggered-ready .staggered-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .btn-glitch:hover {
+            animation: glitch-skew 0.3s infinite;
+        }
+        .btn-glitch:active {
+            transform: skew(15deg) scale(0.98);
+        }
+
+        body {
+            min-height: 100dvh;
+            perspective: 1000px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden font-body-jp selection:bg-primary selection:text-on-primary">
+<!-- MINIMALIST WORLD CONTAINER -->
+<div class="fixed inset-0 w-full h-full bg-surface-container-lowest z-0 overflow-hidden" id="game-world">
+<canvas class="opacity-60" id="particle-canvas"></canvas>
+<div class="absolute inset-0 grid-background pointer-events-none"></div>
+<div class="absolute inset-0 scanline-overlay pointer-events-none z-50"></div>
+<!-- Ultra-Minimal Crosshair -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/5 rounded-full pointer-events-none flex items-center justify-center tactical-entrance" style="animation-delay: 0.8s;">
+<div class="w-[1px] h-4 bg-primary/40 absolute top-0"></div>
+<div class="w-[1px] h-4 bg-primary/40 absolute bottom-0"></div>
+<div class="h-[1px] w-4 bg-primary/40 absolute left-0"></div>
+<div class="h-[1px] w-4 bg-primary/40 absolute right-0"></div>
+<div class="w-1 h-1 bg-primary shadow-[0_0_8px_#ffb4aa] rounded-full animate-pulse"></div>
+</div>
+</div>
+<!-- BOOT SCREEN (Flicker sequence) -->
+<div class="fixed inset-0 z-[100] bg-surface-container-lowest flex flex-col items-center justify-center p-edge-margin transition-opacity duration-500" id="boot-screen">
+<div class="w-full max-w-sm font-label-caps text-data-sm text-secondary-fixed/60 space-y-2">
+<p class="text-primary tracking-widest uppercase telemetry-jitter" style="animation-play-state: running;">Initializing Strike Interface</p>
+<div class="w-full h-[1px] bg-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 bg-primary translate-x-[-100%] animate-[loading_0.8s_ease-in-out_infinite]"></div>
+</div>
+<style>
+                @keyframes loading {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+            </style>
+</div>
+</div>
+<!-- HUD LAYERS -->
+<div class="opacity-0" id="hud-container">
+<!-- HEADER (HUD Status) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-start px-edge-margin py-8" id="hud-top">
+<div class="flex flex-col gap-1 staggered-item" style="transition-delay: 0.1s;">
+<h1 class="font-display-xl text-3xl tracking-[0.2em] text-white">KAMIKAZZI</h1>
+<div class="flex items-center gap-4 text-primary font-label-caps text-[10px] tracking-widest opacity-80">
+<span class="telemetry-jitter">OPERATIONAL</span>
+<span class="w-1 h-1 bg-primary rounded-full animate-ping"></span>
+<span>SECTOR_07</span>
+</div>
+</div>
+<div class="flex items-center gap-12 font-label-caps text-on-surface">
+<div class="flex flex-col items-end staggered-item" style="transition-delay: 0.2s;">
+<span class="text-[8px] opacity-40 uppercase font-data-sm">Altitude</span>
+<span class="text-xl font-bold tracking-tighter telemetry-jitter">42,000 <span class="text-[10px] font-normal opacity-60">FT</span></span>
+</div>
+<div class="flex flex-col items-end staggered-item" style="transition-delay: 0.3s;">
+<span class="text-[8px] opacity-40 uppercase font-data-sm">Velocity</span>
+<span class="text-xl font-bold tracking-tighter text-secondary-fixed telemetry-jitter">M 2.4</span>
+</div>
+</div>
+</header>
+<!-- MAIN STRIKE ACTION -->
+<div class="fixed inset-0 z-40 flex flex-col items-center justify-center text-center p-edge-margin" id="start-menu">
+<div class="max-w-xl w-full space-y-12">
+<div class="space-y-4 staggered-item" style="transition-delay: 0.4s;">
+<p class="font-label-caps text-xs text-primary tracking-[0.5em] uppercase opacity-60">Strategic Engagement System</p>
+<h2 class="font-display-xl text-8xl md:text-9xl text-white tracking-tighter tactical-entrance" style="animation-delay: 0.5s;">STRIKE</h2>
+</div>
+<div class="staggered-item" style="transition-delay: 0.6s;">
+<button class="group btn-glitch relative w-full py-8 border-y border-white/10 hover:border-primary/40 transition-all duration-500 overflow-hidden flex items-center justify-center gap-4" onclick="startGame()">
+<span class="font-display-xl text-4xl text-white group-hover:text-primary transition-colors tracking-widest font-headline-lg">LAUNCH MISSION</span>
+<span class="material-symbols-outlined text-primary scale-150 opacity-0 group-hover:opacity-100 group-hover:translate-x-4 transition-all">chevron_right</span>
+<div class="absolute inset-0 bg-primary/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+<!-- Micro-interact: scan line on hover -->
+<div class="absolute left-0 w-full h-[1px] bg-primary/20 top-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+</button>
+</div>
+<div class="flex justify-center gap-12 opacity-40 hover:opacity-100 transition-opacity staggered-item" style="transition-delay: 0.7s;">
+<button class="font-label-caps text-xs tracking-widest hover:text-primary transition-colors uppercase btn-glitch">Pilot Logs</button>
+<button class="font-label-caps text-xs tracking-widest hover:text-primary transition-colors uppercase btn-glitch">System Config</button>
+<button class="font-label-caps text-xs tracking-widest hover:text-primary transition-colors uppercase btn-glitch">Exit</button>
+</div>
+</div>
+</div>
+<!-- MINIMAL TELEMETRY (BOTTOM) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 p-edge-margin" id="hud-bottom">
+<div class="max-w-full flex justify-between items-center border-t border-white/5 pt-4 staggered-item" style="transition-delay: 0.8s;">
+<div class="flex gap-8 font-label-caps text-[10px] tracking-widest text-on-surface-variant font-data-sm">
+<div class="flex gap-2 items-center group">
+<span class="opacity-40">LAT</span>
+<span class="telemetry-jitter">35.6895° N</span>
+</div>
+<div class="flex gap-2 items-center group">
+<span class="opacity-40">LON</span>
+<span class="telemetry-jitter">139.6917° E</span>
+</div>
+<div class="flex gap-2 items-center group">
+<span class="opacity-40">TGT</span>
+<span class="text-error telemetry-jitter" style="animation-play-state: running;">LOCKED</span>
+</div>
+</div>
+<div class="flex gap-6">
+<button class="material-symbols-outlined text-on-surface/40 hover:text-primary transition-all text-lg btn-glitch">radar</button>
+<button class="material-symbols-outlined text-on-surface/40 hover:text-primary transition-all text-lg btn-glitch">shield</button>
+<button class="material-symbols-outlined text-on-surface/40 hover:text-primary transition-all text-lg btn-glitch">bolt</button>
+</div>
+</div>
+</footer>
+</div>
+<script>
+        // Particle System (Refined 'Embers' for Zero-G feel)
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.z = Math.random() * 2; // Depth
+                this.size = (Math.random() * 1.5 + 0.5) * this.z;
+                this.speedY = (Math.random() * 2 + 1) * this.z; // Slower drifting embers
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.alpha = (Math.random() * 0.3 + 0.1) * this.z;
+                this.color = Math.random() > 0.8 ? '#ffb4aa' : '#ffffff'; // Primary or White
+            }
+            update() {
+                this.y -= this.speedY; // Floating up
+                this.x += this.speedX;
+                if (this.y < -20) {
+                    this.y = canvas.height + 20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Boot and Entrance Logic
+        window.addEventListener('DOMContentLoaded', () => {
+            const boot = document.getElementById('boot-screen');
+            const hud = document.getElementById('hud-container');
+            
+            setTimeout(() => {
+                // Flicker Out Boot
+                boot.classList.add('tactical-entrance');
+                boot.style.animationDirection = 'reverse';
+                boot.style.opacity = '0';
+                
+                setTimeout(() => {
+                    boot.style.display = 'none';
+                    // Show HUD
+                    hud.classList.add('tactical-entrance');
+                    hud.classList.remove('opacity-0');
+                    document.body.classList.add('staggered-ready');
+                }, 400);
+            }, 1200);
+        });
+
+        function startGame() {
+            const menu = document.getElementById('start-menu');
+            const hud = document.getElementById('hud-container');
+            
+            // Outward flicker effect
+            hud.style.animation = 'monitor-flicker 0.3s reverse forwards';
+            
+            setTimeout(() => {
+                alert('ZERO-G STRIKE SEQUENCE INITIATED');
+                location.reload();
+            }, 500);
+        }
+
+        // Add random micro-glitches to text items labeled with telemetry-jitter
+        setInterval(() => {
+            const jitters = document.querySelectorAll('.telemetry-jitter');
+            const target = jitters[Math.floor(Math.random() * jitters.length)];
+            if (target) {
+                target.style.filter = 'skewX(10deg) brightness(1.5)';
+                setTimeout(() => {
+                    target.style.filter = '';
+                }, 50);
+            }
+        }, 2000);
+    </script>
+</body></html>

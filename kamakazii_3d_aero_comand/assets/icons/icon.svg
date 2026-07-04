@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#001525;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#003355;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="sunGrad" cx="50%" cy="55%" r="45%">
+      <stop offset="0%" style="stop-color:#ff6a3d;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#c01818;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#001525;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#skyGrad)"/>
+  <!-- Rising sun -->
+  <circle cx="256" cy="280" r="160" fill="url(#sunGrad)"/>
+  <!-- Sun rays -->
+  <g stroke="#ff6a3d" stroke-width="3" opacity="0.3">
+    <line x1="256" y1="120" x2="256" y2="40"/>
+    <line x1="256" y1="440" x2="256" y2="520"/>
+    <line x1="96" y1="280" x2="16" y2="280"/>
+    <line x1="416" y1="280" x2="496" y2="280"/>
+    <line x1="143" y1="167" x2="86" y2="110"/>
+    <line x1="369" y1="167" x2="426" y2="110"/>
+    <line x1="143" y1="393" x2="86" y2="450"/>
+    <line x1="369" y1="393" x2="426" y2="450"/>
+  </g>
+  <!-- Plane silhouette -->
+  <g fill="#ffffff" opacity="0.95">
+    <!-- Fuselage -->
+    <path d="M256 120 L264 200 L268 280 L264 360 L256 400 L248 360 L244 280 L248 200 Z"/>
+    <!-- Wings -->
+    <path d="M256 240 L200 260 L180 270 L200 275 L256 260 Z"/>
+    <path d="M256 240 L312 260 L332 270 L312 275 L256 260 Z"/>
+    <!-- Tail -->
+    <path d="M256 360 L230 380 L220 390 L240 385 L256 370 Z"/>
+    <path d="M256 360 L282 380 L292 390 L272 385 L256 370 Z"/>
+    <!-- Propeller hub -->
+    <ellipse cx="256" cy="115" rx="8" ry="4" fill="#cccccc"/>
+  </g>
+  <!-- Trail -->
+  <path d="M256 400 Q240 440 230 480" stroke="#ff6a3d" stroke-width="4" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <path d="M256 400 Q272 440 282 480" stroke="#ff6a3d" stroke-width="4" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <!-- Subtle glow behind plane -->
+  <ellipse cx="256" cy="260" rx="60" ry="100" fill="#ffffff" opacity="0.05"/>
+</svg>

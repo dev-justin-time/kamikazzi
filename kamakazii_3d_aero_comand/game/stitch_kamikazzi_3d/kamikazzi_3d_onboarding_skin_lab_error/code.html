@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // SKIN_LAB_ERROR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes glitch-flicker {
+            0% { opacity: 0.8; transform: scaleY(1); }
+            5% { opacity: 0.4; transform: scaleY(1.1) skewX(2deg); }
+            10% { opacity: 0.8; transform: scaleY(1); }
+            15% { opacity: 1; transform: translateX(-2px); }
+            20% { opacity: 0.8; }
+            100% { opacity: 0.9; }
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px #ffb4aa); }
+            50% { opacity: 0.5; filter: drop-shadow(0 0 20px #c01818); }
+        }
+        .glitch-text {
+            animation: glitch-flicker 0.2s infinite;
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent 50%, rgba(192, 24, 24, 0.05) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .clipped-corner {
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+        }
+        .bracket-tl { border-top: 2px solid; border-left: 2px solid; width: 20px; height: 20px; position: absolute; top: -2px; left: -2px; }
+        .bracket-tr { border-top: 2px solid; border-right: 2px solid; width: 20px; height: 20px; position: absolute; top: -2px; right: -2px; }
+        .bracket-bl { border-bottom: 2px solid; border-left: 2px solid; width: 20px; height: 20px; position: absolute; bottom: -2px; left: -2px; }
+        .bracket-br { border-bottom: 2px solid; border-right: 2px solid; width: 20px; height: 20px; position: absolute; bottom: -2px; right: -2px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4aa",
+                        "on-tertiary": "#3d2f00",
+                        "background": "#061423",
+                        "on-surface": "#d5e4f9",
+                        "surface": "#061423",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "on-secondary-fixed": "#002020",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#2d3a4b",
+                        "tertiary-fixed": "#ffe08a",
+                        "primary-container": "#c01818",
+                        "surface-tint": "#ffb4aa",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "surface-dim": "#061423",
+                        "secondary-container": "#00fbfb",
+                        "secondary": "#ffffff",
+                        "primary-fixed": "#ffdad5",
+                        "on-tertiary-container": "#4f3d00",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error": "#690005",
+                        "surface-container-high": "#1d2b3b",
+                        "on-primary-fixed-variant": "#930008",
+                        "inverse-surface": "#d5e4f9",
+                        "on-primary": "#690004",
+                        "on-secondary": "#003737",
+                        "inverse-on-surface": "#243142",
+                        "surface-container-lowest": "#020f1e",
+                        "on-background": "#d5e4f9",
+                        "tertiary": "#e1c471",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "on-surface-variant": "#e5bdb8",
+                        "secondary-fixed": "#00fbfb",
+                        "on-primary-fixed": "#410001",
+                        "on-primary-container": "#ffd2cd",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-secondary-container": "#007070",
+                        "surface-variant": "#283646",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#0e1c2c",
+                        "inverse-primary": "#bc1416",
+                        "surface-container": "#132030",
+                        "surface-container-highest": "#283646",
+                        "on-tertiary-fixed": "#241a00",
+                        "tertiary-container": "#c4a959",
+                        "outline": "#ac8884",
+                        "outline-variant": "#5c403c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "1.5rem",
+                        "bracket-padding": "0.5rem",
+                        "hud-gutter": "1rem",
+                        "edge-margin": "2rem"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Stick No Bills"],
+                        "body-jp": ["Noto Sans JP"],
+                        "headline-lg-mobile": ["Stick No Bills"],
+                        "data-sm": ["JetBrains Mono"],
+                        "data-lg": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-lg": ["Stick No Bills"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                        "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-jp overflow-hidden min-h-screen">
+<!-- Global HUD Scanline Overlay -->
+<div class="fixed inset-0 scanline-overlay z-[100] opacity-30"></div>
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-[101]">
+<div class="w-full h-1 bg-primary/20 blur-sm absolute top-0" style="animation: scanline 4s linear infinite;"></div>
+</div>
+<!-- Background 3D/Shader Layer -->
+
+<!-- Top Navigation Shell -->
+<header class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="speed">speed</span>
+<h1 class="font-display-xl text-headline-lg tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8 font-label-caps text-label-caps tracking-widest items-center">
+<span class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1 cursor-pointer">FLIGHT_OPS</span>
+<span class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1 cursor-pointer">LEADERBOARD</span>
+<span class="text-secondary drop-shadow-[0_0_5px_#ffffff] border-b-2 border-primary px-2 py-1 cursor-pointer">SKIN_LAB</span>
+<span class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1 cursor-pointer">LOUNGE</span>
+</div>
+<div class="flex items-center gap-2 border-l border-outline-variant/30 pl-6">
+<div class="text-right">
+<p class="font-label-caps text-[10px] leading-tight text-primary">COMMANDER_VOSS</p>
+<p class="font-label-caps text-[8px] leading-tight text-tertiary">RANK: ACE</p>
+</div>
+<div class="w-10 h-10 bg-primary/20 rounded-full border border-primary/40 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A stylized sci-fi pilot profile avatar, intense expression, wearing a high-tech flight helmet with glowing red visors. The aesthetic is gritty and cinematic, following a Cyber-Tokyo HUD style with red and cyan neon highlights and metallic textures. High contrast digital painting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYsRSydskCllZqmUj1KgS6KbCRc6_d7cuwPbt3TG66f0xz_gvdJb6Ak_adkcdcg1mccSHxMyKWWBPb1o--uUxU16gJ---J4EFHEJREHLJA43jVjYJOFUT3TTaZYvtFlmTJvZCKiGy0zdiE_JBajirF35AfTm9rzCqYqRzs_E8iwRyiPlDUDVVtLQfaskkPhs17HGFAmZPk4VVFDB-ARkH9IAmbtsBq-5zx05PxHqUi_hRfEaNh7LhJyBPQn3DzOo4qubt3LeBwhjdb"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Side Nav NavigationDrawer -->
+<nav class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 bg-surface-dim/80 backdrop-blur-2xl h-full w-64 border-r border-outline-variant/50 hidden lg:flex">
+<div class="px-6 py-4 bg-gradient-to-r from-surface-container-low to-transparent">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-1">SYSTEM_ACCESS</h3>
+<div class="h-1 w-12 bg-primary"></div>
+</div>
+<div class="flex flex-col gap-1 mt-4">
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+<span class="font-label-caps text-label-caps">FLIGHT_OPS</span>
+</a>
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="font-label-caps text-label-caps">LEADERBOARD</span>
+</a>
+<a class="bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-4 py-3 flex items-center gap-3 active:brightness-125" href="#">
+<span class="material-symbols-outlined" data-icon="architecture" style="font-variation-settings: 'FILL' 1;">architecture</span>
+<span class="font-label-caps text-label-caps">SKIN_LAB</span>
+</a>
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">LOUNGE</span>
+</a>
+</div>
+<div class="mt-auto p-6 space-y-2">
+<div class="text-[8px] font-label-caps text-outline italic">SECTOR_7_CLEARED</div>
+<div class="h-[1px] w-full bg-outline-variant/30"></div>
+<div class="flex items-center gap-2 text-error animate-pulse">
+<span class="material-symbols-outlined text-xs" data-icon="warning">warning</span>
+<span class="text-[9px] font-label-caps">COMM_LINK_UNSTABLE</span>
+</div>
+</div>
+</nav>
+<!-- Main Canvas: Skin Lab Error State -->
+<main class="lg:ml-64 pt-24 pb-20 px-hud-gutter h-screen flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Center Targeting Overlay (Clear zone) -->
+<div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-10">
+<div class="w-[400px] h-[400px] border border-primary/20 rounded-full flex items-center justify-center">
+<div class="w-[250px] h-[250px] border border-primary/40 rounded-full flex items-center justify-center">
+<div class="w-4 h-4 bg-primary/60"></div>
+</div>
+</div>
+</div>
+<!-- ERROR HEADER -->
+<div class="z-10 text-center space-y-6 max-w-4xl w-full">
+<div class="relative inline-block px-12 py-8 bg-primary-container/20 backdrop-blur-xl border border-primary-container/50">
+<div class="bracket-tl text-primary-container"></div>
+<div class="bracket-tr text-primary-container"></div>
+<div class="bracket-bl text-primary-container"></div>
+<div class="bracket-br text-primary-container"></div>
+<div class="animate-pulse flex flex-col items-center">
+<span class="material-symbols-outlined text-7xl text-primary-container mb-4 glitch-text" data-icon="wifi_off" style="font-variation-settings: 'FILL' 1;">wifi_off</span>
+<h2 class="font-display-xl text-4xl md:text-6xl text-primary-container glitch-text tracking-tighter">LINK_SEVERED</h2>
+<p class="font-data-lg text-primary tracking-widest mt-2 bg-primary-container/40 px-4 py-1">CONFIG_ERROR // 0x882_SYNC_TIMEOUT</p>
+</div>
+</div>
+<!-- CUSTOMIZATION SLOTS (OFFLINE STATE) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-12">
+<!-- Slot 1 -->
+<div class="bg-surface-container-low/40 border border-error/20 p-4 relative group transition-all duration-300">
+<div class="absolute top-2 left-2 text-[8px] font-label-caps text-error/60">SLOT_01: CHASSIS</div>
+<div class="w-full h-32 mb-4 bg-surface-container-highest/50 flex items-center justify-center relative overflow-hidden grayscale">
+<img class="w-full h-full object-cover opacity-30" data-alt="A futuristic weathered chrome and carbon fiber flight chassis part, floating in a dark industrial hangar. Red laser grids project onto the surface. High-contrast lighting with deep shadows and red glowing warning lights. Aggressive, technical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVmCtFErrqHKwklAuEL98yrySwnOu6Ru9IeYnI5m7ojJf9XZypv3-0o7NuHF7CbXHJ5SS5MPKqojMpwJGABqKXsPTJolX33ptCPloT1KSCJAAzWZ52f7gwmyWJ1L3oGld0fkNkWlEx2bH2S0PDUz27z7JEVotlOdVphl_n-XBq1Y5SsKgebMH2odk7apemacvp9PFYP99zDIL1n9XFcEY6AQKEm9CNrLPTyrfhXfaV2OtKwwWQu3P-VcC0XNi9sOsHI1Dh0niKmMz1"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-display-xl text-error text-2xl rotate-12 bg-background/80 px-4 py-1 border border-error">OFFLINE</span>
+</div>
+<!-- Strike-through -->
+<div class="absolute w-[120%] h-[2px] bg-error rotate-45 top-1/2 -left-[10%]"></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-caps text-[10px] text-error/80">
+<span>INTEGRITY</span>
+<span class="line-through">98%</span>
+</div>
+<div class="w-full h-1 bg-surface-variant flex gap-[2px]">
+<div class="h-full w-[5%] bg-error/20"></div>
+<div class="h-full w-[5%] bg-error/10"></div>
+<div class="flex-1"></div>
+</div>
+</div>
+</div>
+<!-- Slot 2 -->
+<div class="bg-surface-container-low/40 border border-error/20 p-4 relative group transition-all duration-300">
+<div class="absolute top-2 left-2 text-[8px] font-label-caps text-error/60">SLOT_02: THRUST_CORE</div>
+<div class="w-full h-32 mb-4 bg-surface-container-highest/50 flex items-center justify-center relative overflow-hidden grayscale">
+<img class="w-full h-full object-cover opacity-30" data-alt="Close-up of a jet engine turbine with glowing core but now dormant and dark. Wires and technical components surround the module. Red emergency lights flicker in the background. Industrial cyberpunk photography style, extreme detail, 8k resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqpuvh7JMFGH0p5zYO_hh2xSyKPZXFYLhFu7K4Uz9JwO2S3gMB0hFmbzp9X2vstLMoVy6JujMaSwJrTTFjq6vt_5jZD9tfRqG71HK_X1idnX3hGTK1w14U77S0RTc1R7Qlv35xB4_nkQIzsaCWu3CIFH7neDe--EGKikU1SQxlmIiBsLX0nqsrS-7V7lbZtMsStFRRLZcUjU26MsleA4yXh44GPZ2uhO2l0sYX8BL1qMsGUKku_GdGFXI52WCV8gKia-IRnsXYzFts"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-display-xl text-error text-2xl rotate-12 bg-background/80 px-4 py-1 border border-error">OFFLINE</span>
+</div>
+<!-- Strike-through -->
+<div class="absolute w-[120%] h-[2px] bg-error rotate-45 top-1/2 -left-[10%]"></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-caps text-[10px] text-error/80">
+<span>OUTPUT</span>
+<span class="line-through">MAX_KW</span>
+</div>
+<div class="w-full h-1 bg-surface-variant flex gap-[2px]">
+<div class="h-full w-[5%] bg-error/20"></div>
+<div class="flex-1"></div>
+</div>
+</div>
+</div>
+<!-- Slot 3 -->
+<div class="bg-surface-container-low/40 border border-error/20 p-4 relative group transition-all duration-300">
+<div class="absolute top-2 left-2 text-[8px] font-label-caps text-error/60">SLOT_03: HUD_VISOR</div>
+<div class="w-full h-32 mb-4 bg-surface-container-highest/50 flex items-center justify-center relative overflow-hidden grayscale">
+<img class="w-full h-full object-cover opacity-30" data-alt="A high-tech digital HUD visor interface showing static and red error messages. The glass is cracked slightly. Reflection of a hangar visible in the glass. Tactical cyber-brutalist style, neon red accents, high technical detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2IeUpROj2fK-W9szAOGN7CP6PyEcxUhyESbMZfQab0qfYZLaam47jIaKJmT-bJDRf1bMaSSq_SvNqNHXxclyr-H75x2jXaDDwGRf5LTad-TWIRvz0r0YC2Xmsy0Fsce5vu93_tqsDTjPLEMEh1DdHMqnl_2-VXSCafWBuKh4UgljwpXuncx3LP3H5DhyK4Q_1wl6ZeuOUTdlL8In6bXYFoaMA4ZBs2SIvn93rSGZ7rEb4jMv01ewMQEZWdCQSLv3PmhvMRTYentVw"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-display-xl text-error text-2xl rotate-12 bg-background/80 px-4 py-1 border border-error">OFFLINE</span>
+</div>
+<!-- Strike-through -->
+<div class="absolute w-[120%] h-[2px] bg-error rotate-45 top-1/2 -left-[10%]"></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-caps text-[10px] text-error/80">
+<span>CALIBRATION</span>
+<span class="line-through">N/A</span>
+</div>
+<div class="w-full h-1 bg-surface-variant flex gap-[2px]">
+<div class="h-full w-[5%] bg-error/20"></div>
+<div class="flex-1"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- RECOVERY CTA -->
+<div class="mt-12 flex flex-col items-center gap-4">
+<button class="clipped-corner bg-primary-container text-white px-10 py-4 font-display-xl text-2xl tracking-widest hover:bg-primary hover:text-on-primary transition-all duration-300 active:scale-95 group relative">
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-white animate-ping rounded-full"></div>
+                    RETRY_CALIBRATION
+                </button>
+<div class="flex items-center gap-4 text-outline font-data-sm animate-pulse">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+<span>_WAITING_FOR_HANDSHAKE... [ATTEMPT 04/99]</span>
+</div>
+</div>
+</div>
+<!-- Peripheral Telemetry Brackets (HUD Decor) -->
+<div class="fixed top-24 left-edge-margin w-48 font-data-sm text-error/50 space-y-2 pointer-events-none hidden lg:block">
+<div class="border-l-2 border-error/30 pl-2">
+<p>LATENCY: -- MS</p>
+<p>PACKET_LOSS: 100%</p>
+<p>SEC_TOKEN: NULL</p>
+</div>
+</div>
+<div class="fixed bottom-24 right-edge-margin w-64 font-data-sm text-error/50 text-right space-y-2 pointer-events-none hidden lg:block">
+<div class="border-r-2 border-error/30 pr-2">
+<p>ERR_TRACE_START</p>
+<p class="text-[10px]">&gt;&gt; ADDR: 0x882_SYNC</p>
+<p class="text-[10px]">&gt;&gt; TYPE: TIMEOUT</p>
+<p class="text-[10px]">&gt;&gt; SOURCE: LAB_CORE_02</p>
+<p>ERR_TRACE_END</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile/HUD Only) -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding rounded-full backdrop-blur-md z-50 border border-outline/20 bg-transparent lg:hidden">
+<a class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+</a>
+</nav>
+<!-- Micro-interaction JS -->
+<script>
+        // Subtle cursor flicker effect
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.createElement('div');
+            glow.className = 'fixed pointer-events-none w-1 h-1 bg-primary/20 blur-sm rounded-full z-[1000]';
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+            document.body.appendChild(glow);
+            setTimeout(() => glow.remove(), 500);
+        });
+
+        // Periodic Glitch Logic
+        setInterval(() => {
+            const glitchContainer = document.querySelector('.glitch-text');
+            if(glitchContainer) {
+                glitchContainer.classList.add('animate-ping');
+                setTimeout(() => glitchContainer.classList.remove('animate-ping'), 100);
+            }
+        }, 3000);
+    </script>
+</body></html>

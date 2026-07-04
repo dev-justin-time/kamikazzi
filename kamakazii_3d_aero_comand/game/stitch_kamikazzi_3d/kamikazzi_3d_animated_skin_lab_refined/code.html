@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SKIN_LAB // KAMIKAZZI_3D</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#2d3a4b",
+                    "on-secondary-container": "#007070",
+                    "on-surface-variant": "#e5bdb8",
+                    "outline": "#ac8884",
+                    "error": "#ffb4ab",
+                    "surface-container-lowest": "#020f1e",
+                    "tertiary-container": "#c4a959",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-container": "#4f3d00",
+                    "on-primary": "#690004",
+                    "surface-dim": "#061423",
+                    "secondary-container": "#00fbfb",
+                    "on-secondary": "#003737",
+                    "surface-container-low": "#0e1c2c",
+                    "surface-variant": "#283646",
+                    "tertiary-fixed": "#ffe08a",
+                    "inverse-surface": "#d5e4f9",
+                    "secondary-fixed": "#00fbfb",
+                    "surface-container": "#132030",
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-primary-fixed": "#410001",
+                    "tertiary": "#e1c471",
+                    "surface": "#061423",
+                    "primary": "#ffb4aa",
+                    "on-secondary-fixed": "#002020",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "on-tertiary-fixed": "#241a00",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "on-primary-container": "#ffd2cd",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "inverse-primary": "#bc1416",
+                    "on-background": "#d5e4f9",
+                    "inverse-on-surface": "#243142",
+                    "on-primary-fixed-variant": "#930008",
+                    "secondary-fixed-dim": "#00dddd",
+                    "primary-fixed": "#ffdad5",
+                    "on-tertiary": "#3d2f00",
+                    "surface-container-highest": "#283646",
+                    "background": "#061423",
+                    "outline-variant": "#5c403c",
+                    "on-error": "#690005",
+                    "surface-container-high": "#1d2b3b",
+                    "secondary": "#ffffff",
+                    "surface-tint": "#ffb4aa",
+                    "primary-container": "#c01818",
+                    "on-surface": "#d5e4f9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "edge-margin": "2rem",
+                    "bracket-padding": "0.5rem",
+                    "stack-gap": "1.5rem",
+                    "hud-gutter": "1rem"
+            },
+            "fontFamily": {
+                    "display-xl": ["Stick No Bills"],
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-lg": ["Stick No Bills"],
+                    "data-lg": ["JetBrains Mono"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"],
+                    "body-jp": ["Noto Sans JP"]
+            },
+            "fontSize": {
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Scanline Overlay */
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 100;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* Tactical Brackets */
+        .bracket-tl { border-top: 2px solid; border-left: 2px solid; }
+        .bracket-tr { border-top: 2px solid; border-right: 2px solid; }
+        .bracket-bl { border-bottom: 2px solid; border-left: 2px solid; }
+        .bracket-br { border-bottom: 2px solid; border-right: 2px solid; }
+
+        /* Flicker Entrance */
+        @keyframes flicker-in {
+            0% { opacity: 0; }
+            10% { opacity: 0.5; }
+            11% { opacity: 0; }
+            20% { opacity: 1; }
+            21% { opacity: 0.3; }
+            25% { opacity: 1; }
+        }
+        .animate-flicker { animation: flicker-in 0.8s ease-out forwards; }
+
+        /* Jitter Animation */
+        @keyframes jitter {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(0.5px, -0.5px); }
+            50% { transform: translate(-0.5px, 0.5px); }
+            75% { transform: translate(0.5px, 0.5px); }
+            100% { transform: translate(0, 0); }
+        }
+        .animate-jitter { animation: jitter 0.15s infinite; }
+
+        /* Breathing Progress */
+        @keyframes breath-glow {
+            0%, 100% { filter: drop-shadow(0 0 2px currentColor) brightness(1); }
+            50% { filter: drop-shadow(0 0 8px currentColor) brightness(1.3); }
+        }
+        .animate-breath { animation: breath-glow 3s infinite ease-in-out; }
+
+        /* Ember Particles */
+        @keyframes ember {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) translateX(50px) rotate(360deg); opacity: 0; }
+        }
+        .ember {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #ffb4aa;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Custom Scrollbar for HUD */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: #ffb4aa; border-radius: 2px; }
+
+        .clip-path-poly {
+            clip-path: polygon(0 0, 85% 0, 100% 25%, 100% 100%, 15% 100%, 0 75%);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; filter: brightness(1); }
+            50% { opacity: 1; filter: brightness(1.5); }
+        }
+        .animate-hud-pulse { animation: pulse-glow 2s infinite ease-in-out; }
+
+        .glitch-text:hover {
+            text-shadow: 2px 0 #ffb4aa, -2px 0 #00fbfb;
+        }
+
+        .layer-transition { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+<style>
+        body { min-height: max(884px, 100dvh); }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-jp overflow-hidden selection:bg-primary selection:text-on-primary">
+<!-- Global Scanlines Overlay -->
+<div class="scanlines"></div>
+<!-- Background Grid -->
+<div class="fixed inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#ac8884 0.5px, transparent 0.5px); background-size: 32px 32px;"></div>
+<!-- Ember Particles System (Handled via Script) -->
+<div id="particle-container"></div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)] animate-flicker">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary scale-125" style="font-variation-settings: 'FILL' 1;">speed</span>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)] animate-jitter">KAMIKAZZI_3D</h1>
+</div>
+<nav class="hidden md:flex gap-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 hover:text-secondary transition-all" href="#">FLIGHT_OPS</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 hover:text-secondary transition-all" href="#">LEADERBOARD</a>
+<a class="font-label-caps text-label-caps text-secondary drop-shadow-[0_0_5px_#ffffff]" href="#">SKIN_LAB</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 hover:text-secondary transition-all" href="#">LOUNGE</a>
+</nav>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<div class="font-label-caps text-[8px] text-outline animate-jitter">PILOT_ID</div>
+<div class="font-label-caps text-label-caps text-primary">PILOT_ALPHA_01</div>
+</div>
+<div class="w-10 h-10 rounded-full border border-primary/50 overflow-hidden bg-surface-bright">
+<img class="w-full h-full object-cover" data-alt="A futuristic pilot avatar portrait in a tactical helmet with glowing cyan visors and a dark carbon fiber texture. The lighting is moody and industrial, with sharp shadows and subtle chromatic aberration effects consistent with a high-velocity combat environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW5BuNNqhO0ASMv_yuVwcUhbuBoJbB0kq6Hc0ZwmED4LpmV0gnRLSVkYCosyD_aSQJJWEQMiRR6XIzXrBTCI2yELzMxIzAGglYXvL7ljj9dkbJs5luaeVNyQ2q9VZ790B1bAhBGa8-QSTDQzkqnhQqH2V0Dg7eNTUV09YhpWCixDSK4wqn0qeaKcOa8-CX4vqH5iyo4UUg01izgN699qn4uGWOYlirmIyyNXZEUWD2-rck1N5K-14OrleDXxr4AWPdi6Ebepq9k4VR"/>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Left) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 w-64 border-r border-outline-variant/50 bg-surface-dim/80 backdrop-blur-2xl animate-flicker">
+<div class="px-6 py-8 border-b border-outline-variant/30">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-tertiary/20 rounded-lg flex items-center justify-center border border-tertiary/40">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">architecture</span>
+</div>
+<div>
+<h2 class="font-headline-lg text-primary text-xl animate-jitter">COMMANDER_VOSS</h2>
+<p class="font-label-caps text-label-caps text-tertiary">RANK: ACE</p>
+</div>
+</div>
+<div class="font-label-caps text-[10px] text-outline-variant bg-surface-container px-2 py-1 inline-block rounded animate-breath">SECTOR_7_CLEARED</div>
+</div>
+<nav class="flex-1 py-4">
+<div class="font-label-caps text-[9px] px-6 mb-2 text-outline tracking-[0.2em] animate-jitter">MAIN_SYSTEMS</div>
+<a class="flex items-center gap-3 text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="font-label-caps text-label-caps">FLIGHT_OPS</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-caps text-label-caps">LEADERBOARD</span>
+</a>
+<a class="flex items-center gap-3 bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-4 py-3 active:brightness-125" href="#">
+<span class="material-symbols-outlined">architecture</span>
+<span class="font-label-caps text-label-caps">SKIN_LAB</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps">LOUNGE</span>
+</a>
+</nav>
+<div class="p-6 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-caps text-[8px] text-outline animate-jitter">HARDWARE_HEALTH</span>
+<span class="font-label-caps text-[8px] text-primary">98%</span>
+</div>
+<div class="flex gap-1 h-1">
+<div class="flex-1 bg-primary animate-breath"></div>
+<div class="flex-1 bg-primary animate-breath" style="animation-delay: 0.2s"></div>
+<div class="flex-1 bg-primary animate-breath" style="animation-delay: 0.4s"></div>
+<div class="flex-1 bg-primary/20"></div>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Area -->
+<main class="ml-64 pt-16 h-screen relative flex flex-col items-center justify-center overflow-hidden">
+<!-- Telemetry Left -->
+<div class="absolute left-hud-gutter top-1/2 -translate-y-1/2 flex flex-col gap-stack-gap z-20 animate-flicker">
+<div class="w-48 p-bracket-padding relative group">
+<div class="absolute inset-0 bracket-tl border-tertiary w-4 h-4 opacity-60"></div>
+<div class="absolute bottom-0 right-0 bracket-br border-tertiary w-4 h-4 opacity-60"></div>
+<div class="bg-surface-container-lowest/60 backdrop-blur-md p-4 layer-transition group-hover:bg-tertiary/10">
+<h3 class="font-label-caps text-label-caps text-tertiary mb-2 animate-jitter">CAMO_EFFICIENCY</h3>
+<div class="flex items-baseline gap-2">
+<span class="font-data-lg text-secondary text-3xl animate-jitter" id="camo-val">72</span>
+<span class="font-label-caps text-[10px] text-outline">%</span>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="h-1 w-full bg-surface-variant">
+<div class="h-full bg-tertiary transition-all duration-500 animate-breath" id="camo-bar" style="width: 72%;"></div>
+</div>
+<span class="font-label-caps text-[8px] text-outline-variant animate-jitter">ADAPTIVE_LAYER: ACTIVE</span>
+</div>
+</div>
+</div>
+<div class="w-48 p-bracket-padding relative">
+<div class="bg-surface-container-lowest/60 backdrop-blur-md p-4 border-l-2 border-primary/40">
+<h3 class="font-label-caps text-label-caps text-primary mb-2 animate-jitter">STRUCTURAL_INTEG</h3>
+<div class="flex items-baseline gap-2">
+<span class="font-data-lg text-secondary text-3xl animate-jitter">100</span>
+<span class="font-label-caps text-[10px] text-outline">MPa</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Telemetry Right -->
+<div class="absolute right-hud-gutter top-1/2 -translate-y-1/2 flex flex-col gap-stack-gap z-20 animate-flicker">
+<div class="w-48 p-bracket-padding relative group">
+<div class="absolute top-0 right-0 bracket-tr border-on-secondary-container w-4 h-4 opacity-60"></div>
+<div class="absolute bottom-0 left-0 bracket-bl border-on-secondary-container w-4 h-4 opacity-60"></div>
+<div class="bg-surface-container-lowest/60 backdrop-blur-md p-4 layer-transition group-hover:bg-on-secondary-container/10">
+<h3 class="font-label-caps text-label-caps text-on-secondary-container mb-2 animate-jitter">THERMAL_SIGNATURE</h3>
+<div class="flex items-baseline gap-2">
+<span class="font-data-lg text-secondary text-3xl animate-jitter" id="thermal-val">44</span>
+<span class="font-label-caps text-[10px] text-outline">°K</span>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="h-1 w-full bg-surface-variant">
+<div class="h-full bg-on-secondary-container transition-all duration-500 animate-breath" id="thermal-bar" style="width: 44%;"></div>
+</div>
+<span class="font-label-caps text-[8px] text-outline-variant animate-jitter">HEAT_VENTS: OPTIMIZED</span>
+</div>
+</div>
+</div>
+<div class="w-48 p-bracket-padding relative">
+<div class="bg-surface-container-lowest/60 backdrop-blur-md p-4 border-r-2 border-on-secondary-container/40">
+<h3 class="font-label-caps text-label-caps text-on-secondary-container mb-2 animate-jitter">DRAG_COEFFICIENT</h3>
+<div class="flex items-baseline gap-2">
+<span class="font-data-lg text-secondary text-3xl animate-jitter">0.28</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Layer Toggles (Blueprint Interaction) -->
+<div class="absolute top-24 left-1/2 -translate-x-1/2 flex gap-4 z-30 animate-flicker">
+<button class="flex flex-col items-center gap-1 group active:scale-95 transition-all" onclick="toggleLayer('ARMOR')">
+<div class="w-12 h-12 rounded bg-surface-container-high border border-outline/30 flex items-center justify-center group-hover:border-primary layer-transition shadow-lg" id="layer-btn-ARMOR">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">shield</span>
+</div>
+<span class="font-label-caps text-[8px] text-outline group-hover:text-primary">ARMOR</span>
+</button>
+<button class="flex flex-col items-center gap-1 group active:scale-95 transition-all" onclick="toggleLayer('ENGINES')">
+<div class="w-12 h-12 rounded bg-surface-container-high border border-outline/30 flex items-center justify-center group-hover:border-on-secondary-container layer-transition shadow-lg" id="layer-btn-ENGINES">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-secondary-container">bolt</span>
+</div>
+<span class="font-label-caps text-[8px] text-outline group-hover:text-on-secondary-container">ENGINES</span>
+</button>
+<button class="flex flex-col items-center gap-1 group active:scale-95 transition-all" onclick="toggleLayer('WEAPONS')">
+<div class="w-12 h-12 rounded bg-surface-container-high border border-outline/30 flex items-center justify-center group-hover:border-primary-container layer-transition shadow-lg" id="layer-btn-WEAPONS">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container">target</span>
+</div>
+<span class="font-label-caps text-[8px] text-outline group-hover:text-primary-container">WEAPONS</span>
+</button>
+</div>
+<!-- Main Ship Preview Area -->
+<div class="relative w-full max-w-4xl h-[530px] flex items-center justify-center animate-flicker">
+<!-- Blueprint HUD Layer -->
+<div class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-700 overflow-hidden" id="blueprint-layer">
+<svg class="w-full h-full stroke-primary/30 fill-none" viewbox="0 0 1000 600">
+<circle class="stroke-[0.5px] animate-pulse" cx="500" cy="300" r="250"></circle>
+<path class="stroke-[0.2px] opacity-50" d="M200 300 H800 M500 100 V500"></path>
+<!-- Dynamic Callouts -->
+<g class="animate-jitter" style="animation-duration: 4s">
+<line class="stroke-primary/50" x1="650" x2="750" y1="200" y2="150"></line>
+<text class="fill-primary font-label-caps text-[10px]" x="760" y="145">STRUCT_A1 // LOAD_BEARING</text>
+</g>
+</svg>
+</div>
+<div class="relative z-10 w-full h-full flex items-center justify-center group cursor-grab active:cursor-grabbing layer-transition" id="ship-container">
+<!-- 3D Ship Layers -->
+<div class="relative w-full h-full flex items-center justify-center layer-transition" id="ship-layers-wrapper">
+<img class="max-w-full max-h-full drop-shadow-[0_0_30px_rgba(255,180,170,0.3)] transition-all duration-500 absolute layer-transition" data-alt="Primary ship hull" id="ship-preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9YawJs7GcQP9bvoOFQQ7bVzotT34Z9M725asR7SmWLl3ewFy-C77RW6egkKTzoQrmkFnaUBdW0qNnhc3LFcVhK_KtxXdUJhnRvN6nOHMoAtL4yC1SDuF0EpIKnVuFjeJxYIUTfj2lS8TERUNzK2xvPEWAzVQCY3hCKnnZORSxvJZUuCTarshVwM_yU5kyRrqYAJr8DuxtfN5ihbvTaiUkW51Cm8tZZz3EP8eYxRMLW9mm13_t_RWGy4asd0h4Uiyxu_AbEllbtZri"/>
+<!-- Tactical Highlights (Overlays) -->
+<div class="absolute inset-0 mix-blend-screen opacity-0 transition-all duration-500 pointer-events-none flex items-center justify-center" id="layer-overlay">
+<div class="w-[80%] h-[80%] rounded-full blur-3xl opacity-20" id="overlay-glow"></div>
+</div>
+</div>
+<!-- HUD Targeting Brackets (Floating) -->
+<div class="absolute -inset-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<div class="absolute top-0 left-0 w-12 h-12 bracket-tl border-primary animate-hud-pulse"></div>
+<div class="absolute top-0 right-0 w-12 h-12 bracket-tr border-primary animate-hud-pulse"></div>
+<div class="absolute bottom-0 left-0 w-12 h-12 bracket-bl border-primary animate-hud-pulse"></div>
+<div class="absolute bottom-0 right-0 w-12 h-12 bracket-br border-primary animate-hud-pulse"></div>
+</div>
+</div>
+<!-- Dynamic Specs Overlay -->
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center animate-flicker">
+<p class="font-label-caps text-[10px] text-primary tracking-[0.4em] mb-1 animate-jitter">CURRENT_SPEC</p>
+<h2 class="font-headline-lg text-white text-2xl uppercase animate-jitter" id="skin-name">MK-IV STRIKER // BASE</h2>
+</div>
+</div>
+<!-- Bottom Selection Carousel -->
+<div class="absolute bottom-8 left-0 right-0 px-edge-margin z-30 animate-flicker">
+<div class="max-w-5xl mx-auto">
+<div class="flex items-center justify-between mb-4">
+<div class="font-label-caps text-label-caps text-outline animate-jitter">CHASSIS_LIBRARY_A7</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center border border-outline/30 hover:bg-primary/20 text-on-surface transition-all active:scale-90"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline/30 hover:bg-primary/20 text-on-surface transition-all active:scale-90"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<!-- Skin Swatches -->
+<button class="flex-shrink-0 w-32 h-40 bg-surface-container-high border border-outline-variant/30 p-2 hover:border-primary transition-all group active:scale-95" onclick="updateSkin('BASE', 72, 44, 'MK-IV STRIKER // BASE')">
+<div class="w-full h-24 bg-surface-bright mb-2 overflow-hidden">
+<img class="w-full h-full object-cover grayscale opacity-80 group-hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ0YkRragcRRA7ljbJtlVjIawWM29R03zEeMyBiCfX_J8XzGL_C1z5OdmJLgCgD1_TSVTRdWpNj1hSj3t9nYsqFVIe45hJyM1v6wraiCQBX-RKXPNW_L5is16f0ZkQMpANNfAIHqjJRZd2GszmHHf1O4nWZ8U-L2U2O-oOMjdNFMlUF9Zn5C7whCwYvT272i-kSmnM4XDLuF_QGSzukfn2WVtbh4ZJhC3thN0X2B8Tw1i6iTNKGK92bwk2gP9ekbtHGvbVklzydKn9"/>
+</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant text-left animate-jitter">CH_ST_00</div>
+<div class="font-label-caps text-[8px] text-outline text-left">STANDARD</div>
+</button>
+<button class="flex-shrink-0 w-32 h-40 bg-surface-container-high border border-outline-variant/30 p-2 hover:border-on-secondary-container transition-all group active:scale-95" onclick="updateSkin('STEALTH', 94, 12, 'MK-IV STRIKER // GHOST')">
+<div class="w-full h-24 bg-surface-bright mb-2 overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCSj-G--8cbuXStzi83Dm8142ljumQ91FNsb1AAICV6mb3rZCSMcggA2ZL7w7YQL3a5XjmTuARiefQS7nvq0tQYDgyrosIPXeR_eom4HysvlM2sFIq5Oap9xO_zjXKinVfkplj269MEiGlWXqTfXNoHBHOBpy5-Ppc_UFjZu-oGcgNrHxRVcNvWMydNXCtIBfMGC5lhxr5ILzCFg0e_HJF5Qv_OI80S42VcbqrXUvgGegZFCPP_iUGqtHsBNRXmGH7EM7F5DusiNGK"/>
+</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant text-left animate-jitter">CH_ST_01</div>
+<div class="font-label-caps text-[8px] text-on-secondary-container text-left">STEALTH_OP</div>
+</button>
+<button class="flex-shrink-0 w-32 h-40 bg-surface-container-high border border-outline-variant/30 p-2 hover:border-primary-container transition-all group active:scale-95" onclick="updateSkin('CRIMSON', 55, 68, 'MK-IV STRIKER // VULCAN')">
+<div class="w-full h-24 bg-surface-bright mb-2 overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuACxmuxJbRiX5KZC86wKSbyDG4yBK6LCE0jQLpsqTaOvmiC9er2tmIbY0Oz6sQ46-ZydEQ1ZBh8vbLGXCOZDs18so98f5pjeFN5hZTDFBPU1UXUHEGqNbsb4ENkts7itCR-Zyx08510skAvn67VyA1Iu19G_PT8GX7VnLOL5tTAKOpV_zxcBr75LFM1yxWFrI5UkjAu37fBSBODSQ88ntmXA4SHhTECUTo2D7YUIdQNMDmeZx08KLhgICQKvPqIDVve5I3fqGgyVP"/>
+</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant text-left animate-jitter">CH_ST_02</div>
+<div class="font-label-caps text-[8px] text-primary text-left">AGRESSOR</div>
+</button>
+<button class="flex-shrink-0 w-32 h-40 bg-surface-container-high border border-outline-variant/30 p-2 hover:border-tertiary transition-all group active:scale-95" onclick="updateSkin('HAZARD', 60, 40, 'MK-IV STRIKER // WASP')">
+<div class="w-full h-24 bg-surface-bright mb-2 overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2LT3GHYZarkObpJPNeeEIQBE-pI3lvyeERzY8PD9KWi2jypPRnr6ffLUdio25MxJXCFii-KqS-sBAhaO-iDs-n3qow6ST470XJSpreqwpaewGr0KaG37eeeQ4oxEBBlyhV8n3k1V88K7ZdrQ3oeBhM8yOE8sXIdpvuM1_QUoV9_XmwuxYf2XcvV3vREf6vnMfJiiNJ22uf7n4M6VtTHwqGfcYh3H-_m6QbFydPhHz8aBu7YsJAjy2KsSjD7S7XZQpkkTKippyzFkJ"/>
+</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant text-left animate-jitter">CH_ST_03</div>
+<div class="font-label-caps text-[8px] text-tertiary text-left">TACTICAL</div>
+</button>
+</div>
+</div>
+</div>
+<!-- Confirm Action -->
+<button class="fixed bottom-10 right-10 z-50 flex items-center gap-3 px-8 py-4 bg-primary text-on-primary clip-path-poly font-label-caps text-label-caps shadow-[0_0_20px_rgba(255,180,170,0.4)] hover:brightness-125 transition-all active:scale-90 animate-flicker">
+        APPLY_MODIFICATIONS
+        <span class="material-symbols-outlined">check_circle</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 animate-flicker">
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 active:scale-90 animate-breath">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">power_settings_new</span>
+</button>
+</nav>
+<script>
+    // Particle System
+    function createEmber() {
+        const container = document.getElementById('particle-container');
+        const ember = document.createElement('div');
+        ember.className = 'ember';
+        ember.style.left = Math.random() * 100 + 'vw';
+        ember.style.bottom = '-10px';
+        const duration = 5 + Math.random() * 5;
+        ember.style.animation = `ember ${duration}s linear forwards`;
+        container.appendChild(ember);
+        setTimeout(() => ember.remove(), duration * 1000);
+    }
+    setInterval(createEmber, 300);
+
+    // Layer Toggle Logic
+    let activeLayer = null;
+    function toggleLayer(layer) {
+        const overlay = document.getElementById('layer-overlay');
+        const glow = document.getElementById('overlay-glow');
+        const blueprint = document.getElementById('blueprint-layer');
+        const ship = document.getElementById('ship-preview');
+
+        // Reset previous buttons
+        ['ARMOR', 'ENGINES', 'WEAPONS'].forEach(l => {
+            document.getElementById(`layer-btn-${l}`).classList.remove('border-primary', 'border-on-secondary-container', 'border-primary-container', 'shadow-[0_0_15px_rgba(255,180,170,0.5)]');
+        });
+
+        if (activeLayer === layer) {
+            activeLayer = null;
+            overlay.style.opacity = '0';
+            blueprint.style.opacity = '0';
+            ship.style.filter = 'none';
+        } else {
+            activeLayer = layer;
+            overlay.style.opacity = '1';
+            blueprint.style.opacity = '0.4';
+            
+            const btn = document.getElementById(`layer-btn-${layer}`);
+            if(layer === 'ARMOR') {
+                glow.style.backgroundColor = '#ffb4aa';
+                btn.classList.add('border-primary', 'shadow-[0_0_15px_rgba(255,180,170,0.5)]');
+                ship.style.filter = 'sepia(0.3) saturate(1.5) hue-rotate(-10deg)';
+            } else if(layer === 'ENGINES') {
+                glow.style.backgroundColor = '#00dddd';
+                btn.classList.add('border-on-secondary-container', 'shadow-[0_0_15px_rgba(0,221,221,0.5)]');
+                ship.style.filter = 'hue-rotate(180deg) saturate(1.2)';
+            } else if(layer === 'WEAPONS') {
+                glow.style.backgroundColor = '#c01818';
+                btn.classList.add('border-primary-container', 'shadow-[0_0_15px_rgba(192,24,24,0.5)]');
+                ship.style.filter = 'hue-rotate(-45deg) saturate(2) brightness(0.8)';
+            }
+        }
+    }
+
+    // Update Stats and UI Logic
+    function updateSkin(type, camo, thermal, name) {
+        document.getElementById('skin-name').innerText = name;
+        
+        const camoVal = document.getElementById('camo-val');
+        const camoBar = document.getElementById('camo-bar');
+        animateValue(camoVal, parseInt(camoVal.innerText), camo, 500);
+        camoBar.style.width = camo + '%';
+
+        const thermalVal = document.getElementById('thermal-val');
+        const thermalBar = document.getElementById('thermal-bar');
+        animateValue(thermalVal, parseInt(thermalVal.innerText), thermal, 500);
+        thermalBar.style.width = thermal + '%';
+
+        const ship = document.getElementById('ship-preview');
+        ship.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+            ship.style.transform = 'scale(1)';
+        }, 300);
+    }
+
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerText = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // Rotation Micro-interaction
+    const container = document.getElementById('ship-container');
+    let isDragging = false;
+    let startX;
+    let rotation = 0;
+
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX;
+    });
+
+    window.addEventListener('mouseup', () => isDragging = false);
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const x = e.pageX;
+        const walk = (x - startX) * 0.5;
+        rotation += walk;
+        container.style.transform = `rotateY(${rotation}deg)`;
+        startX = x;
+    });
+
+    // Ambient float
+    let floatY = 0;
+    let floatDirection = 1;
+    function ambientFloat() {
+        if(!isDragging) {
+            floatY += 0.05 * floatDirection;
+            if(Math.abs(floatY) > 10) floatDirection *= -1;
+            container.style.transform = `translateY(${floatY}px) rotateY(${rotation}deg)`;
+        }
+        requestAnimationFrame(ambientFloat);
+    }
+    ambientFloat();
+</script>
+</body></html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // INDUSTRIAL_RECON</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#d5e4f9",
+                    "surface-tint": "#ffb4aa",
+                    "on-error": "#690005",
+                    "surface-container-low": "#1a1614",
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-tertiary-fixed": "#241a00",
+                    "error": "#ffb4ab",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#201000",
+                    "inverse-primary": "#bc1416",
+                    "tertiary": "#e1c471",
+                    "on-surface-variant": "#e5bdb8",
+                    "surface-variant": "#362c28",
+                    "on-tertiary-container": "#4f3d00",
+                    "surface-dim": "#0f0d0c",
+                    "primary-fixed": "#ffdad5",
+                    "outline": "#ac8884",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#930008",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "secondary-fixed": "#ff8c00", // Rusted Orange
+                    "inverse-on-surface": "#243142",
+                    "surface": "#0a0908",
+                    "tertiary-fixed": "#ffe08a",
+                    "on-secondary": "#371b00",
+                    "surface-bright": "#3b332d",
+                    "on-background": "#e5d5c5",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "on-tertiary": "#3d2f00",
+                    "primary": "#ff4d4d", // Hotter Red
+                    "surface-container-highest": "#463628",
+                    "surface-container-lowest": "#080706",
+                    "on-secondary-fixed-variant": "#4f2b00",
+                    "secondary-container": "#ff8c00",
+                    "on-primary": "#690004",
+                    "secondary": "#ffa500", // Amber
+                    "background": "#0a0908",
+                    "primary-container": "#930008",
+                    "outline-variant": "#5c403c",
+                    "surface-container": "#241d1a",
+                    "tertiary-container": "#c4a959",
+                    "secondary-fixed-dim": "#cc7000",
+                    "on-secondary-container": "#703500",
+                    "on-primary-fixed": "#410001",
+                    "surface-container-high": "#2b231d",
+                    "on-surface": "#e5d5c5",
+                    "on-primary-container": "#ffd2cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "edge-margin": "2rem",
+                    "bracket-padding": "0.5rem",
+                    "hud-gutter": "1rem",
+                    "stack-gap": "1.5rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Stick No Bills"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "body-jp": ["Noto Sans JP"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "display-xl": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent, rgba(255, 77, 77, 0.08) 50%, transparent);
+            animation: scanline 4s linear infinite;
+        }
+        .grid-background {
+            background-image: 
+                linear-gradient(rgba(255, 140, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 140, 0, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .bevel-industrial {
+            box-shadow: 
+                inset 2px 2px 0px rgba(255,255,255,0.1),
+                inset -2px -2px 0px rgba(0,0,0,0.5),
+                4px 4px 10px rgba(0,0,0,0.8);
+            border: 2px solid #362c28;
+        }
+        /* Rivet details */
+        .rivet {
+            width: 6px;
+            height: 6px;
+            background: #4a3d37;
+            border-radius: 50%;
+            box-shadow: inset 1px 1px 2px black, 1px 1px 1px rgba(255,255,255,0.1);
+            position: absolute;
+        }
+        .rivet-tl { top: 6px; left: 6px; }
+        .rivet-tr { top: 6px; right: 6px; }
+        .rivet-bl { bottom: 6px; left: 6px; }
+        .rivet-br { bottom: 6px; right: 6px; }
+
+        /* CRT effects */
+        @keyframes crt-flicker {
+            0% { opacity: 0.98; filter: contrast(1.1) brightness(1); }
+            5% { opacity: 0.85; filter: contrast(1.3) brightness(1.4); }
+            10% { opacity: 0.98; filter: contrast(1.1) brightness(1); }
+            15% { opacity: 0.9; filter: contrast(1) brightness(1.2); }
+            100% { opacity: 1; filter: contrast(1.1) brightness(1); }
+        }
+        .crt-flicker {
+            animation: crt-flicker 0.1s infinite alternate;
+        }
+        @keyframes glow-pulse {
+            0% { text-shadow: 0 0 8px rgba(255,77,77,0.6); }
+            100% { text-shadow: 0 0 25px rgba(255,77,77,0.9), 0 0 40px rgba(255,140,0,0.4); }
+        }
+        .glow-pulse {
+            animation: glow-pulse 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes entrance-top {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes entrance-bottom {
+            from { transform: translateY(100%) translateX(-50%); opacity: 0; }
+            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+        }
+        
+        .btn-industrial {
+            position: relative;
+            background: linear-gradient(145deg, #463628, #1a1614);
+            border: 2px solid #5c403c;
+            box-shadow: 0 4px 0 #2b231d;
+            transition: all 0.1s;
+        }
+        .btn-industrial:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2b231d;
+        }
+        
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+        .bracket-heavy {
+            border-left: 4px solid #ff4d4d;
+            border-right: 4px solid #ff4d4d;
+            padding: 0 10px;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+            background: #080706;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden font-body-jp selection:bg-primary selection:text-on-primary">
+<!-- CANVAS / GAME WORLD CONTAINER -->
+<div class="fixed inset-0 w-full h-full bg-surface-container-lowest z-0 overflow-hidden" id="game-world">
+<canvas id="particle-canvas"></canvas>
+<div class="absolute inset-0 grid-background pointer-events-none opacity-20"></div>
+<div class="absolute inset-0 scanline-overlay pointer-events-none z-50"></div>
+<!-- Center Crosshair Buffer -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none flex items-center justify-center">
+<!-- Mechanical Brackets -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary/40"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-right-4 border-primary/40" style="border-right-width: 4px;"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary/40"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary/40"></div>
+<div class="w-3 h-3 bg-primary shadow-[0_0_15px_#ff4d4d] rounded-sm rotate-45"></div>
+<div class="absolute w-20 h-[2px] bg-secondary/30"></div>
+<div class="absolute h-20 w-[2px] bg-secondary/30"></div>
+</div>
+</div>
+<!-- BOOT SCREEN -->
+<div class="fixed inset-0 z-[100] bg-surface-container-lowest flex flex-col items-center justify-center p-edge-margin transition-opacity duration-1000" id="boot-screen">
+<div class="w-full max-w-2xl font-label-caps text-data-sm text-secondary-fixed/80 space-y-2 border-2 border-outline-variant/30 p-8 bevel-industrial relative">
+<div class="rivet rivet-tl"></div><div class="rivet rivet-tr"></div><div class="rivet rivet-bl"></div><div class="rivet rivet-br"></div>
+<p class="text-primary">&gt;&gt; WARMING VACUUM TUBES... [920V]</p>
+<p>&gt;&gt; HYDRAULICS: NOMINAL</p>
+<p>&gt;&gt; PLATING: REINFORCED</p>
+<div class="w-full h-4 bg-surface-variant mt-4 relative overflow-hidden border border-black">
+<div class="absolute inset-0 bg-primary animate-[loading_3s_ease-in-out_infinite]" style="width: 60%"></div>
+</div>
+<div class="flex justify-between pt-4 text-secondary">
+<span class="animate-pulse">ENGINES_IDLING</span>
+<span>[ IRON_WORKS_S7 ]</span>
+</div>
+</div>
+</div>
+<!-- TOP APP BAR (HUD Status) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-hud-gutter py-4 bg-surface-container-low/80 backdrop-blur-md border-b-4 border-surface-container-highest opacity-0" id="hud-top" style="animation: entrance-top 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 3.2s;">
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-primary bg-surface-variant p-2 bevel-industrial hover:brightness-125 transition-all active:translate-y-1" onclick="toggleMenu()">settings_accessibility</button>
+<h1 class="font-display-xl text-headline-lg-mobile md:text-4xl tracking-tighter text-primary crt-flicker glow-pulse italic">KAMIKAZZI_3D</h1>
+</div>
+<div class="hidden lg:flex items-center gap-12 font-label-caps text-secondary">
+<div class="flex flex-col items-center bg-black/40 px-4 py-1 border-x border-outline-variant">
+<span class="text-[9px] opacity-60">FUEL_CONS</span>
+<span class="text-data-lg font-bold text-primary">88%</span>
+</div>
+<div class="flex flex-col items-center bg-black/40 px-4 py-1 border-x border-outline-variant">
+<span class="text-[9px] opacity-60">ALTITUDE</span>
+<span class="text-data-lg font-bold">14,200 <span class="text-xs">FT</span></span>
+</div>
+<div class="flex flex-col items-center bg-black/40 px-4 py-1 border-x border-outline-variant">
+<span class="text-[9px] opacity-60">HULL_INT</span>
+<span class="text-data-lg font-bold text-secondary-fixed">94/100</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex flex-col items-end text-right">
+<span class="font-label-caps text-sm text-secondary-fixed font-bold">CHIEF_MECHANIC</span>
+<span class="font-label-caps text-[9px] text-primary">SECTOR_OVERSEER</span>
+</div>
+<div class="w-12 h-12 bg-surface-variant border-2 border-primary/50 p-1 bevel-industrial">
+<img alt="Pilot Profile" class="w-full h-full object-cover grayscale contrast-150 brightness-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATd_UDKdLAAz_lWi3XwHAuU3nApmzBjrS3vY7Pb1Vhe7zffiW-kqsv4Hj3XBuiCkjxZ26Io6CiVrTohFJayipo_aoPb1u6Vq9A_TKi2IiQGszjE_Hu8r-Za7oJTf33qOChRrFxcCmx-TibtNICi2h0Td8ENjZYbhWC_tsfYVCQxF16q9JFZFkB3PK8JOzPC7uqWbhG5Mi4ARJaLj9a0q0I2lvZpId9AAoNJkF9QF8D2rFpwjUB4uAR2NN9x4f8d4diYtOHbwXL9bka"/>
+</div>
+</div>
+</header>
+<!-- START MENU OVERLAY -->
+<div class="fixed inset-0 z-40 bg-surface-dim/95 flex flex-col items-center justify-center text-center p-edge-margin" id="start-menu">
+<div class="relative mb-16 px-12 py-8 border-4 border-primary bevel-industrial bg-surface-container">
+<div class="rivet rivet-tl"></div><div class="rivet rivet-tr"></div><div class="rivet rivet-bl"></div><div class="rivet rivet-br"></div>
+<span class="absolute -top-14 left-1/2 -translate-x-1/2 font-body-jp text-5xl text-primary/30 select-none crt-flicker">神風重工</span>
+<h2 class="font-display-xl text-7xl md:text-9xl text-white drop-shadow-[0_0_15px_rgba(255,77,77,0.8)] crt-flicker glow-pulse uppercase tracking-tighter">
+            KAMIKAZZI
+        </h2>
+<p class="font-label-caps text-xl tracking-[0.5em] text-secondary mt-2 bg-black/60 inline-block px-4">WARBIRD_CONSTRUCTION_V4</p>
+</div>
+<div class="grid gap-6 w-full max-w-md">
+<button class="group relative px-10 py-5 btn-industrial text-white font-label-caps text-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-between" onclick="startGame()">
+<span>ENGAGE_IGNITION</span>
+<span class="material-symbols-outlined text-primary group-hover:animate-pulse">settings_input_component</span>
+</button>
+<div class="grid grid-cols-2 gap-4">
+<button class="group relative px-6 py-4 btn-industrial text-secondary-fixed/80 font-label-caps text-sm hover:text-white transition-all">
+<span>FLIGHT_LOGS</span>
+</button>
+<button class="group relative px-6 py-4 btn-industrial text-secondary-fixed/80 font-label-caps text-sm hover:text-white transition-all">
+<span>THE_FORGE</span>
+</button>
+</div>
+<!-- Physical Toggle Mockup -->
+<div class="flex items-center justify-between p-4 bg-surface-container-high border-2 border-outline-variant/30">
+<span class="font-label-caps text-[10px] text-secondary/60">ANALOG_OVERDRIVE</span>
+<div class="w-12 h-6 bg-black rounded-full p-1 relative border border-white/10">
+<div class="w-4 h-4 bg-primary rounded-full shadow-[0_0_10px_#ff4d4d]"></div>
+</div>
+</div>
+</div>
+<div class="mt-16 font-label-caps text-[11px] text-outline tracking-widest uppercase flex gap-12 opacity-0 bg-black/40 px-6 py-2 border-y border-primary/20" id="telemetry-footer" style="animation: entrance-top 0.8s ease-out forwards 3.5s; animation-direction: alternate-reverse;">
+<span>Furnace: <span class="telemetry-jitter text-primary" data-value="1200K">1200K</span></span>
+<span>Pressure: <span class="telemetry-jitter text-secondary" data-value="85_PSI">85_PSI</span></span>
+<span>Rig: <span class="telemetry-jitter text-primary" data-value="MK_VI_HEAVY">MK_VI_HEAVY</span></span>
+</div>
+</div>
+<!-- MISSION SUCCESS PANEL -->
+<div class="hidden fixed inset-0 z-[60] bg-surface-container-lowest/90 backdrop-blur-md flex items-center justify-center p-hud-gutter" id="success-panel">
+<div class="w-full max-w-4xl grid md:grid-cols-2 gap-0 border-8 border-secondary-fixed bg-surface-dim relative bevel-industrial">
+<div class="rivet rivet-tl"></div><div class="rivet rivet-tr"></div><div class="rivet rivet-bl"></div><div class="rivet rivet-br"></div>
+<div class="flex flex-col justify-center border-r-4 border-secondary-fixed p-12 bg-surface-container">
+<span class="font-label-caps text-secondary-fixed text-lg font-bold bg-black/40 inline-block px-2">POST_MISSION_DIAGNOSTICS</span>
+<h3 class="font-display-xl text-7xl text-white mt-4 uppercase italic">SECURED</h3>
+<div class="mt-12 space-y-6">
+<div class="flex justify-between items-end border-b-2 border-outline-variant/40 pb-2">
+<span class="font-label-caps text-on-surface-variant">SCRAP_COLLECTED</span>
+<span class="font-data-lg text-secondary">42.5 TONS</span>
+</div>
+<div class="flex justify-between items-end border-b-2 border-outline-variant/40 pb-2">
+<span class="font-label-caps text-on-surface-variant">BOUNTY_CLAIMED</span>
+<span class="font-data-lg text-primary">850,000 CR</span>
+</div>
+<div class="flex justify-between items-end border-b-2 border-outline-variant/40 pb-2">
+<span class="font-label-caps text-on-surface-variant">ENGINE_STRESS</span>
+<span class="font-data-lg text-secondary">CRITICAL</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center p-12 bg-black/20">
+<div class="relative w-56 h-56 flex items-center justify-center bg-surface-variant bevel-industrial border-4 border-secondary">
+<div class="absolute inset-0 opacity-10 grid-background"></div>
+<span class="font-display-xl text-[10rem] text-primary drop-shadow-[0_0_30px_rgba(255,77,77,0.8)]">A+</span>
+</div>
+<p class="font-label-caps text-secondary-fixed mt-6 text-xl tracking-[0.2em] font-bold">RATING: ACE_SCRAPPER</p>
+<div class="mt-10 flex flex-col gap-4 w-full">
+<button class="w-full py-4 btn-industrial bg-primary text-white font-label-caps text-lg uppercase" onclick="location.reload()">NEXT_EXCURSION</button>
+<button class="w-full py-4 border-2 border-outline-variant text-outline font-label-caps text-sm uppercase hover:bg-white/5" onclick="location.reload()">RETURN_TO_FORGE</button>
+</div>
+</div>
+</div>
+</div>
+<!-- HUD PERIPHERALS -->
+<aside class="fixed left-edge-margin top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-12 pointer-events-none">
+<div class="p-6 border-l-8 border-primary bg-surface-container-low/80 backdrop-blur-sm w-56 bevel-industrial relative">
+<div class="rivet rivet-tr"></div><div class="rivet rivet-br"></div>
+<span class="font-label-caps text-[10px] text-primary font-bold block mb-4">THERMAL_OUTPUT</span>
+<div class="space-y-3">
+<div class="h-2 w-full bg-black border border-white/10"><div class="h-full bg-primary w-[85%] shadow-[0_0_8px_red]"></div></div>
+<div class="h-2 w-full bg-black border border-white/10"><div class="h-full bg-secondary w-[92%] shadow-[0_0_8px_orange]"></div></div>
+<div class="h-2 w-full bg-black border border-white/10"><div class="h-full bg-primary w-[70%] shadow-[0_0_8px_red]"></div></div>
+</div>
+<p class="font-data-sm text-white mt-4 text-center bg-black/60 py-1">CORE_TEMP: 2400K</p>
+</div>
+</aside>
+<aside class="fixed right-edge-margin top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-12 pointer-events-none items-end">
+<div class="p-6 border-r-8 border-secondary bg-surface-container-low/80 backdrop-blur-sm w-56 text-right bevel-industrial relative">
+<div class="rivet rivet-tl"></div><div class="rivet rivet-bl"></div>
+<span class="font-label-caps text-[10px] text-secondary font-bold block mb-4">SONAR_IMAGING</span>
+<div class="w-full aspect-square bg-black rounded-sm border-2 border-secondary/40 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-secondary/20 to-transparent"></div>
+<div class="absolute top-1/3 left-1/4 w-2 h-2 bg-primary animate-ping"></div>
+<div class="absolute top-1/2 left-1/2 w-20 h-[2px] bg-secondary/80 origin-left animate-[spin_3s_linear_infinite]"></div>
+<div class="absolute inset-0 grid-background opacity-30"></div>
+</div>
+</div>
+</aside>
+<!-- BOTTOM NAV BAR -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-auto flex gap-10 px-12 py-3 border-4 border-surface-container-highest bg-surface-container-low/90 backdrop-blur-xl z-50 opacity-0 bevel-industrial" id="hud-bottom" style="animation: entrance-bottom 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 3.2s;">
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,77,77,1)] scale-125 hover:brightness-150 transition-all">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">hardware</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">bolt</span>
+</button>
+</nav>
+<script>
+    // Industrial Particle System (Soot & Embers)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() {
+            this.init();
+        }
+        init() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = (Math.random() - 0.5) * 1;
+            this.speedY = -(Math.random() * 2 + 1); // Upward movement for soot/heat
+            this.alpha = Math.random() * 0.7;
+            this.color = Math.random() > 0.7 ? '#ff4d4d' : '#2a201a'; // Embers vs Soot
+        }
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+            this.alpha -= 0.002;
+            if (this.y < -10 || this.alpha <= 0) this.init();
+        }
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            if (this.color === '#ff4d4d') {
+                // Glow for embers
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff4d4d';
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    }
+
+    for (let i = 0; i < 150; i++) particles.push(new Particle());
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Telemetry Jitter Logic
+    const jitters = document.querySelectorAll('.telemetry-jitter');
+    const hexChars = '0123456789ABCDEF';
+
+    setInterval(() => {
+        jitters.forEach(el => {
+            if (Math.random() > 0.95) {
+                const original = el.getAttribute('data-value');
+                let jittered = '';
+                for (let i = 0; i < original.length; i++) {
+                    jittered += Math.random() > 0.9 ? hexChars[Math.floor(Math.random() * 16)] : original[i];
+                }
+                el.innerText = jittered;
+                setTimeout(() => el.innerText = original, 80);
+            }
+        });
+    }, 150);
+
+    // Boot & Navigation Scripts
+    setTimeout(() => {
+        const boot = document.getElementById('boot-screen');
+        boot.style.opacity = '0';
+        setTimeout(() => boot.style.display = 'none', 1000);
+    }, 4000);
+
+    function startGame() {
+        const menu = document.getElementById('start-menu');
+        menu.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        menu.style.opacity = '0';
+        menu.style.filter = 'blur(10px) brightness(0.2)';
+        menu.style.transform = 'scale(1.1)';
+        setTimeout(() => menu.style.display = 'none', 600);
+        
+        // Success screen trigger after 8s
+        setTimeout(() => {
+            showSuccess();
+        }, 8000);
+    }
+
+    function showSuccess() {
+        const success = document.getElementById('success-panel');
+        success.classList.remove('hidden');
+        success.classList.add('flex');
+        success.style.opacity = '0';
+        setTimeout(() => success.style.opacity = '1', 10);
+    }
+
+    function toggleMenu() {
+        const menu = document.getElementById('start-menu');
+        if (window.getComputedStyle(menu).display === 'none') {
+            menu.style.display = 'flex';
+            setTimeout(() => {
+                menu.style.opacity = '1';
+                menu.style.filter = 'none';
+                menu.style.transform = 'scale(1)';
+            }, 10);
+        }
+    }
+</script>
+</body></html>

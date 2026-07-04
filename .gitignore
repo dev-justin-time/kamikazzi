@@ -1,4 +1,4 @@
-# Node / build outputs (in case a bundler is added later)
+# Node / build outputs
 node_modules/
 dist/
 build/
@@ -36,12 +36,15 @@ ehthumbs.db
 .env
 .env.local
 .env.*.local
-la_dodger/
+
+# Standalone repos — each has its own git history
+kamakazii_studio3D/
+kamasazii_vecter_omega3d/
 
 # Temp screenshots / images
 screen.jpg
 screen.png
-assets/image/china.jpg
 
-# Windows reserved device name (artifact from curl output redirection to NUL)
+# Windows reserved device name (artifact from curl output redirection)
 nul
+NUL

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // SYNC_INTERRUPTED</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes neon-flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 10px #ffb4aa, 0 0 20px #ffb4aa, 0 0 30px #c01818;
+            }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+                opacity: 0.4;
+                text-shadow: none;
+            }
+        }
+        @keyframes screen-glitch {
+            0% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 1; }
+            10% { transform: skew(10deg); filter: hue-rotate(90deg); opacity: 0.8; }
+            15% { transform: skew(-10deg); filter: hue-rotate(180deg); opacity: 1; }
+            20% { transform: skew(0deg); filter: hue-rotate(0deg); opacity: 0.5; }
+            25% { transform: skew(5deg); opacity: 1; }
+            100% { transform: skew(0deg); opacity: 1; }
+        }
+        .glitch-active {
+            animation: screen-glitch 0.4s ease-in-out infinite;
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent 50%, rgba(255, 180, 170, 0.05) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .glitch-text {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) infinite;
+            text-shadow: 2px 0 #ff0000, -2px 0 #00ffff;
+        }
+        .neon-flicker-effect {
+            animation: neon-flicker 3s linear infinite;
+        }
+        .clip-path-tactical {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        .clip-path-button {
+            clip-path: polygon(15% 0, 100% 0, 100% 60%, 85% 100%, 0 100%, 0 40%);
+        }
+        .radial-vignette {
+            background: radial-gradient(circle, transparent 40%, rgba(6, 20, 35, 0.9) 100%);
+        }
+        .radar-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+        .radar-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(255, 180, 170, 0.1);
+            border-radius: 50%;
+        }
+        .radar-sweep-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150vmax;
+            height: 150vmax;
+            margin-top: -75vmax;
+            margin-left: -75vmax;
+            background: conic-gradient(from 0deg at 50% 50%, rgba(255, 180, 170, 0.15) 0deg, rgba(255, 180, 170, 0) 45deg);
+            animation: radar-sweep 4s linear infinite;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#061423",
+                        "inverse-surface": "#d5e4f9",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#020f1e",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "surface-dim": "#061423",
+                        "on-secondary-container": "#007070",
+                        "primary-fixed": "#ffdad5",
+                        "on-secondary": "#003737",
+                        "outline-variant": "#5c403c",
+                        "on-primary-fixed-variant": "#930008",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-surface-variant": "#e5bdb8",
+                        "surface-container-high": "#1d2b3b",
+                        "on-background": "#d5e4f9",
+                        "secondary": "#ffffff",
+                        "on-secondary-fixed": "#002020",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "on-error": "#690005",
+                        "surface-variant": "#283646",
+                        "surface-container": "#132030",
+                        "on-primary-fixed": "#410001",
+                        "tertiary-fixed": "#ffe08a",
+                        "error": "#ffb4ab",
+                        "on-primary": "#690004",
+                        "on-surface": "#d5e4f9",
+                        "inverse-primary": "#bc1416",
+                        "tertiary-container": "#c4a959",
+                        "primary-container": "#c01818",
+                        "outline": "#ac8884",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#ffb4aa",
+                        "surface-bright": "#2d3a4b",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "secondary-fixed": "#00fbfb",
+                        "surface-container-highest": "#283646",
+                        "primary": "#ffb4aa",
+                        "on-tertiary-fixed": "#241a00",
+                        "secondary-container": "#00fbfb",
+                        "tertiary": "#e1c471",
+                        "surface-container-low": "#0e1c2c",
+                        "inverse-on-surface": "#243142",
+                        "on-tertiary-container": "#4f3d00",
+                        "on-primary-container": "#ffd2cd",
+                        "on-tertiary": "#3d2f00",
+                        "background": "#061423"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "bracket-padding": "0.5rem",
+                        "stack-gap": "1.5rem",
+                        "hud-gutter": "1rem",
+                        "edge-margin": "2rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Stick No Bills"],
+                        "data-sm": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"],
+                        "data-lg": ["JetBrains Mono"],
+                        "body-jp": ["Noto Sans JP"],
+                        "display-xl": ["Stick No Bills"],
+                        "headline-lg-mobile": ["Stick No Bills"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                        "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                        "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-data-sm overflow-hidden selection:bg-primary-container selection:text-on-primary-container" id="main-body">
+<!-- Global Background Elements -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<!-- Radar Sweep Effect -->
+<div class="radar-container opacity-50">
+<div class="radar-circle w-[20%] aspect-square"></div>
+<div class="radar-circle w-[40%] aspect-square"></div>
+<div class="radar-circle w-[60%] aspect-square"></div>
+<div class="radar-circle w-[80%] aspect-square"></div>
+<div class="radar-sweep-line"></div>
+</div>
+<div class="absolute inset-0 scanline-overlay z-10"></div>
+<div class="absolute inset-0 radial-vignette z-20"></div>
+<div class="absolute top-0 left-0 w-full h-px bg-primary/20 animate-[scanline_4s_linear_infinite] z-30 shadow-[0_0_10px_#ffb4aa]"></div>
+</div>
+<!-- Top Navigation Bar -->
+<nav class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+<span class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6 items-center font-label-caps text-label-caps">
+<span class="text-on-surface-variant cursor-pointer hover:text-secondary transition-all">FLIGHT_OPS</span>
+<span class="text-on-surface-variant cursor-pointer hover:text-secondary transition-all">LEADERBOARD</span>
+<span class="text-secondary drop-shadow-[0_0_5px_#ffffff] cursor-default">SKIN_LAB</span>
+<span class="text-on-surface-variant cursor-pointer hover:text-secondary transition-all">LOUNGE</span>
+</div>
+<div class="w-8 h-8 rounded-full border border-primary/40 bg-surface-container overflow-hidden">
+<img alt="Pilot Portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBggkcIfs21zOIn06Pk7mBsybDEWJm3TH-nIWwXs_ZutkPVNl2dxqzwulW54lzAom5ejSurN0WnHrvquj8QW3cjlN1GTzlizm2Qmt1R5Ta_vPHwZmrtbJC3auMpBaUp85mTv_VegbIXW8uuAGxltl7bTLVpLRFU3OOnArRYsG7Bspu1_DG8LNPpx7nYO1UBp3cZJd0J9n_mrxOdW2p-drZetr_Eh8L1toNBpcqS9UpG3cV_e86Z5WYQlyfesHfWZkk8YWriWfWaZ8Z5"/>
+</div>
+</div>
+</nav>
+<!-- Main Canvas Area -->
+<main class="relative z-40 w-full min-h-screen pt-24 px-edge-margin pb-32 flex flex-col items-center justify-center">
+<!-- Center Alert Section -->
+<div class="max-w-4xl w-full text-center mb-12">
+<div class="inline-flex items-center gap-2 px-3 py-1 border border-primary-container bg-error-container/20 text-primary mb-4 animate-pulse">
+<span class="material-symbols-outlined text-[16px]" data-icon="warning">warning</span>
+<span class="font-label-caps text-label-caps tracking-widest">CRITICAL_FAILURE</span>
+</div>
+<h1 class="font-display-xl text-[64px] md:text-display-xl text-primary leading-none mb-2 glitch-text neon-flicker-effect">DATA_CORRUPTION_DETECTED</h1>
+<p class="font-data-lg text-data-lg text-on-surface-variant max-w-2xl mx-auto">
+            TACTICAL_POWERUPS_SYNC_PROCESS_INTERRUPTED. <span class="text-primary">ENCRYPTED_PACKETS_LOST.</span> SYSTEM_REQUIRES_IMMEDIATE_REBOOT.
+        </p>
+</div>
+<!-- Powerups Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-gap w-full max-w-6xl">
+<!-- Card 1: Overclock -->
+<div class="relative group bg-surface-container-low/40 border border-outline-variant/30 p-6 clip-path-tactical backdrop-blur-md opacity-60 grayscale filter">
+<div class="absolute top-4 right-4 flex flex-col items-end">
+<span class="text-primary font-label-caps text-label-caps border border-primary px-2 py-0.5 mb-1">OFFLINE</span>
+<span class="text-on-surface-variant font-data-sm text-[10px]">ID: PW-001</span>
+</div>
+<div class="mb-8">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant" data-icon="bolt">bolt</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface-variant mb-2">ENG_OVERCLOCK</h3>
+<div class="w-full bg-surface-variant h-1 flex gap-1 mb-4">
+<div class="w-1/5 h-full bg-outline-variant"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+</div>
+<p class="text-on-surface-variant/60 font-data-sm">INTEGRITY CHECK FAILED. MODULE UNAVAILABLE DURING SYNC ERROR.</p>
+<div class="absolute inset-0 bg-error-container/5 pointer-events-none border-2 border-transparent group-hover:border-primary/20 transition-all"></div>
+</div>
+<!-- Card 2: Kinetic Shield (Large Middle) -->
+<div class="relative group bg-surface-container-low/40 border border-outline-variant/30 p-6 clip-path-tactical backdrop-blur-md opacity-40 grayscale filter md:scale-105 z-10 border-primary/50">
+<div class="absolute top-4 right-4 flex flex-col items-end">
+<span class="text-primary font-label-caps text-label-caps border border-primary px-2 py-0.5 mb-1 bg-primary/10">OFFLINE</span>
+<span class="text-on-surface-variant font-data-sm text-[10px]">ID: PW-007</span>
+</div>
+<div class="mb-8">
+<span class="material-symbols-outlined text-[64px] text-primary animate-pulse" data-icon="shield">shield</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-primary mb-2">KINETIC_SHIELD</h3>
+<div class="w-full bg-surface-variant h-1 flex gap-1 mb-4">
+<div class="flex-1 h-full bg-primary/20"></div>
+<div class="flex-1 h-full bg-primary/20"></div>
+<div class="flex-1 h-full bg-primary/20"></div>
+<div class="flex-1 h-full bg-primary/20"></div>
+<div class="flex-1 h-full bg-primary/20"></div>
+</div>
+<p class="text-on-surface-variant/60 font-data-sm">SYNC_STATUS: 0.00% - CORRUPTED_DATA_STREAM_DETECTED. EMERGENCY_LOCKDOWN_ACTIVE.</p>
+<div class="absolute inset-0 bg-error-container/10 pointer-events-none mix-blend-overlay"></div>
+</div>
+<!-- Card 3: Target Assist -->
+<div class="relative group bg-surface-container-low/40 border border-outline-variant/30 p-6 clip-path-tactical backdrop-blur-md opacity-60 grayscale filter">
+<div class="absolute top-4 right-4 flex flex-col items-end">
+<span class="text-primary font-label-caps text-label-caps border border-primary px-2 py-0.5 mb-1">OFFLINE</span>
+<span class="text-on-surface-variant font-data-sm text-[10px]">ID: PW-012</span>
+</div>
+<div class="mb-8">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant" data-icon="track_changes">track_changes</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface-variant mb-2">TARGET_V_03</h3>
+<div class="w-full bg-surface-variant h-1 flex gap-1 mb-4">
+<div class="w-1/5 h-full bg-outline-variant"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+<div class="w-1/5 h-full bg-outline-variant/30"></div>
+</div>
+<p class="text-on-surface-variant/60 font-data-sm">SUBSYSTEM_OFFLINE. RELOAD_COMMAND_REQUIRED_FOR_INITIALIZATION.</p>
+<div class="absolute inset-0 bg-error-container/5 pointer-events-none"></div>
+</div>
+</div>
+<!-- Tactical Brackets framing the reboot button -->
+<div class="mt-16 relative p-12">
+<div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary"></div>
+<button class="relative group px-12 py-5 bg-transparent border-2 border-primary text-primary clip-path-button overflow-hidden transition-all hover:bg-primary-container active:scale-95 duration-100 shadow-[0_0_25px_rgba(192,24,24,0.4)]" id="reboot-btn">
+<div class="relative z-10 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary group-hover:text-white" data-icon="sync">sync</span>
+<span class="font-headline-lg text-headline-lg tracking-[0.2em] group-hover:text-white">REBOOT_SYNC</span>
+</div>
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+</button>
+</div>
+<div class="mt-8 font-label-caps text-label-caps text-primary/60 tracking-widest flex items-center gap-2">
+<span class="animate-pulse">_</span>
+<span>ERROR_CODE: 0x882_SYNC_TIMEOUT</span>
+<span class="animate-pulse">_</span>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<footer class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-surface-container-low/20">
+<div class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="text-[8px] font-label-caps mt-1 opacity-0 group-hover:opacity-100 transition-opacity">SYS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+<span class="text-[8px] font-label-caps mt-1 opacity-0 group-hover:opacity-100 transition-opacity">RADAR</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 cursor-default">
+<span class="material-symbols-outlined" data-icon="query_stats" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+<span class="text-[8px] font-label-caps mt-1">DATA</span>
+</div>
+<div class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+<span class="text-[8px] font-label-caps mt-1 opacity-0 group-hover:opacity-100 transition-opacity">QUIT</span>
+</div>
+</footer>
+<!-- HUD Telemetry Corners -->
+<div class="fixed top-24 left-8 z-40 hidden md:block">
+<div class="border-l border-t border-primary/40 p-2">
+<div class="font-label-caps text-label-caps text-primary/60 mb-1">LATENCY</div>
+<div class="font-data-lg text-data-lg text-primary">999+ MS</div>
+</div>
+</div>
+<div class="fixed top-24 right-8 z-40 hidden md:block">
+<div class="border-r border-t border-primary/40 p-2 text-right">
+<div class="font-label-caps text-label-caps text-primary/60 mb-1">PACKET_LOSS</div>
+<div class="font-data-lg text-data-lg text-primary">100.0%</div>
+</div>
+</div>
+<!-- Script for interaction logic -->
+<script>
+    document.getElementById('reboot-btn').addEventListener('click', function() {
+        // Trigger screen-wide glitch animation
+        const mainBody = document.getElementById('main-body');
+        mainBody.classList.add('glitch-active');
+        
+        this.innerHTML = `
+            <div class="relative z-10 flex items-center gap-3">
+                <span class="material-symbols-outlined animate-spin" data-icon="sync">sync</span>
+                <span class="font-headline-lg text-headline-lg tracking-[0.2em]">INITIALIZING...</span>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            mainBody.classList.remove('glitch-active');
+            location.reload();
+        }, 2000);
+    });
+</script>
+</body></html>

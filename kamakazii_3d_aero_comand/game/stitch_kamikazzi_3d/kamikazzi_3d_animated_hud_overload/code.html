@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // HUD_OVERLOAD_SYSTEM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#d5e4f9",
+                    "surface-tint": "#ffb4aa",
+                    "on-error": "#690005",
+                    "surface-container-low": "#0e1c2c",
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-tertiary-fixed": "#241a00",
+                    "error": "#ffb4ab",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#002020",
+                    "inverse-primary": "#bc1416",
+                    "tertiary": "#e1c471",
+                    "on-surface-variant": "#e5bdb8",
+                    "surface-variant": "#283646",
+                    "on-tertiary-container": "#4f3d00",
+                    "surface-dim": "#061423",
+                    "primary-fixed": "#ffdad5",
+                    "outline": "#ac8884",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#930008",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "secondary-fixed": "#00fbfb",
+                    "inverse-on-surface": "#243142",
+                    "surface": "#061423",
+                    "tertiary-fixed": "#ffe08a",
+                    "on-secondary": "#003737",
+                    "surface-bright": "#2d3a4b",
+                    "on-background": "#d5e4f9",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "on-tertiary": "#3d2f00",
+                    "primary": "#ffb4aa",
+                    "surface-container-highest": "#283646",
+                    "surface-container-lowest": "#020f1e",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "secondary-container": "#00fbfb",
+                    "on-primary": "#690004",
+                    "secondary": "#ffffff",
+                    "background": "#061423",
+                    "primary-container": "#c01818",
+                    "outline-variant": "#5c403c",
+                    "surface-container": "#132030",
+                    "tertiary-container": "#c4a959",
+                    "secondary-fixed-dim": "#00dddd",
+                    "on-secondary-container": "#007070",
+                    "on-primary-fixed": "#410001",
+                    "surface-container-high": "#1d2b3b",
+                    "on-surface": "#d5e4f9",
+                    "on-primary-container": "#ffd2cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "edge-margin": "2rem",
+                    "bracket-padding": "0.5rem",
+                    "hud-gutter": "1rem",
+                    "stack-gap": "1.5rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Stick No Bills"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "body-jp": ["Noto Sans JP"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "display-xl": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent, rgba(0, 255, 255, 0.05) 50%, transparent);
+            animation: scanline 8s linear infinite;
+        }
+        .grid-background {
+            background-image: 
+                linear-gradient(to right, rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                radial-gradient(circle, #00ffff11 1px, transparent 1px);
+            background-size: 80px 80px, 80px 80px, 20px 20px;
+        }
+        .clip-path-corner {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 85% 100%, 0% 100%);
+        }
+        @keyframes monitor-flicker-on {
+            0% { opacity: 0; transform: scaleY(0.005) scaleX(0); filter: brightness(5); }
+            5% { opacity: 1; transform: scaleY(0.005) scaleX(1); }
+            10% { opacity: 0; }
+            15% { opacity: 1; transform: scaleY(1) scaleX(1); filter: brightness(1); }
+            20% { opacity: 0.8; }
+            25% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+        .monitor-entrance {
+            animation: monitor-flicker-on 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        @keyframes crt-flicker {
+            0% { opacity: 0.95; filter: contrast(1) brightness(1); }
+            5% { opacity: 0.7; filter: contrast(1.1) brightness(1.2); }
+            10% { opacity: 0.95; filter: contrast(1) brightness(1); }
+            15% { opacity: 0.8; filter: contrast(0.9) brightness(1.1); }
+            100% { opacity: 1; filter: contrast(1) brightness(1); }
+        }
+        .crt-flicker {
+            animation: crt-flicker 0.15s infinite alternate;
+        }
+        @keyframes glow-pulse {
+            0% { text-shadow: 0 0 5px rgba(255,180,170,0.4); }
+            100% { text-shadow: 0 0 20px rgba(255,180,170,0.8), 0 0 30px rgba(255,180,170,0.4); }
+        }
+        .glow-pulse {
+            animation: glow-pulse 2s infinite alternate ease-in-out;
+        }
+        @keyframes entrance-top {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes entrance-bottom {
+            from { transform: translateY(30px) translateX(-50%); opacity: 0; }
+            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+        }
+        @keyframes glitch-hover {
+            0% { transform: skew(0deg); filter: brightness(1); }
+            20% { transform: skew(2deg) translateX(-2px); filter: brightness(1.5); }
+            40% { transform: skew(-2deg) translateX(2px); filter: brightness(1.2); }
+            60% { transform: skew(1deg); filter: brightness(1.4); }
+            100% { transform: skew(0deg); filter: brightness(1); }
+        }
+        .btn-glitch:hover {
+            animation: glitch-hover 0.3s infinite;
+        }
+        .btn-glitch:active {
+            transform: skew(-5deg) scale(0.98);
+        }
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .bracket-l::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 15px; height: 15px;
+            border-top: 2px solid currentColor;
+            border-left: 2px solid currentColor;
+        }
+        .bracket-r::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 15px; height: 15px;
+            border-bottom: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+        }
+        @keyframes text-flicker {
+            0% { opacity: 0.1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+        .diag-flicker {
+            animation: text-flicker 4s infinite linear;
+        }
+        .staggered-entrance > * {
+            opacity: 0;
+        }
+        .hud-active .staggered-entrance > *:nth-child(1) { animation: entrance-top 0.4s ease-out forwards 0.1s; }
+        .hud-active .staggered-entrance > *:nth-child(2) { animation: entrance-top 0.4s ease-out forwards 0.2s; }
+        .hud-active .staggered-entrance > *:nth-child(3) { animation: entrance-top 0.4s ease-out forwards 0.3s; }
+        
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden font-body-jp selection:bg-primary selection:text-on-primary">
+<!-- CANVAS / GAME WORLD CONTAINER -->
+<div class="fixed inset-0 w-full h-full bg-surface-container-lowest z-0 overflow-hidden" id="game-world">
+<canvas id="particle-canvas"></canvas>
+<div class="absolute inset-0 grid-background pointer-events-none opacity-20"></div>
+<div class="absolute inset-0 scanline-overlay pointer-events-none z-50"></div>
+<!-- Complex Grid & Tactical Overlays -->
+<div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+<div class="w-[800px] h-[800px] border border-secondary-fixed rounded-full flex items-center justify-center">
+<div class="w-[600px] h-[600px] border border-secondary-fixed/50 rounded-full border-dashed animate-[spin_60s_linear_infinite]"></div>
+</div>
+</div>
+<!-- Center Reticle / Crosshair -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none opacity-0 transition-opacity duration-700" id="reticle">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 h-full w-[1px] bg-secondary-fixed/20"></div>
+<div class="absolute top-1/2 left-0 -translate-y-1/2 w-full h-[1px] bg-secondary-fixed/20"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] border border-primary/20 rounded-full"></div>
+<!-- Pitch Ladder Mockup -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-8 opacity-40 font-label-caps text-[8px] text-secondary-fixed">
+<div class="flex items-center gap-16"><div class="w-12 h-[1px] bg-secondary-fixed"></div><span class="telemetry-jitter" data-value="+20">+20</span><div class="w-12 h-[1px] bg-secondary-fixed"></div></div>
+<div class="flex items-center gap-16"><div class="w-12 h-[1px] bg-secondary-fixed"></div><span class="telemetry-jitter" data-value="+10">+10</span><div class="w-12 h-[1px] bg-secondary-fixed"></div></div>
+<div class="flex items-center gap-16"><div class="w-12 h-[1px] bg-secondary-fixed"></div><span class="telemetry-jitter" data-value="000">000</span><div class="w-12 h-[1px] bg-secondary-fixed"></div></div>
+<div class="flex items-center gap-16"><div class="w-12 h-[1px] bg-secondary-fixed"></div><span class="telemetry-jitter" data-value="-10">-10</span><div class="w-12 h-[1px] bg-secondary-fixed"></div></div>
+<div class="flex items-center gap-16"><div class="w-12 h-[1px] bg-secondary-fixed"></div><span class="telemetry-jitter" data-value="-20">-20</span><div class="w-12 h-[1px] bg-secondary-fixed"></div></div>
+</div>
+</div>
+</div>
+<!-- BOOT SCREEN -->
+<div class="fixed inset-0 z-[100] bg-surface-container-lowest flex flex-col items-center justify-center p-edge-margin transition-opacity duration-1000" id="boot-screen">
+<div class="w-full max-w-2xl font-label-caps text-data-sm text-secondary-fixed/80 space-y-2 monitor-entrance">
+<p class="text-secondary-fixed">&gt;&gt; INITIALIZING KAMIKAZZI_OS v.4.0.2...</p>
+<p>&gt;&gt; DECRYPTING FLIGHT_CORE: 0x8800_READY</p>
+<p>&gt;&gt; LOADING_UI_OVERLOAD_PRESET: TRUE</p>
+<div class="w-full h-1 bg-surface-variant mt-4 relative overflow-hidden">
+<div class="absolute inset-0 bg-secondary-fixed animate-[loading_2s_ease-in-out_infinite]"></div>
+</div>
+<div class="flex justify-between pt-4">
+<span class="animate-pulse telemetry-jitter" data-value="SYS_SYNCING">SYS_SYNCING</span>
+<span class="telemetry-jitter" data-value="[ PROTOCOL_OMEGA ]">[ PROTOCOL_OMEGA ]</span>
+</div>
+</div>
+</div>
+<!-- HUD PERIPHERALS (CORNERS) -->
+<div class="fixed inset-0 pointer-events-none z-30 p-hud-gutter overflow-hidden flex flex-col justify-between opacity-0" id="hud-frame">
+<!-- Top Row -->
+<div class="flex justify-between items-start staggered-entrance">
+<div class="space-y-4">
+<!-- FUEL RESERVE -->
+<div class="p-3 border-l-2 border-primary/60 bg-surface-container-low/60 backdrop-blur-sm w-48 bracket-l relative">
+<span class="font-label-caps text-[8px] text-primary block mb-1 telemetry-jitter" data-value="FUEL_RESERVE">FUEL_RESERVE</span>
+<div class="flex items-end gap-2">
+<span class="font-data-lg text-secondary leading-none telemetry-jitter" data-value="82.4">82.4</span>
+<span class="font-label-caps text-[8px] text-primary/60 pb-1">% LQD_O2</span>
+</div>
+<div class="h-1 w-full bg-surface-variant mt-2"><div class="h-full bg-primary w-[82%]"></div></div>
+</div>
+<!-- DIAGNOSTIC FLICKER -->
+<div class="font-label-caps text-[7px] text-secondary/40 space-y-1 diag-flicker">
+<p class="telemetry-jitter" data-value="COMMS: ENCRYPTED_STABLE">COMMS: ENCRYPTED_STABLE</p>
+<p class="telemetry-jitter" data-value="O2_LVL: OPTIMAL_0.21">O2_LVL: OPTIMAL_0.21</p>
+<p class="telemetry-jitter" data-value="CABIN_P: 101.3KPA">CABIN_P: 101.3KPA</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-4">
+<!-- ENGINE TEMP -->
+<div class="p-3 border-r-2 border-primary/60 bg-surface-container-low/60 backdrop-blur-sm w-48 text-right bracket-r relative">
+<span class="font-label-caps text-[8px] text-primary block mb-1 telemetry-jitter" data-value="CORE_THERMALS">CORE_THERMALS</span>
+<div class="flex items-end justify-end gap-2">
+<span class="font-label-caps text-[8px] text-primary/60 pb-1">CELSIUS</span>
+<span class="font-data-lg text-secondary leading-none telemetry-jitter" data-value="412.0">412.0</span>
+</div>
+<div class="h-1 w-full bg-surface-variant mt-2 flex justify-end"><div class="h-full bg-primary w-[45%]"></div></div>
+</div>
+<!-- ACTIVE PROCESSES -->
+<div class="font-label-caps text-[7px] text-secondary/40 space-y-1 text-right diag-flicker">
+<p class="telemetry-jitter" data-value="PROCESS: PID_1049_RADAR">PROCESS: PID_1049_RADAR</p>
+<p class="telemetry-jitter" data-value="BUFFER: 0x99FF_CLEAR">BUFFER: 0x99FF_CLEAR</p>
+<p class="telemetry-jitter" data-value="HEARTBEAT: 144BPM">HEARTBEAT: 144BPM</p>
+</div>
+</div>
+</div>
+<!-- Bottom Row -->
+<div class="flex justify-between items-end staggered-entrance">
+<div class="space-y-4">
+<!-- G-FORCE / ACCEL -->
+<div class="p-3 border-l-2 border-secondary-fixed/60 bg-surface-container-low/60 backdrop-blur-sm w-48 bracket-l relative">
+<span class="font-label-caps text-[8px] text-secondary-fixed block mb-1 telemetry-jitter" data-value="G-FORCE_VEC">G-FORCE_VEC</span>
+<div class="flex items-end gap-2">
+<span class="font-data-lg text-secondary leading-none telemetry-jitter" data-value="2.45">2.45</span>
+<span class="font-label-caps text-[8px] text-secondary-fixed/60 pb-1">ACCEL_G</span>
+</div>
+<div class="flex gap-1 mt-2">
+<div class="h-4 w-1 bg-secondary-fixed/20"></div><div class="h-4 w-1 bg-secondary-fixed/80"></div><div class="h-4 w-1 bg-secondary-fixed/40"></div><div class="h-4 w-1 bg-secondary-fixed/20"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-4">
+<!-- COMPASS / RADAR SUB -->
+<div class="p-3 border-r-2 border-secondary-fixed/60 bg-surface-container-low/60 backdrop-blur-sm w-48 text-right bracket-r relative">
+<span class="font-label-caps text-[8px] text-secondary-fixed block mb-1 telemetry-jitter" data-value="TACTICAL_COMPASS">TACTICAL_COMPASS</span>
+<div class="flex justify-center items-center h-16 w-full mt-2 relative">
+<div class="absolute inset-0 flex items-center justify-center opacity-30">
+<span class="font-label-caps text-[8px]">N</span>
+<div class="absolute inset-0 border border-secondary-fixed/20 rounded-full"></div>
+</div>
+<div class="w-[1px] h-12 bg-secondary-fixed animate-[spin_5s_linear_infinite]"></div>
+<span class="font-data-lg text-secondary absolute z-10 bg-surface-dim px-1 telemetry-jitter" data-value="042°">042°</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- TOP APP BAR -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-hud-gutter py-4 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 opacity-0 transform -translate-y-full transition-all duration-700" id="hud-top">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-primary/20 p-2 transition-all active:scale-95 btn-glitch" onclick="toggleMenu()">grid_view</button>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary crt-flicker glow-pulse">KAMIKAZZI_3D</h1>
+</div>
+<div class="hidden lg:flex items-center gap-12 font-label-caps text-secondary-fixed">
+<div class="flex flex-col items-end border-r border-secondary-fixed/20 pr-4">
+<span class="text-[8px] opacity-60">MISSION_TIME</span>
+<span class="text-data-lg font-bold telemetry-jitter" data-value="00:14:55">00:14:55</span>
+</div>
+<div class="flex flex-col items-end border-r border-secondary-fixed/20 pr-4">
+<span class="text-[8px] opacity-60">TRAJECTORY</span>
+<span class="text-data-lg font-bold telemetry-jitter" data-value="V_09.X">V_09.X</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[8px] opacity-60">VELOCITY</span>
+<span class="text-data-lg font-bold"><span class="telemetry-jitter" data-value="14,240">14,240</span> <span class="text-sm">M/S</span></span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex flex-col items-end text-right">
+<span class="font-label-caps text-[10px] text-tertiary telemetry-jitter" data-value="PILOT_ID: VOSS_88">PILOT_ID: VOSS_88</span>
+<span class="font-label-caps text-[8px] text-on-surface-variant/70 telemetry-jitter" data-value="SYNC: 100%">SYNC: 100%</span>
+</div>
+<div class="w-10 h-10 bg-surface-variant border border-outline-variant/50 flex items-center justify-center overflow-hidden">
+<img alt="Pilot Profile" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATd_UDKdLAAz_lWi3XwHAuU3nApmzBjrS3vY7Pb1Vhe7zffiW-kqsv4Hj3XBuiCkjxZ26Io6CiVrTohFJayipo_aoPb1u6Vq9A_TKi2IiQGszjE_Hu8r-Za7oJTf33qOChRrFxcCmx-TibtNICi2h0Td8ENjZYbhWC_tsfYVCQxF16q9JFZFkB3PK8JOzPC7uqWbhG5Mi4ARJaLj9a0q0I2lvZpId9AAoNJkF9QF8D2rFpwjUB4uAR2NN9x4f8d4diYtOHbwXL9bka"/>
+</div>
+</div>
+</header>
+<!-- START MENU OVERLAY -->
+<div class="fixed inset-0 z-40 bg-surface-dim/90 backdrop-blur-md flex flex-col items-center justify-center text-center p-edge-margin monitor-entrance" id="start-menu">
+<!-- Tactical Context Elements surrounding the main CTA -->
+<div class="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+<div class="absolute top-1/4 left-10 text-[6px] font-label-caps text-secondary-fixed whitespace-pre leading-tight diag-flicker">
+<span class="telemetry-jitter" data-value="0x0001: SYS_UP">0x0001: SYS_UP</span>
+<span class="telemetry-jitter" data-value="0x0002: NET_LINK">0x0002: NET_LINK</span>
+<span class="telemetry-jitter" data-value="0x0003: GPS_SAT_09">0x0003: GPS_SAT_09</span>
+<span class="telemetry-jitter" data-value="0x0004: FUEL_LOAD_100">0x0004: FUEL_LOAD_100</span>
+<span class="telemetry-jitter" data-value="0x0005: WPN_ARMED_NULL">0x0005: WPN_ARMED_NULL</span>
+<span class="telemetry-jitter" data-value="0x0006: HUD_OVERLOAD_ACTIVE">0x0006: HUD_OVERLOAD_ACTIVE</span>
+</div>
+<div class="absolute bottom-1/4 right-10 text-[6px] font-label-caps text-secondary-fixed whitespace-pre leading-tight text-right diag-flicker">
+<span class="telemetry-jitter" data-value="MEMORY_MAP_0xFFA2">MEMORY_MAP_0xFFA2</span>
+<span class="telemetry-jitter" data-value="PHYSICS_CORE_RUNNING">PHYSICS_CORE_RUNNING</span>
+<span class="telemetry-jitter" data-value="PARTICLE_COUNT: 1200">PARTICLE_COUNT: 1200</span>
+<span class="telemetry-jitter" data-value="SHADOW_MAP: ENABLED">SHADOW_MAP: ENABLED</span>
+<span class="telemetry-jitter" data-value="V_SYNC: LOCKED">V_SYNC: LOCKED</span>
+<span class="telemetry-jitter" data-value="LATENCY: 04MS">LATENCY: 04MS</span>
+</div>
+</div>
+<div class="relative mb-8">
+<span class="absolute -top-12 left-1/2 -translate-x-1/2 font-body-jp text-4xl text-primary-container/40 select-none crt-flicker">神風</span>
+<h2 class="font-display-xl text-7xl md:text-9xl bg-gradient-to-b from-white to-primary-container bg-clip-text text-transparent drop-shadow-2xl crt-flicker glow-pulse">
+            KAMIKAZZI
+        </h2>
+<p class="font-body-jp text-2xl tracking-[1em] text-secondary/60 mt-[-1rem]">SHIN KAZE</p>
+</div>
+<div class="grid gap-4 w-full max-w-sm relative px-8 py-10 staggered-entrance">
+<!-- Tactical borders around buttons -->
+<div class="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-primary/40"></div>
+<div class="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-primary/40"></div>
+<button class="group relative px-8 py-5 bg-primary-container text-on-primary-container font-label-caps text-xl clip-path-corner transition-all hover:scale-105 btn-glitch overflow-hidden" onclick="startGame()">
+<span class="relative z-10 tracking-[0.2em] telemetry-jitter" data-value="LAUNCH_MISSION">LAUNCH_MISSION</span>
+<div class="absolute inset-0 border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+<button class="group relative px-8 py-3 border border-outline-variant/30 text-on-surface-variant/80 font-label-caps text-sm clip-path-corner hover:bg-surface-variant transition-all btn-glitch overflow-hidden">
+<span class="relative z-10 telemetry-jitter" data-value="PILOT_RECORDS_DB">PILOT_RECORDS_DB</span>
+</button>
+<button class="group relative px-8 py-3 border border-outline-variant/30 text-on-surface-variant/80 font-label-caps text-sm clip-path-corner hover:bg-surface-variant transition-all btn-glitch overflow-hidden">
+<span class="relative z-10 telemetry-jitter" data-value="HANGAR_MODULES">HANGAR_MODULES</span>
+</button>
+<div class="mt-4 flex justify-between font-label-caps text-[9px] text-outline/50">
+<span class="telemetry-jitter" data-value="SYS_VERSION_4.0.2">SYS_VERSION_4.0.2</span>
+<span class="telemetry-jitter" data-value="SECURED_LINE_01">SECURED_LINE_01</span>
+</div>
+</div>
+<div class="mt-12 font-label-caps text-[10px] text-outline tracking-widest uppercase flex gap-8 opacity-0" id="telemetry-footer">
+<span>Server: <span class="telemetry-jitter" data-value="NEO_TOKYO_01">NEO_TOKYO_01</span></span>
+<span>Latency: <span class="telemetry-jitter" data-value="14MS">14MS</span></span>
+<span>Build: <span class="telemetry-jitter" data-value="D6F8A2">D6F8A2</span></span>
+</div>
+</div>
+<!-- BOTTOM NAV BAR -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-transparent opacity-0 transform translate-y-full transition-all duration-700" id="hud-bottom">
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 hover:text-primary transition-colors btn-glitch">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors btn-glitch">
+<span class="material-symbols-outlined">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors btn-glitch">
+<span class="material-symbols-outlined">query_stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors btn-glitch">
+<span class="material-symbols-outlined">power_settings_new</span>
+</button>
+</nav>
+<!-- RADAR SWEEP (MODERN) -->
+<aside class="fixed right-edge-margin bottom-edge-margin z-30 hidden lg:block pointer-events-none opacity-0 transition-opacity duration-700" id="radar-aside">
+<div class="p-4 border-2 border-primary/20 bg-surface-container-low/40 backdrop-blur-sm w-56 bracket-r relative rounded-full aspect-square overflow-hidden">
+<span class="absolute top-2 left-1/2 -translate-x-1/2 font-label-caps text-[7px] text-primary z-20 telemetry-jitter" data-value="RADAR_SWEEP_X">RADAR_SWEEP_X</span>
+<div class="w-full h-full rounded-full border border-primary/10 relative overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 bg-[radial-gradient(circle,transparent_40%,rgba(255,180,170,0.05)_100%)]"></div>
+<!-- Targets -->
+<div class="absolute top-1/4 left-1/3 w-1 h-1 bg-primary rounded-full animate-pulse shadow-[0_0_5px_#ffb4aa]"></div>
+<div class="absolute bottom-1/3 right-1/4 w-1 h-1 bg-secondary-fixed rounded-full animate-pulse shadow-[0_0_5px_#00ffff]"></div>
+<!-- Sweep Line -->
+<div class="absolute top-1/2 left-1/2 w-[1px] h-[50%] bg-primary/60 origin-bottom animate-[spin_3s_linear_infinite]"></div>
+<div class="absolute top-1/2 left-1/2 w-full h-[1px] bg-primary/10"></div>
+<div class="absolute top-1/2 left-1/2 h-full w-[1px] bg-primary/10"></div>
+</div>
+</div>
+</aside>
+<script>
+    // Particle System (Embers/Dust)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() {
+            this.init();
+        }
+        init() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.5;
+            this.speedY = (Math.random() - 0.5) * 0.3; // Drifting in Zero-G
+            this.alpha = Math.random() * 0.5;
+            this.life = Math.random() * 0.5 + 0.5;
+        }
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+            this.alpha -= 0.001;
+            if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                this.init();
+            }
+        }
+        draw() {
+            ctx.fillStyle = `rgba(255, 180, 170, ${this.alpha})`;
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = '#ffb4aa';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    for (let i = 0; i < 150; i++) particles.push(new Particle());
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Telemetry Jitter Logic
+    const jitters = document.querySelectorAll('.telemetry-jitter');
+    const hexChars = '0123456789ABCDEF!@#$%^&*()';
+
+    setInterval(() => {
+        jitters.forEach(el => {
+            if (Math.random() > 0.96) {
+                const original = el.getAttribute('data-value');
+                let jittered = '';
+                for (let i = 0; i < original.length; i++) {
+                    jittered += Math.random() > 0.85 ? hexChars[Math.floor(Math.random() * hexChars.length)] : original[i];
+                }
+                el.innerText = jittered;
+                setTimeout(() => el.innerText = original, 80);
+            }
+        });
+    }, 150);
+
+    // Boot Sequence
+    setTimeout(() => {
+        const boot = document.getElementById('boot-screen');
+        boot.style.opacity = '0';
+        setTimeout(() => {
+            boot.style.display = 'none';
+            document.getElementById('start-menu').classList.add('hud-active');
+            document.getElementById('telemetry-footer').style.opacity = '1';
+            document.getElementById('telemetry-footer').style.animation = 'entrance-top 0.8s ease-out forwards';
+        }, 1000);
+    }, 2500);
+
+    function startGame() {
+        const menu = document.getElementById('start-menu');
+        menu.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        menu.style.opacity = '0';
+        menu.style.transform = 'scale(1.2) rotateX(10deg)';
+        
+        const hudFrame = document.getElementById('hud-frame');
+        hudFrame.style.opacity = '1';
+        hudFrame.classList.add('hud-active');
+
+        const hudTop = document.getElementById('hud-top');
+        hudTop.style.opacity = '1';
+        hudTop.style.transform = 'translateY(0)';
+
+        const hudBottom = document.getElementById('hud-bottom');
+        hudBottom.style.opacity = '1';
+        hudBottom.style.transform = 'translateY(0) translateX(-50%)';
+
+        const radarAside = document.getElementById('radar-aside');
+        radarAside.style.opacity = '1';
+
+        const reticle = document.getElementById('reticle');
+        reticle.style.opacity = '1';
+
+        setTimeout(() => {
+            menu.style.display = 'none';
+        }, 500);
+    }
+
+    function toggleMenu() {
+        const menu = document.getElementById('start-menu');
+        if (window.getComputedStyle(menu).display === 'none') {
+            menu.style.display = 'flex';
+            menu.classList.add('monitor-entrance');
+            setTimeout(() => {
+                menu.style.opacity = '1';
+                menu.style.transform = 'scale(1)';
+            }, 10);
+        } else {
+            menu.style.opacity = '0';
+            menu.style.transform = 'scale(1.1)';
+            setTimeout(() => menu.style.display = 'none', 500);
+        }
+    }
+</script>
+</body></html>

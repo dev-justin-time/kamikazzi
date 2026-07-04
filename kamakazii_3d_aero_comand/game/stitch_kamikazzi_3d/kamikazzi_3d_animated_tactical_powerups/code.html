@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D - Tactical Powerups</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#66ffff", // Cyan as requested
+                        "on-tertiary-container": "#4f3d00",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-tint": "#ffb4aa",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "on-primary-fixed": "#410001",
+                        "on-error": "#690005",
+                        "on-primary": "#690004",
+                        "surface-variant": "#283646",
+                        "inverse-surface": "#d5e4f9",
+                        "surface-bright": "#2d3a4b",
+                        "primary": "#ffb4aa",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#003737",
+                        "secondary-fixed": "#66ffff",
+                        "on-tertiary": "#3d2f00",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-primary-fixed-variant": "#930008",
+                        "primary-container": "#c01818", // Red as requested
+                        "inverse-primary": "#bc1416",
+                        "inverse-on-surface": "#243142",
+                        "background": "#061423", // Deep navy surface
+                        "surface-container-lowest": "#020f1e",
+                        "on-surface-variant": "#e5bdb8",
+                        "on-primary-container": "#ffd2cd",
+                        "tertiary-container": "#c4a959",
+                        "surface": "#061423",
+                        "primary-fixed": "#ffdad5",
+                        "secondary-fixed-dim": "#00dddd",
+                        "surface-dim": "#061423",
+                        "outline-variant": "#5c403c",
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#ffe08a",
+                        "tertiary": "#e1c471",
+                        "surface-container-high": "#1d2b3b",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "on-background": "#d5e4f9",
+                        "surface-container-low": "#0e1c2c",
+                        "error": "#ffb4ab",
+                        "on-surface": "#d5e4f9",
+                        "secondary": "#ffffff",
+                        "on-secondary-fixed": "#002020",
+                        "surface-container": "#132030",
+                        "outline": "#ac8884",
+                        "surface-container-highest": "#283646",
+                        "on-secondary-container": "#007070"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "edge-margin": "2rem",
+                        "hud-gutter": "1rem",
+                        "bracket-padding": "0.5rem",
+                        "stack-gap": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Stick No Bills"],
+                        "body-jp": ["Noto Sans JP"],
+                        "headline-lg": ["Stick No Bills"],
+                        "label-caps": ["JetBrains Mono"],
+                        "data-sm": ["JetBrains Mono"],
+                        "data-lg": ["JetBrains Mono"],
+                        "display-xl": ["Stick No Bills"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(102, 255, 255, 0.1);
+            position: absolute;
+            z-index: 10;
+            animation: scan 6s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .drifting-grid {
+            background-image: linear-gradient(rgba(102, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(102, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: drift 20s linear infinite;
+        }
+
+        @keyframes drift {
+            from { background-position: 0 0; }
+            to { background-position: 50px 50px; }
+        }
+
+        .glitch-flicker {
+            animation: glitch-flicker 0.4s cubic-bezier(.25,.46,.45,.94) both;
+        }
+
+        @keyframes glitch-flicker {
+            0% { opacity: 0; transform: scale(0.9) skewX(10deg); filter: blur(10px); }
+            20% { opacity: 0.8; transform: scale(1.05) skewX(-10deg); filter: blur(0px); }
+            40% { opacity: 0.3; transform: scale(0.95) skewX(5deg); }
+            60% { opacity: 1; transform: scale(1) skewX(0); }
+            80% { opacity: 0.7; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .entrance-slide {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slide-up 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes slide-up {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .breathing-icon {
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { 
+                filter: brightness(1) drop-shadow(0 0 5px currentColor);
+                transform: scale(1);
+            }
+            50% { 
+                filter: brightness(1.3) drop-shadow(0 0 20px currentColor);
+                transform: scale(1.05);
+            }
+        }
+
+        .clip-corner {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .bracket-tl { border-top: 2px solid; border-left: 2px solid; width: 20px; height: 20px; }
+        .bracket-tr { border-top: 2px solid; border-right: 2px solid; width: 20px; height: 20px; }
+        .bracket-bl { border-bottom: 2px solid; border-left: 2px solid; width: 20px; height: 20px; }
+        .bracket-br { border-bottom: 2px solid; border-right: 2px solid; width: 20px; height: 20px; }
+
+        body {
+            background-color: #061423;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .hud-grid {
+            background-image: radial-gradient(circle, #66ffff11 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="flex flex-col font-body-jp text-on-surface">
+<!-- Global HUD Overlays -->
+<div class="fixed inset-0 pointer-events-none z-10 drifiting-grid opacity-20"></div>
+<div class="fixed inset-0 pointer-events-none z-10 drifting-grid opacity-10"></div>
+<div class="scanline"></div>
+<!-- Background Atmospheric Elements -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] blur-[120px] opacity-20">
+<div class="w-full h-full bg-gradient-to-tr from-primary-container via-transparent to-secondary-container/20"></div>
+</div>
+</div>
+<!-- Top Navigation Bar -->
+<header class="bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 font-label-caps text-label-caps flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 shadow-[0_0_20px_rgba(102,255,255,0.15)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-container">speed</span>
+<span class="font-display-xl text-headline-lg-mobile tracking-widest text-secondary-container drop-shadow-[0_0_8px_rgba(102,255,255,0.8)]">KAMIKAZZI_3D</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end opacity-70">
+<span class="text-[8px] uppercase tracking-tighter">Sync Status</span>
+<span class="text-secondary-container drop-shadow-[0_0_5px_#66ffff]">ESTABLISHED</span>
+</div>
+<div class="w-8 h-8 rounded-full border border-secondary-container/40 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgM-upg1nfvPmv4cw7EMt4o6AyCXKs2qo8lyY3p2FALZspkc2_pVmbSFKxZkyhjGBh8_d_HYlg7j5vMAWYrPLgsnx7ll2IibXeMiJw8sXk3zPxOv0Zgjz83k0KKp9Ty6ZdIytDP482n03jdRwM_V07Uv2N-K_hNnDy73tsABx7qhOxIThQtYUZxfdRkSZqQTtqEeQ7o9lx0bhjJSa-9gflmcus7zogeUsu9yhEUqUp2JZWD6Cm4gn4wj-9yWjiOK0OdY2w1KnEbLxe"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-20 flex-1 flex flex-col items-center justify-center px-edge-margin pt-24 pb-12">
+<!-- Header Section -->
+<div class="text-center mb-stack-gap">
+<h1 class="font-display-xl text-primary-container text-6xl md:text-7xl lg:text-8xl tracking-tight leading-none glitch-flicker drop-shadow-[0_0_15px_rgba(192,24,24,0.6)]">
+                EQUIP FOR COMBAT
+            </h1>
+<p class="font-label-caps text-secondary-container tracking-[0.3em] mt-2 opacity-80 entrance-slide" style="animation-delay: 400ms;">
+                DEPLOY TACTICAL MODULES
+            </p>
+</div>
+<!-- Central Powerup Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+<!-- Powerup: Shield -->
+<div class="relative group entrance-slide" style="animation-delay: 500ms;">
+<div class="absolute -top-1 -left-1 bracket-tl text-primary-container z-30"></div>
+<div class="absolute -bottom-1 -right-1 bracket-br text-primary-container z-30"></div>
+<div class="bg-surface-container-low/60 backdrop-blur-2xl border border-outline-variant/30 p-8 flex flex-col items-center text-center clip-corner hover:bg-primary-container/20 hover:border-primary-container/60 hover:scale-[1.02] hover:brightness-110 transition-all duration-300">
+<div class="w-24 h-24 mb-6 flex items-center justify-center relative">
+<div class="absolute inset-0 bg-primary-container/20 rounded-full blur-2xl group-hover:bg-primary-container/50 animate-pulse"></div>
+<span class="material-symbols-outlined text-6xl text-primary-container breathing-icon" style="font-variation-settings: 'FILL' 1; color: #c01818;">shield</span>
+</div>
+<h2 class="font-headline-lg text-primary-container text-2xl mb-2">AEGIS_PLATE</h2>
+<p class="font-data-sm text-on-surface-variant/80 max-w-[200px]">Reinforced duralumin energy barrier. Absorbs 40% incoming kinetic shock.</p>
+<div class="mt-6 flex gap-1">
+<div class="w-2 h-2 bg-primary-container"></div>
+<div class="w-2 h-2 bg-primary-container"></div>
+<div class="w-2 h-2 bg-primary-container"></div>
+<div class="w-2 h-2 bg-outline-variant"></div>
+</div>
+</div>
+</div>
+<!-- Powerup: Boost -->
+<div class="relative group entrance-slide" style="animation-delay: 600ms;">
+<div class="absolute -top-1 -right-1 bracket-tr text-secondary-container z-30"></div>
+<div class="absolute -bottom-1 -left-1 bracket-bl text-secondary-container z-30"></div>
+<div class="bg-surface-container-low/60 backdrop-blur-2xl border border-outline-variant/30 p-8 flex flex-col items-center text-center clip-corner hover:bg-secondary-container/20 hover:border-secondary-container/60 hover:scale-[1.02] hover:brightness-110 transition-all duration-300">
+<div class="w-24 h-24 mb-6 flex items-center justify-center relative">
+<div class="absolute inset-0 bg-secondary-container/20 rounded-full blur-2xl group-hover:bg-secondary-container/50 animate-pulse"></div>
+<span class="material-symbols-outlined text-6xl text-secondary-container breathing-icon" style="font-variation-settings: 'FILL' 1; color: #66ffff;">bolt</span>
+</div>
+<h2 class="font-headline-lg text-secondary-container text-2xl mb-2">NITRO_VEIN</h2>
+<p class="font-data-sm text-on-surface-variant/80 max-w-[200px]">Liquid oxygen injection. +80% thrust for 4 seconds. Caution: Heat spike.</p>
+<div class="mt-6 flex gap-1">
+<div class="w-2 h-2 bg-secondary-container"></div>
+<div class="w-2 h-2 bg-secondary-container"></div>
+<div class="w-2 h-2 bg-secondary-container"></div>
+<div class="w-2 h-2 bg-secondary-container"></div>
+</div>
+</div>
+</div>
+<!-- Powerup: Magnet -->
+<div class="relative group entrance-slide" style="animation-delay: 700ms;">
+<div class="absolute -top-1 -left-1 bracket-tl text-tertiary z-30"></div>
+<div class="absolute -bottom-1 -right-1 bracket-br text-tertiary z-30"></div>
+<div class="bg-surface-container-low/60 backdrop-blur-2xl border border-outline-variant/30 p-8 flex flex-col items-center text-center clip-corner hover:bg-tertiary-container/20 hover:border-tertiary-container/60 hover:scale-[1.02] hover:brightness-110 transition-all duration-300">
+<div class="w-24 h-24 mb-6 flex items-center justify-center relative">
+<div class="absolute inset-0 bg-tertiary/20 rounded-full blur-2xl group-hover:bg-tertiary/50 animate-pulse"></div>
+<span class="material-symbols-outlined text-6xl text-tertiary breathing-icon" style="font-variation-settings: 'FILL' 1; color: #e1c471;">faucet</span>
+</div>
+<h2 class="font-headline-lg text-tertiary text-2xl mb-2">SCROUNGER_V3</h2>
+<p class="font-data-sm text-on-surface-variant/80 max-w-[200px]">EM field collector. Automatically draws nearby salvage and fuel nodes.</p>
+<div class="mt-6 flex gap-1">
+<div class="w-2 h-2 bg-tertiary"></div>
+<div class="w-2 h-2 bg-tertiary"></div>
+<div class="w-2 h-2 bg-outline-variant"></div>
+<div class="w-2 h-2 bg-outline-variant"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Info Section -->
+<div class="mt-16 w-full max-w-4xl border-t border-outline-variant/30 pt-10 flex flex-col md:flex-row gap-12 items-center entrance-slide" style="animation-delay: 900ms;">
+<div class="flex-1">
+<div class="flex items-center gap-2 text-primary-container mb-2">
+<span class="material-symbols-outlined">warning</span>
+<span class="font-label-caps text-xs">MISSION ENHANCEMENTS</span>
+</div>
+<p class="font-data-lg text-on-surface leading-snug">
+                    Tactical modules are consumed upon deployment. Manage your inventory meticulously to survive High-Intensity Sector sweeps.
+                </p>
+</div>
+<div class="flex-shrink-0">
+<button class="bg-primary-container hover:bg-white text-white hover:text-primary-container font-label-caps py-4 px-12 clip-corner transition-all duration-300 group flex items-center gap-3 shadow-[0_0_15px_rgba(192,24,24,0.4)]">
+<span>INITIALIZE SYNC</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Side Data Telemetry -->
+<aside class="fixed left-4 bottom-4 z-30 hidden lg:block entrance-slide" style="animation-delay: 1000ms;">
+<div class="font-data-sm text-[10px] text-secondary-container/40 space-y-1">
+<p class="animate-pulse">SYS_LOG: RUNNING_POWER_CHK...</p>
+<p>SHLD_CAP: 100%</p>
+<p>THRUST_MOD: NORM</p>
+<p>MAG_LOCK: ACTIVE</p>
+</div>
+</aside>
+<aside class="fixed right-4 bottom-4 z-30 hidden lg:block entrance-slide" style="animation-delay: 1100ms;">
+<div class="text-right font-data-sm text-[10px] text-secondary-container/40 space-y-1">
+<p>SECTOR: 07_BETA</p>
+<p>THREAT: OMEGA</p>
+<p>CARGO: 12.4k_SLVG</p>
+<p class="text-primary-container font-bold animate-pulse">WARNING: RADAR_INTERFERENCE</p>
+</div>
+</aside>
+<script>
+        // Atmospheric flicker effect for the "Warning" text
+        const warnings = document.querySelectorAll('.text-primary-container.font-bold');
+        setInterval(() => {
+            warnings.forEach(w => {
+                w.style.opacity = Math.random() > 0.9 ? '0.2' : '1';
+            });
+        }, 150);
+
+        // Header glitch effect
+        const h1 = document.querySelector('h1');
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                h1.classList.remove('glitch-flicker');
+                void h1.offsetWidth; // trigger reflow
+                h1.classList.add('glitch-flicker');
+            }
+        }, 2000);
+    </script>
+</body></html>
