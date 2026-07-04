@@ -387,14 +387,27 @@ export class UIManager {
 
         const modelImport = document.getElementById('modelImport');
         modelImport?.addEventListener('change', async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+            const fileList = Array.from(e.target.files || []);
+            if (fileList.length === 0) return;
 
-            this.showLoading(`Importing ${file.name}...`);
+            const fileName = fileList[0].name;
+            this.showLoading(`Importing ${fileName}${fileList.length > 1 ? ` +${fileList.length - 1} files` : ''}...`);
             await new Promise(r => setTimeout(r, 50));
 
             try {
-                await this.studio.importExport.importModel(file);
+                if (fileList.length === 1) {
+                    // Single file — pass directly (GLB self-contained, or URL import)
+                    await this.studio.importExport.importModel(fileList[0]);
+                } else {
+                    // Multi-file package — build file map + URLModifier package
+                    const fileMap = Object.fromEntries(fileList.map(f => [f.name, URL.createObjectURL(f)]));
+                    const mainFile = fileList.find(f => /\.(gltf|glb|obj|stl)$/i.test(f.name)) || fileList[0];
+                    await this.studio.importExport.importModel({
+                        url: fileMap[mainFile.name],
+                        files: fileMap,
+                        name: mainFile.name
+                    });
+                }
             } catch(e) {
                 this.log('Import failed', 'error');
             } finally {

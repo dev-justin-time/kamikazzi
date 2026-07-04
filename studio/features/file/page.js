@@ -38,16 +38,25 @@ const meta = {
     // ── Import ──
     {
       key: 'import',
-      label: 'Import Model (GLTF/GLB/OBJ/STL)',
+      label: 'Import Model (GLTF/GLB + .bin + textures)',
       type: 'button',
       onClick: () => {
         const inp = document.getElementById('projectOpen');
         if (!inp) return;
         inp.value = '';
-        inp.accept = '.gltf,.glb,.obj,.stl';
+        inp.multiple = true;
+        inp.accept = '.gltf,.glb,.obj,.stl,.bin,.png,.jpg,.jpeg,.webp,.hdr,.ktx2';
         inp.onchange = (e) => {
-          const file = e.target.files?.[0];
-          if (file) window.ProModelerApp?.importModel(file);
+          const fileList = Array.from(e.target.files || []);
+          if (fileList.length === 0) return;
+          // Build file map FIRST so main file's blob URL is reused (no double creation)
+          const fileMap = Object.fromEntries(fileList.map(f => [f.name, URL.createObjectURL(f)]));
+          const mainFile = fileList.find(f => /\.(gltf|glb|obj|stl)$/i.test(f.name)) || fileList[0];
+          window.ProModelerApp?.importModel({
+            url: fileMap[mainFile.name],  // reuse — same blob URL as in files map
+            files: fileMap,
+            name: mainFile.name
+          });
         };
         inp.click();
       }

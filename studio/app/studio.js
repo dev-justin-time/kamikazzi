@@ -424,10 +424,72 @@ export class Studio {
   }
 
   // ── Import/Export ──
-  async importModel(file) {
-    const ext = file.name.toLowerCase().split('.').pop();
-    if (ext === 'gltf' || ext === 'glb') return this._importGLTF(file);
-    log(`Unsupported: .${ext}`, 'error');
+  async importModel(source) {
+    // Support multi-file packages: { url, files: { filename -> objectURL }, name }
+    if (source && typeof source === 'object' && source.url && source.files) {
+      return this._importGLTFMulti(source);
+    }
+    // Single File object
+    if (source instanceof File) {
+      const ext = source.name.toLowerCase().split('.').pop();
+      if (ext === 'gltf' || ext === 'glb') return this._importGLTF(source);
+      log(`Unsupported: .${ext}`, 'error');
+      return;
+    }
+    // Single URL string
+    if (typeof source === 'string') {
+      return this._importGLTF(source);
+    }
+    log('Unrecognized import source', 'error');
+  }
+
+  /** Import a multi-file glTF package (.gltf + .bin + textures) */
+  _importGLTFMulti(pkg) {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+      const draco = new DRACOLoader();
+      draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+      loader.setDRACOLoader(draco);
+
+      // Intercept resource requests — map filenames to the uploaded object URLs
+      loader.setURLModifier((url) => {
+        // Extract just the filename from any path the loader builds
+        const filename = url.split('/').pop().split('?')[0];
+        if (pkg.files[filename]) {
+          return pkg.files[filename];
+        }
+        // data: URIs pass through
+        if (url.startsWith('data:')) return url;
+        // Try matching without query strings
+        const decoded = decodeURIComponent(filename);
+        if (pkg.files[decoded]) return pkg.files[decoded];
+        // Fallback: let the loader try the original URL
+        return url;
+      });
+
+      const nameHint = pkg.name || 'Imported';
+      const revokeAll = () => {
+        Object.values(pkg.files).forEach(u => URL.revokeObjectURL(u));
+        // pkg.url is always one of pkg.files values (see page.js construction),
+        // so it gets revoked along with the rest.
+      };
+      loader.load(pkg.url, (gltf) => {
+        const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
+        root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+        root.name = nameHint.replace(/\.[^/.]+$/, '');
+        this.scene.add(root);
+        this.objects.push(root);
+        this.selectObject(root);
+        this.frameSelected();
+        log(`Imported ${nameHint} (${Object.keys(pkg.files).length} files)`);
+        revokeAll();
+        resolve(root);
+      }, undefined, (err) => {
+        log(`Import failed: ${err.message}`, 'error');
+        revokeAll();
+        reject(err);
+      });
+    });
   }
 
   _importGLTF(file) {

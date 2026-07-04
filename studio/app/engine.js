@@ -370,10 +370,21 @@ class ProModelerStudio {
 
     initializeImportExport() {
         this.importExport = {
-            importModel: (file) => {
-                const ext = file.name.toLowerCase().split('.').pop();
-                if (ext === 'gltf' || ext === 'glb') return this.importGLTF(file);
-                this.ui.log(`Unsupported: ${ext}`, 'error');
+            importModel: (source) => {
+                // Multi-file package
+                if (source && typeof source === 'object' && source.url && source.files) {
+                    return this.importGLTFMulti(source);
+                }
+                if (source instanceof File) {
+                    const ext = source.name.toLowerCase().split('.').pop();
+                    if (ext === 'gltf' || ext === 'glb') return this.importGLTF(source);
+                    this.ui.log(`Unsupported: ${ext}`, 'error');
+                    return;
+                }
+                if (typeof source === 'string') {
+                    return this.importGLTF(source);
+                }
+                this.ui.log('Unrecognized import source', 'error');
             },
             exportModel: (format, object) => {
                 if (format === 'gltf' || format === 'glb') this.exportGLTF(object, format === 'glb');
@@ -421,6 +432,48 @@ class ProModelerStudio {
             };
             reader.onerror = reject;
             reader.readAsArrayBuffer(file);
+        });
+    }
+
+    /** Import a multi-file glTF package (.gltf + .bin + textures) via URLModifier mapping */
+    importGLTFMulti(pkg) {
+        return new Promise((resolve, reject) => {
+            const loader = new GLTFLoader();
+            const draco = new DRACOLoader();
+            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            loader.setDRACOLoader(draco);
+
+            // Map resource filenames to uploaded object URLs
+            loader.setURLModifier((url) => {
+                const filename = url.split('/').pop().split('?')[0];
+                if (pkg.files[filename]) return pkg.files[filename];
+                if (url.startsWith('data:')) return url;
+                const decoded = decodeURIComponent(filename);
+                if (pkg.files[decoded]) return pkg.files[decoded];
+                return url;
+            });
+
+            const nameHint = pkg.name || 'Imported';
+            const revokeAll = () => {
+                Object.values(pkg.files).forEach(u => URL.revokeObjectURL(u));
+            };
+            loader.load(pkg.url, (gltf) => {
+                const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
+                root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                root.name = nameHint.replace(/\.[^/.]+$/, '');
+                this.scene.add(root);
+                this.objects.push(root);
+                this.selectObject(root);
+                this.ui.updateOutliner();
+                this.frameSelected();
+                this.ui.log(`Imported ${nameHint} (${Object.keys(pkg.files).length} files)`, 'success');
+                revokeAll();
+                resolve(root);
+            }, undefined, (err) => {
+                this.ui.log(`Import failed: ${err.message}`, 'error');
+                revokeAll();
+                reject(err);
+            });
         });
     }
 

@@ -18,9 +18,9 @@
 </head>
 <body>
   <div class="panel">
-    <h2>Import GLTF/GLB</h2>
+    <h2>Import Model</h2>
     <label for="file">Select model files (gltf/glb, obj, stl, or .bin + textures together)</label>
-    <input id="file" type="file" accept=".gltf,.glb,.obj,.stl,.bin,.png,.jpg,.jpeg" multiple />
+    <input id="file" type="file" accept=".gltf,.glb,.obj,.stl,.bin,.png,.jpg,.jpeg,.webp,.hdr,.ktx2" multiple />
     <button id="sendFileBtn">Send File(s) to Editor</button>
 
     <label for="url">Or enter a URL</label>
@@ -49,8 +49,8 @@
         return;
       }
 
-      // Find primary .gltf or .glb file if present; otherwise use the first file
-      let mainFile = files.find(f => /\.gltf$/i.test(f.name) || /\.glb$/i.test(f.name)) || files[0];
+      // Find primary model file (.gltf, .glb, .obj, .stl) if present; otherwise use the first file
+      let mainFile = files.find(f => /\.(gltf|glb|obj|stl)$/i.test(f.name)) || files[0];
 
       // Create object URLs for all files so referenced resources (.bin, textures) can be resolved
       const fileMap = {};

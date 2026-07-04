@@ -5,11 +5,11 @@ the previous merge-conflict import markers. Exposes minimal API used by the app.
 */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 
-const gltfLoader = new GLTFLoader();
 const gltfExporter = new GLTFExporter();
 const objExporter = new OBJExporter();
 const stlExporter = new STLExporter();
@@ -34,7 +34,8 @@ export class ModelEditor {
         if (source instanceof File) {
           const reader = new FileReader();
           reader.onload = (e) => {
-            gltfLoader.parse(e.target.result, '', (gltf) => {
+            const loader = new GLTFLoader();
+            loader.parse(e.target.result, '', (gltf) => {
               const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
               this._finalizeImported(root, source.name);
               resolve(root);
@@ -46,7 +47,8 @@ export class ModelEditor {
         }
 
         if (typeof source === 'string') {
-          gltfLoader.load(source, (gltf) => {
+          const loader = new GLTFLoader();
+          loader.load(source, (gltf) => {
             const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
             this._finalizeImported(root, source.split('/').pop());
             resolve(root);
@@ -54,13 +56,46 @@ export class ModelEditor {
           return;
         }
 
-        // support multi-file descriptor { url, files, name }
+        // support multi-file descriptor { url, files, name } with URLModifier
         if (source && typeof source === 'object' && source.url) {
-          gltfLoader.load(source.url, (gltf) => {
-            const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
-            this._finalizeImported(root, source.name || source.url.split('/').pop());
-            resolve(root);
-          }, undefined, reject);
+          // If files map provided, use URLModifier to resolve external resources
+          if (source.files && typeof source.files === 'object' && Object.keys(source.files).length >= 1) {
+            const loader = new GLTFLoader();
+            const draco = new DRACOLoader();
+            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            loader.setDRACOLoader(draco);
+
+            loader.setURLModifier((url) => {
+              const filename = url.split('/').pop().split('?')[0];
+              if (source.files[filename]) return source.files[filename];
+              if (url.startsWith('data:')) return url;
+              const decoded = decodeURIComponent(filename);
+              if (source.files[decoded]) return source.files[decoded];
+              return url;
+            });
+
+            const nameHint = source.name || source.url.split('/').pop() || 'Imported';
+            const revokeAll = () => {
+              Object.values(source.files).forEach(u => URL.revokeObjectURL(u));
+            };
+            loader.load(source.url, (gltf) => {
+              const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
+              this._finalizeImported(root, nameHint);
+              revokeAll();
+              resolve(root);
+            }, undefined, (err) => {
+              revokeAll();
+              reject(err);
+            });
+          } else {
+            // Single URL — use instance gltfLoader directly
+            const gltfLoader = new GLTFLoader();
+            gltfLoader.load(source.url, (gltf) => {
+              const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
+              this._finalizeImported(root, source.name || source.url.split('/').pop());
+              resolve(root);
+            }, undefined, reject);
+          }
           return;
         }
 
