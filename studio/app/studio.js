@@ -926,6 +926,51 @@ export class Studio {
     log(`Mirrored ${axis}`);
   }
 
+  // ── Wireframe Valley ──
+  generateWireframeValley() {
+    this.pushUndo();
+
+    // Create segmented plane for terrain deformation
+    const width = 20;
+    const depth = 20;
+    const segW = 48;
+    const segD = 48;
+    const geo = new THREE.PlaneGeometry(width, depth, segW, segD);
+    geo.rotateX(-Math.PI / 2);
+
+    const pos = geo.attributes.position;
+    const vertex = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      vertex.fromBufferAttribute(pos, i);
+      // Valley shape: lower in center along Z, higher at edges
+      const distFromCenter = Math.abs(vertex.z) / (depth / 2);
+      const distFromSide = Math.abs(vertex.x) / (width / 2);
+      // Smooth valley with ridges on the sides
+      const valley = Math.pow(distFromCenter, 1.5) * 2.5;
+      const ridges = Math.sin(distFromSide * Math.PI * 3) * 0.3 * (1 - distFromSide);
+      vertex.y = -valley + ridges + (Math.random() - 0.5) * 0.15;
+      pos.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    geo.computeVertexNormals();
+
+    // Wireframe material — cyan/green tech look
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x4ade80,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.7,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(0, -1.5, 0);
+    mesh.name = 'Wireframe Valley';
+
+    this.scene.add(mesh);
+    this.objects.push(mesh);
+    this.selectObject(mesh);
+    this.frameSelected();
+    log('Generated wireframe valley');
+  }
+
   // ── Preset material ──
   applyMaterial(preset) {
     if (!this.selectedObject) return;

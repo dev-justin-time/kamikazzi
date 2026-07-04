@@ -7,6 +7,9 @@ const meta = {
   controls: [
     { key: 'info', type: 'label', label: 'Terrain and level generation tools.' },
     { key: 'sep1', label: '──────────', type: 'label' },
+    { key: 'gen-valley', label: '🏔 Generate Wireframe Valley', type: 'button', onClick: () => {
+      window.ProModelerApp?.generateWireframeValley();
+    }},
     { key: 'frame-all', label: 'Frame All', type: 'button', onClick: () => window.ProModelerApp?.frameAll() },
     { key: 'snap', label: 'Snap Selected to Grid', type: 'button', onClick: () => window.ProModelerApp?.snapToGrid() },
     { key: 'sep2', label: '──────────', type: 'label' },
