@@ -45,6 +45,23 @@ export class Studio {
     this._lightHelpers = new Map();
     this._showLightHelpers = true;
     this.currentTool = 'select';
+    this.isPaintMode = false;
+    this.isRecording = false;
+    this._paintColor = '#ff4444';
+    this._paintSize = 0.5;
+    this._paintOpacity = 1;
+    this._paintHardness = 1;
+    this._currentEasing = 'linear';
+    this._gridSnapEnabled = true;
+    this._gizmoSize = 1;
+    this._easingFunctions = {
+      linear: t => t,
+      'ease-in': t => t * t,
+      'ease-out': t => 1 - (1 - t) * (1 - t),
+      'ease-in-out': t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+      bounce: t => { const n1 = 7.5625, d1 = 2.75; return t < 1/d1 ? n1*t*t : t < 2/d1 ? n1*(t-=1.5/d1)*t+0.75 : t < 2.5/d1 ? n1*(t-=2.25/d1)*t+0.9375 : n1*(t-=2.625/d1)*t+0.984375; },
+      elastic: t => t === 0 || t === 1 ? t : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * (2 * Math.PI) / 3),
+    };
 
     this._initCore();
     this._finishInit();
@@ -177,10 +194,22 @@ export class Studio {
     });
 
     // Click to select
-    this.renderer.domElement.addEventListener('click', (e) => this._onClick(e));
+    // Paint mode click (separate handler, takes priority when paint mode is active)
+    this.renderer.domElement.addEventListener('pointerdown', (e) => {
+      if (!this.isPaintMode) return;
+      e.stopPropagation();
+      this._paintClickHandler(e);
+    });
+
+    // Click to select (ignored in paint mode)
+    this.renderer.domElement.addEventListener('click', (e) => {
+      if (this.isPaintMode) return;
+      this._onClick(e);
+    });
 
     // Double-click to frame selected object
     this.renderer.domElement.addEventListener('dblclick', (e) => {
+      if (this.isPaintMode) return;
       e.preventDefault();
       this.frameSelected();
     });
@@ -524,6 +553,7 @@ export class Studio {
     requestAnimationFrame(() => this._animate());
     this.controls.update();
     if (this.isAnimationPlaying) this._tickAnimation();
+    if (this.isRecording) this._recordFrame();
     this.render();
     const fps = Math.round(1 / 0.016);
     const el = document.getElementById('statusRight');
@@ -558,7 +588,8 @@ export class Studio {
         if (k.frame >= frame && !next) next = k;
       }
       if (prev && next) {
-        const t = (frame - prev.frame) / (next.frame - prev.frame || 1);
+        let t = (frame - prev.frame) / (next.frame - prev.frame || 1);
+        t = this._applyEasing(t);
         obj.position.lerpVectors(prev.position, next.position, t);
         obj.scale.lerpVectors(prev.scale, next.scale, t);
         obj.rotation.x = THREE.MathUtils.lerp(prev.rotation.x, next.rotation.x, t);
@@ -621,6 +652,320 @@ export class Studio {
         fl.textContent = `Frame ${this.currentFrame} / ${this.totalFrames}  ·  ${totalKfs} keyframes total`;
       }
     }
+  }
+
+  // ── Recording / Mocap ──
+  toggleRecording() {
+    if (this.isRecording) {
+      this.isRecording = false;
+      log('Recording stopped');
+    } else {
+      if (!this.selectedObject) { log('Select an object to record', 'error'); return; }
+      this.isRecording = true;
+      this.pushUndo();
+      this.currentFrame = 1;
+      // Clear existing keyframes for this object
+      const id = this.selectedObject.uuid;
+      this.keyframes.delete(id);
+      this.keyframes.set(id, []);
+      log('Recording started — move the object with gizmo');
+    }
+  }
+
+  _recordFrame() {
+    if (!this.selectedObject || !this.isRecording) return;
+    const id = this.selectedObject.uuid;
+    if (!this.keyframes.has(id)) return;
+    const kfs = this.keyframes.get(id);
+    // Only record if position/rotation/scale changed (avoid duplicate identical frames)
+    const last = kfs[kfs.length - 1];
+    const p = this.selectedObject.position;
+    const r = this.selectedObject.rotation;
+    const s = this.selectedObject.scale;
+    if (last) {
+      if (last.position.distanceTo(p) < 0.001 &&
+          last.rotation.toArray().every((v, i) => Math.abs(v - r.toArray()[i]) < 0.001) &&
+          last.scale.distanceTo(s) < 0.001) {
+        // No change, don't add duplicate
+        return;
+      }
+    }
+    kfs.push({
+      frame: this.currentFrame,
+      position: p.clone(),
+      rotation: r.clone(),
+      scale: s.clone(),
+    });
+    this.currentFrame = Math.min(this.currentFrame + 1, this.totalFrames);
+  }
+
+  exportKeyframesAsJSON() {
+    if (this.keyframes.size === 0) { log('No keyframes to export', 'error'); return; }
+    const data = {
+      version: 1,
+      totalFrames: this.totalFrames,
+      keyframes: Array.from(this.keyframes.entries()).map(([uuid, kfs]) => ({
+        objectUuid: uuid,
+        objectName: this.objects.find(o => o.uuid === uuid)?.name || 'unknown',
+        frames: kfs.map(kf => ({
+          frame: kf.frame,
+          position: kf.position.toArray(),
+          rotation: kf.rotation.toArray(),
+          scale: kf.scale.toArray(),
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'keyframes.json';
+    a.click();
+    log('Keyframes exported');
+  }
+
+  importKeyframesFromJSON(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.keyframes) { log('Invalid keyframe data', 'error'); return; }
+        this.pushUndo();
+        this.keyframes.clear();
+        this.currentFrame = 1;
+        if (data.totalFrames) this.totalFrames = data.totalFrames;
+        data.keyframes.forEach(item => {
+          const obj = this.objects.find(o => o.uuid === item.objectUuid || o.name === item.objectName);
+          if (!obj) return;
+          const kfs = item.frames.map(kf => ({
+            frame: kf.frame,
+            position: new THREE.Vector3().fromArray(kf.position),
+            rotation: new THREE.Euler(kf.rotation[0], kf.rotation[1], kf.rotation[2]),
+            scale: new THREE.Vector3().fromArray(kf.scale),
+          }));
+          this.keyframes.set(obj.uuid, kfs);
+        });
+        log(`Imported keyframes for ${this.keyframes.size} object(s)`);
+        this.render();
+      } catch (err) {
+        log(`Import failed: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  clearAllKeyframes() {
+    if (this.keyframes.size === 0) return;
+    this.pushUndo();
+    this.keyframes.clear();
+    this.currentFrame = 1;
+    log('All keyframes cleared');
+  }
+
+  // ── Paint Mode ──
+  togglePaintMode() {
+    this.isPaintMode = !this.isPaintMode;
+    if (this.isPaintMode) {
+      this.transformControls.detach();
+      this.renderer.domElement.style.cursor = 'crosshair';
+      log('Paint mode ON — click on meshes to paint');
+    } else {
+      this.renderer.domElement.style.cursor = '';
+      if (this.selectedObject) this.transformControls.attach(this.selectedObject);
+      log('Paint mode OFF');
+    }
+  }
+
+  setPaintColor(hex) { this._paintColor = hex; }
+  setPaintSize(val) { this._paintSize = val; }
+  setPaintOpacity(val) { this._paintOpacity = val; }
+  setPaintHardness(val) { this._paintHardness = val; }
+
+  _paintClickHandler(event) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this.camera);
+    const meshes = this.objects.filter(o => o.isMesh);
+    const intersects = raycaster.intersectObjects(meshes, true);
+    if (intersects.length > 0) {
+      const hit = intersects[0];
+      this._applyPaint(hit, this._paintColor, this._paintSize, this._paintOpacity, this._paintHardness);
+    }
+  }
+
+  _applyPaint(intersect, hex, radius, opacity, hardness) {
+    const mesh = intersect.object;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    const geo = mesh.geometry;
+
+    // Ensure the geometry has vertex colors
+    if (!geo.attributes.color) {
+      const colors = new Float32Array(geo.attributes.position.count * 3);
+      // Initialize to white
+      for (let i = 0; i < colors.length; i++) colors[i] = 1;
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      // Enable vertexColors on material
+      if (mesh.material) {
+        mesh.material.vertexColors = true;
+        mesh.material.needsUpdate = true;
+      }
+    }
+
+    const colorAttr = geo.attributes.color;
+    const posAttr = geo.attributes.position;
+    const targetColor = new THREE.Color(hex);
+    const point = intersect.point;
+    // Transform point to local space
+    const localPoint = mesh.worldToLocal(point.clone());
+
+    // Find vertices within radius and paint them
+    const vertex = new THREE.Vector3();
+    for (let i = 0; i < posAttr.count; i++) {
+      vertex.fromBufferAttribute(posAttr, i);
+      const dist = vertex.distanceTo(localPoint);
+      if (dist <= radius) {
+        const falloff = hardness === 1 ? 1 : Math.pow(1 - dist / radius, 2 * (1 - hardness) + 0.001);
+        const strength = opacity * falloff;
+        const r = colorAttr.getX(i);
+        const g = colorAttr.getY(i);
+        const b = colorAttr.getZ(i);
+        colorAttr.setXYZ(i,
+          r + (targetColor.r - r) * strength,
+          g + (targetColor.g - g) * strength,
+          b + (targetColor.b - b) * strength
+        );
+      }
+    }
+    colorAttr.needsUpdate = true;
+    geo.computeVertexNormals();
+  }
+
+  // ── Rigging / Bones ──
+  addBone() {
+    if (!this.selectedObject) { log('Select an object to add a bone to', 'error'); return; }
+    this.pushUndo();
+    const boneGroup = new THREE.Group();
+    boneGroup.name = 'Bone_' + (this.objects.filter(o => o.name.startsWith('Bone_')).length + 1);
+    // Visual: small sphere at joint
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.15, 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffaa44 })
+    );
+    sphere.name = '__joint';
+    boneGroup.add(sphere);
+    // Bone shaft (line from parent to this)
+    const boneMat = new THREE.LineBasicMaterial({ color: 0xffaa44 });
+    const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.5, 0)];
+    const boneGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const line = new THREE.Line(boneGeo, boneMat);
+    line.name = '__shaft';
+    boneGroup.add(line);
+    // Position relative to parent
+    boneGroup.position.set(0, 1, 0);
+    this.selectedObject.add(boneGroup);
+    this.objects.push(boneGroup);
+    this.selectObject(boneGroup);
+    log(`Added ${boneGroup.name} under ${this.selectedObject.name}`);
+  }
+
+  addSkeleton() {
+    this.pushUndo();
+    const root = new THREE.Group();
+    root.name = 'Skeleton Root';
+    this.scene.add(root);
+    this.objects.push(root);
+    // Create 3 bones in a chain
+    let parent = root;
+    for (let i = 0; i < 3; i++) {
+      const bone = new THREE.Group();
+      bone.name = `Bone_${i + 1}`;
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 12, 8),
+        new THREE.MeshBasicMaterial({ color: 0xffaa44 })
+      );
+      sphere.name = '__joint';
+      bone.add(sphere);
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.5, 0)]),
+        new THREE.LineBasicMaterial({ color: 0xffaa44 })
+      );
+      line.name = '__shaft';
+      bone.add(line);
+      bone.position.set(0, 0.6, 0);
+      parent.add(bone);
+      this.objects.push(bone);
+      parent = bone;
+    }
+    this.selectObject(root);
+    log('Skeleton created: 3 bones');
+  }
+
+  // ── Easing / Transitions ──
+  setEasing(easing) {
+    if (this._easingFunctions[easing]) {
+      this._currentEasing = easing;
+      log(`Easing: ${easing}`);
+    }
+  }
+
+  _applyEasing(t) {
+    const fn = this._easingFunctions[this._currentEasing] || this._easingFunctions.linear;
+    return fn(t);
+  }
+
+  // ── Inventory / Info ──
+  getObjectInfo() {
+    const obj = this.selectedObject;
+    if (!obj) return { message: 'No object selected' };
+    const info = {
+      name: obj.name || 'unnamed',
+      type: obj.type,
+      uuid: obj.uuid,
+      position: obj.position.toArray().map(v => v.toFixed(3)),
+      rotation: obj.rotation.toArray().map(v => v.toFixed(3)),
+      scale: obj.scale.toArray().map(v => v.toFixed(3)),
+    };
+    if (obj.isMesh && obj.geometry) {
+      const geo = obj.geometry;
+      info.geometry = geo.type;
+      info.vertices = geo.attributes.position?.count || 0;
+      info.faces = geo.index ? (geo.index.count / 3) : (info.vertices / 3);
+      info.uvs = !!geo.attributes.uv;
+      info.vertexColors = !!geo.attributes.color;
+    }
+    if (obj.material) {
+      info.material = {
+        type: obj.material.type,
+        color: '#' + obj.material.color.getHexString(),
+        metalness: obj.material.metalness,
+        roughness: obj.material.roughness,
+        wireframe: !!obj.material.wireframe,
+        transparent: !!obj.material.transparent,
+      };
+    }
+    info.children = obj.children.filter(c => !c.name.startsWith('__')).length;
+    return info;
+  }
+
+  // ── Profile / Preferences ──
+  setBackgroundColor(color) {
+    this.scene.background = new THREE.Color(color);
+    this.render();
+    log('Background color updated');
+  }
+
+  setGridSnapEnabled(val) {
+    this._gridSnapEnabled = val;
+    log(`Grid snap ${val ? 'ON' : 'OFF'}`);
+  }
+
+  setGizmoSize(val) {
+    this._gizmoSize = Math.max(0.5, Math.min(val, 3));
+    this.transformControls.size = this._gizmoSize;
+    log(`Gizmo size: ${this._gizmoSize.toFixed(1)}`);
   }
 
   // ── Import/Export ──
