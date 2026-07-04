@@ -40,6 +40,8 @@ export class Studio {
     this._transformDragHappened = false;
     this.clipboardObject = null;
     this.viewMode = 'solid';
+    this._lightHelpers = new Map();
+    this._showLightHelpers = true;
     this.currentTool = 'select';
 
     this._initCore();
@@ -139,13 +141,18 @@ export class Studio {
     const directional = new THREE.DirectionalLight(0xffffff, 1);
     directional.position.set(5, 10, 5);
     directional.castShadow = true;
+    directional.shadow.mapSize.set(512, 512);
+    directional.name = 'Default Directional';
     this.scene.add(directional);
     this.lights.push(directional);
 
     const point = new THREE.PointLight(0x4a9eff, 0.5, 100);
     point.position.set(-5, 5, -5);
+    point.name = 'Default Point';
     this.scene.add(point);
     this.lights.push(point);
+
+    this._updateLightHelpers();
 
     // Default cube
     const geo = new THREE.BoxGeometry(1, 1, 1);
@@ -272,9 +279,56 @@ export class Studio {
       : new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(0, 5, 0);
     light.name = type + ' Light';
+    light.castShadow = true;
+    light.shadow.mapSize.set(512, 512);
+    if (light.isDirectionalLight) {
+      light.shadow.camera.near = 0.5;
+      light.shadow.camera.far = 50;
+      light.shadow.camera.left = -10;
+      light.shadow.camera.right = 10;
+      light.shadow.camera.top = 10;
+      light.shadow.camera.bottom = -10;
+    }
     this.scene.add(light);
     this.lights.push(light);
+    this._updateLightHelpers();
     log(`Added ${light.name}`);
+  }
+
+  removeLight(index) {
+    if (index < 0 || index >= this.lights.length) return;
+    this.pushUndo();
+    const light = this.lights[index];
+    if (light.parent) light.parent.remove(light);
+    this.lights.splice(index, 1);
+    this._updateLightHelpers();
+    log('Light removed');
+  }
+
+  setLightIntensity(index, val) {
+    if (index >= 0 && index < this.lights.length) {
+      this.lights[index].intensity = val;
+      this.render();
+    }
+  }
+
+  setLightColor(index, hex) {
+    if (index >= 0 && index < this.lights.length) {
+      this.lights[index].color.set(hex);
+      this.render();
+    }
+  }
+
+  toggleLightShadow(index) {
+    if (index >= 0 && index < this.lights.length) {
+      const light = this.lights[index];
+      if (typeof light.castShadow !== 'undefined') {
+        this.pushUndo();
+        light.castShadow = !light.castShadow;
+        this.render();
+        log(`Shadow ${light.castShadow ? 'ON' : 'OFF'} for ${light.name}`);
+      }
+    }
   }
 
   duplicateSelected() {
@@ -400,6 +454,45 @@ export class Studio {
     const rx = THREE.MathUtils.radToDeg(pol - Math.PI / 2);
     const ry = THREE.MathUtils.radToDeg(-az);
     this._navCubeInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+
+  // ── Light Helpers ──
+  _updateLightHelpers() {
+    // Remove old helpers
+    this._lightHelpers.forEach(helper => {
+      if (helper.parent) helper.parent.remove(helper);
+      if (helper.dispose) helper.dispose();
+    });
+    this._lightHelpers.clear();
+
+    if (!this._showLightHelpers) return;
+
+    this.lights.forEach(light => {
+      if (light.isAmbientLight) return; // no visual representation
+      let helper;
+      if (light.isDirectionalLight) {
+        helper = new THREE.DirectionalLightHelper(light, 2);
+      } else if (light.isPointLight) {
+        helper = new THREE.PointLightHelper(light, 1);
+      }
+      if (helper) {
+        this.scene.add(helper);
+        this._lightHelpers.set(light.uuid, helper);
+      }
+    });
+  }
+
+  toggleLightHelpersVisible() {
+    this._showLightHelpers = !this._showLightHelpers;
+    if (this._showLightHelpers) {
+      this._updateLightHelpers();
+    } else {
+      this._lightHelpers.forEach(helper => {
+        if (helper.parent) helper.parent.remove(helper);
+      });
+      this._lightHelpers.clear();
+    }
+    log(`Light helpers ${this._showLightHelpers ? 'ON' : 'OFF'}`);
   }
 
   render() { this.renderer.render(this.scene, this.camera); }
