@@ -547,6 +547,44 @@ export class Studio {
     log(`Profiler overlay ${this._showProfiler ? 'ON' : 'OFF'}`);
   }
 
+  /** Capture current performance data and download as a timestamped JSON snapshot */
+  savePerformanceSnapshot() {
+    const data = this.getPerformanceData();
+    const snapshot = {
+      timestamp: new Date().toISOString(),
+      scene: {
+        objects: data.objects,
+        lights: data.lights,
+        pixelRatio: data.pixelRatio,
+      },
+      renderer: {
+        drawCalls: data.drawCalls,
+        triangles: data.triangles,
+        points: data.points,
+        lines: data.lines,
+        geometries: data.geometries,
+        textures: data.textures,
+        programs: data.programs,
+      },
+      frame: {
+        fps: data.fps,
+        frameTimeMs: data.frameTime,
+      },
+      memory: {
+        jsHeapUsedMB: +(data.jsHeapUsed / (1024 * 1024)).toFixed(1),
+        jsHeapTotalMB: +(data.jsHeapTotal / (1024 * 1024)).toFixed(1),
+      },
+    };
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const date = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.download = `perf-snapshot_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    log('Performance snapshot saved');
+  }
+
   // ── Light Helpers ──
   _updateLightHelpers() {
     // Remove old helpers

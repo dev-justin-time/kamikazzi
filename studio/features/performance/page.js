@@ -32,6 +32,14 @@ const meta = {
         if (app?.renderer?.info?.reset) app.renderer.info.reset();
       },
     },
+    {
+      key: 'save-snapshot',
+      label: '💾 Save Snapshot',
+      type: 'button',
+      onClick: () => {
+        window.ProModelerApp?.savePerformanceSnapshot();
+      },
+    },
   ],
   onApply: () => {},
 };
@@ -130,6 +138,17 @@ export function render(container, state) {
     if (app?.renderer?.info?.reset) app.renderer.info.reset();
   });
   container.appendChild(resetBtn);
+
+  // Save Snapshot button
+  const snapshotBtn = document.createElement('button');
+  snapshotBtn.textContent = '💾 Save Snapshot';
+  snapshotBtn.style.cssText = 'width:100%;padding:8px;border:none;border-radius:4px;background:#22c55e;color:#fff;cursor:pointer;font-size:13px;transition:background .15s;margin-top:4px;';
+  snapshotBtn.addEventListener('mouseenter', () => snapshotBtn.style.background = '#16a34a');
+  snapshotBtn.addEventListener('mouseleave', () => snapshotBtn.style.background = '#22c55e');
+  snapshotBtn.addEventListener('click', () => {
+    _getApp()?.savePerformanceSnapshot();
+  });
+  container.appendChild(snapshotBtn);
 
   // ── Live-update timer ──
   let timer = null;
