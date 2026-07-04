@@ -36,6 +36,8 @@ export class Studio {
     this.isAnimationPlaying = false;
     this.undoStack = [];
     this.redoStack = [];
+    this._undoCapturePending = null;  // pre-drag state snapshot, null = no pending undo
+    this._transformDragHappened = false;
     this.clipboardObject = null;
     this.viewMode = 'solid';
     this.currentTool = 'select';
@@ -79,6 +81,32 @@ export class Studio {
     this.transformControls = new TransformControls(this.camera, this.renderer.domElement);
     this.transformControls.addEventListener('dragging-changed', (event) => {
       this.controls.enabled = !event.value;
+      // Drag START — capture pre-drag state (use a fresh snapshot that we'll push later)
+      if (event.value) {
+        this._undoCapturePending = {
+          snapshot: this._captureState(),
+          hadTransform: false,
+        };
+        this._transformDragHappened = false;
+      }
+      // Drag END — push the pre-drag snapshot if a transform actually occurred
+      if (!event.value && this._undoCapturePending) {
+        if (this._undoCapturePending.hadTransform || this._transformDragHappened) {
+          this.redoStack = [];
+          this.undoStack.push(this._undoCapturePending.snapshot);
+          if (this.undoStack.length > 50) this.undoStack.shift();
+          log('Transformed');
+        }
+        this._undoCapturePending = null;
+        this._transformDragHappened = false;
+      }
+    });
+    this.transformControls.addEventListener('objectChange', () => {
+      // A transform actually happened during this drag
+      if (this._undoCapturePending) {
+        this._undoCapturePending.hadTransform = true;
+      }
+      this._transformDragHappened = true;
     });
     this.scene.add(this.transformControls);
 
@@ -216,6 +244,7 @@ export class Studio {
 
   // ── Primitive creation ──
   addPrimitive(type) {
+    this.pushUndo();
     let geom;
     const color = Math.random() * 0xffffff;
     switch (type) {
@@ -237,6 +266,7 @@ export class Studio {
   }
 
   addLight(type) {
+    this.pushUndo();
     const light = type === 'point'
       ? new THREE.PointLight(0xffffff, 1, 100)
       : new THREE.DirectionalLight(0xffffff, 1);
@@ -249,6 +279,7 @@ export class Studio {
 
   duplicateSelected() {
     if (!this.selectedObject) return;
+    this.pushUndo();
     const clone = this.selectedObject.clone();
     clone.position.x += 1;
     this.scene.add(clone);
@@ -259,6 +290,7 @@ export class Studio {
 
   deleteSelected() {
     if (!this.selectedObject) return;
+    this.pushUndo();
     this.scene.remove(this.selectedObject);
     this.objects = this.objects.filter(o => o !== this.selectedObject);
     this.transformControls.detach();
@@ -388,6 +420,7 @@ export class Studio {
   // ── Animation ──
   addKeyframe() {
     if (!this.selectedObject) return;
+    this.pushUndo();
     const id = this.selectedObject.uuid;
     if (!this.keyframes.has(id)) this.keyframes.set(id, []);
     this.keyframes.get(id).push({
@@ -446,33 +479,27 @@ export class Studio {
   /** Import a multi-file glTF package (.gltf + .bin + textures) */
   _importGLTFMulti(pkg) {
     return new Promise((resolve, reject) => {
-      const loader = new GLTFLoader();
+      // Isolated manager so URLModifier doesn't leak to DefaultLoadingManager
+      const manager = new THREE.LoadingManager();
+      manager.setURLModifier((url) => {
+        const filename = url.split('/').pop().split('?')[0];
+        if (pkg.files[filename]) return pkg.files[filename];
+        if (url.startsWith('data:')) return url;
+        const decoded = decodeURIComponent(filename);
+        if (pkg.files[decoded]) return pkg.files[decoded];
+        return url;
+      });
+
+      const loader = new GLTFLoader(manager);
       const draco = new DRACOLoader();
       draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
       loader.setDRACOLoader(draco);
 
-      // Intercept resource requests — map filenames to the uploaded object URLs
-      loader.setURLModifier((url) => {
-        // Extract just the filename from any path the loader builds
-        const filename = url.split('/').pop().split('?')[0];
-        if (pkg.files[filename]) {
-          return pkg.files[filename];
-        }
-        // data: URIs pass through
-        if (url.startsWith('data:')) return url;
-        // Try matching without query strings
-        const decoded = decodeURIComponent(filename);
-        if (pkg.files[decoded]) return pkg.files[decoded];
-        // Fallback: let the loader try the original URL
-        return url;
-      });
-
       const nameHint = pkg.name || 'Imported';
       const revokeAll = () => {
         Object.values(pkg.files).forEach(u => URL.revokeObjectURL(u));
-        // pkg.url is always one of pkg.files values (see page.js construction),
-        // so it gets revoked along with the rest.
       };
+
       loader.load(pkg.url, (gltf) => {
         const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
         root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
@@ -481,6 +508,7 @@ export class Studio {
         this.objects.push(root);
         this.selectObject(root);
         this.frameSelected();
+        this.pushUndo();
         log(`Imported ${nameHint} (${Object.keys(pkg.files).length} files)`);
         revokeAll();
         resolve(root);
@@ -509,6 +537,7 @@ export class Studio {
           this.objects.push(root);
           this.selectObject(root);
           this.frameSelected();
+          this.pushUndo();
           log(`Imported ${file.name}`);
           resolve(root);
         }, reject);
@@ -558,16 +587,174 @@ export class Studio {
     log('Exported STL');
   }
 
+  // ── Undo / Redo ──
+  _captureState() {
+    return {
+      objects: this.objects.map(obj => ({
+        uuid: obj.uuid,
+        name: obj.name,
+        type: obj.type,
+        isLight: !!obj.isLight,
+        position: obj.position.toArray(),
+        rotation: obj.rotation.toArray(),
+        scale: obj.scale.toArray(),
+        material: obj.material ? {
+          color: obj.material.color.getHex(),
+          metalness: obj.material.metalness,
+          roughness: obj.material.roughness,
+          transparent: obj.material.transparent,
+          opacity: obj.material.opacity,
+        } : null,
+        geometryType: obj.geometry ? obj.geometry.type : null,
+        castShadow: !!obj.castShadow,
+        receiveShadow: !!obj.receiveShadow,
+        children: obj.children.filter(c => c.name !== '__outline').map(c => ({
+          uuid: c.uuid, name: c.name, type: c.type,
+          position: c.position.toArray(), rotation: c.rotation.toArray(), scale: c.scale.toArray(),
+        })),
+      })),
+      keyframes: Array.from(this.keyframes.entries()).map(([uuid, kfs]) => [
+        uuid,
+        kfs.map(kf => ({ frame: kf.frame, position: kf.position.toArray(), rotation: kf.rotation.toArray(), scale: kf.scale.toArray() }))
+      ]),
+      selectedUuid: this.selectedObject ? this.selectedObject.uuid : null,
+    };
+  }
+
+  _restoreState(snapshot) {
+    // Remove all current user objects from scene and clear tracked arrays
+    this.transformControls.detach();
+    this.objects.forEach(obj => {
+      if (obj.parent) obj.parent.remove(obj);
+    });
+    this.objects = [];
+    this.lights = [];  // will be repopulated by the restore loop below
+    this.keyframes.clear();
+
+    // Rebuild objects from snapshot
+    snapshot.objects.forEach(data => {
+      let obj;
+      if (data.isLight) {
+        // Reconstruct light
+        if (data.type === 'DirectionalLight') obj = new THREE.DirectionalLight(0xffffff, 1);
+        else if (data.type === 'PointLight') obj = new THREE.PointLight(0xffffff, 1, 100);
+        else if (data.type === 'AmbientLight') obj = new THREE.AmbientLight(0xffffff, 0.4);
+        else obj = new THREE.PointLight(0xffffff, 1, 100);
+        this.lights.push(obj);
+      } else if (data.type === 'Group') {
+        // Reconstruct Group (imported models, etc.) — add children
+        obj = new THREE.Group();
+        (data.children || []).forEach(cdata => {
+          const child = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.5, 0.5),
+            new THREE.MeshStandardMaterial({ color: 0xcccccc })
+          );
+          child.name = cdata.name || 'Part';
+          child.position.fromArray(cdata.position);
+          child.rotation.fromArray(cdata.rotation);
+          child.scale.fromArray(cdata.scale);
+          child.castShadow = true;
+          child.receiveShadow = true;
+          obj.add(child);
+        });
+      } else {
+        // Reconstruct mesh
+        let geo;
+        const gt = data.geometryType;
+        if (gt === 'BoxGeometry') geo = new THREE.BoxGeometry(1, 1, 1);
+        else if (gt === 'SphereGeometry') geo = new THREE.SphereGeometry(0.5, 32, 16);
+        else if (gt === 'CylinderGeometry') geo = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+        else if (gt === 'PlaneGeometry') geo = new THREE.PlaneGeometry(2, 2);
+        else if (gt === 'TorusGeometry') geo = new THREE.TorusGeometry(0.5, 0.2, 16, 32);
+        else geo = new THREE.BoxGeometry(1, 1, 1);
+
+        let mat;
+        if (data.material) {
+          mat = new THREE.MeshStandardMaterial({
+            color: data.material.color,
+            metalness: data.material.metalness,
+            roughness: data.material.roughness,
+            transparent: data.material.transparent,
+            opacity: data.material.opacity,
+          });
+        } else {
+          mat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        }
+
+        obj = new THREE.Mesh(geo, mat);
+        obj.castShadow = data.castShadow;
+        obj.receiveShadow = data.receiveShadow;
+      }
+
+      obj.name = data.name;
+      obj.position.fromArray(data.position);
+      obj.rotation.fromArray(data.rotation);
+      obj.scale.fromArray(data.scale);
+
+      this.scene.add(obj);
+      this.objects.push(obj);
+    });
+
+    // Restore keyframes
+    snapshot.keyframes.forEach(([uuid, kfs]) => {
+      this.keyframes.set(uuid, kfs.map(kf => ({
+        frame: kf.frame,
+        position: new THREE.Vector3().fromArray(kf.position),
+        rotation: new THREE.Euler(kf.rotation[0], kf.rotation[1], kf.rotation[2]),
+        scale: new THREE.Vector3().fromArray(kf.scale),
+      })));
+    });
+
+    // Restore selection
+    if (snapshot.selectedUuid) {
+      const obj = this.objects.find(o => o.uuid === snapshot.selectedUuid);
+      if (obj) this.selectObject(obj);
+      else this.selectObject(null);
+    } else {
+      this.selectObject(null);
+    }
+
+    this.render();
+    log('Undo/Redo restored');
+  }
+
+  pushUndo() {
+    this.redoStack = [];
+    this.undoStack.push(this._captureState());
+    if (this.undoStack.length > 50) this.undoStack.shift();
+  }
+
+  undo() {
+    if (this.undoStack.length === 0) return;
+    const current = this._captureState();
+    this.redoStack.push(current);
+    const prev = this.undoStack.pop();
+    this._restoreState(prev);
+    log('Undo');
+  }
+
+  redo() {
+    if (this.redoStack.length === 0) return;
+    const current = this._captureState();
+    this.undoStack.push(current);
+    const next = this.redoStack.pop();
+    this._restoreState(next);
+    log('Redo');
+  }
+
   // ── Snap / Mirror / etc ──
   snapToGrid() {
     if (!this.selectedObject) return;
+    this.pushUndo();
     this.selectedObject.position.x = Math.round(this.selectedObject.position.x);
     this.selectedObject.position.y = Math.round(this.selectedObject.position.y);
     this.selectedObject.position.z = Math.round(this.selectedObject.position.z);
+    log('Snapped to grid');
   }
 
   mirror(axis) {
     if (!this.selectedObject) return;
+    this.pushUndo();
     this.selectedObject.scale[axis] *= -1;
     log(`Mirrored ${axis}`);
   }
@@ -575,6 +762,7 @@ export class Studio {
   // ── Preset material ──
   applyMaterial(preset) {
     if (!this.selectedObject) return;
+    this.pushUndo();
     const presets = {
       chrome: { color: 0xffffff, metalness: 1.0, roughness: 0.1 },
       gold: { color: 0xffd700, metalness: 1.0, roughness: 0.15 },
@@ -613,6 +801,7 @@ export class Studio {
   }
 
   loadProject(data) {
+    this.pushUndo();
     this.objects.forEach(o => this.scene.remove(o));
     this.objects = [];
     data.objects.forEach(d => {
@@ -631,6 +820,7 @@ export class Studio {
   }
 
   newProject() {
+    this.pushUndo();
     this.objects.forEach(o => this.scene.remove(o));
     this.objects = [];
     this.keyframes.clear();

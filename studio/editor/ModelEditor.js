@@ -60,12 +60,9 @@ export class ModelEditor {
         if (source && typeof source === 'object' && source.url) {
           // If files map provided, use URLModifier to resolve external resources
           if (source.files && typeof source.files === 'object' && Object.keys(source.files).length >= 1) {
-            const loader = new GLTFLoader();
-            const draco = new DRACOLoader();
-            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-            loader.setDRACOLoader(draco);
-
-            loader.setURLModifier((url) => {
+            // Isolated manager so URLModifier doesn't leak to DefaultLoadingManager
+            const manager = new THREE.LoadingManager();
+            manager.setURLModifier((url) => {
               const filename = url.split('/').pop().split('?')[0];
               if (source.files[filename]) return source.files[filename];
               if (url.startsWith('data:')) return url;
@@ -74,10 +71,16 @@ export class ModelEditor {
               return url;
             });
 
+            const loader = new GLTFLoader(manager);
+            const draco = new DRACOLoader();
+            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            loader.setDRACOLoader(draco);
+
             const nameHint = source.name || source.url.split('/').pop() || 'Imported';
             const revokeAll = () => {
               Object.values(source.files).forEach(u => URL.revokeObjectURL(u));
             };
+
             loader.load(source.url, (gltf) => {
               const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
               this._finalizeImported(root, nameHint);

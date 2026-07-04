@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI 3D - DEVELOPER CENTER</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Stick+No Bills:wght@400;700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#ffb4aa",
+                    "on-tertiary": "#3d2f00",
+                    "background": "#061423",
+                    "on-surface": "#d5e4f9",
+                    "surface": "#061423",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "on-secondary-fixed": "#002020",
+                    "on-error-container": "#ffdad6",
+                    "surface-bright": "#2d3a4b",
+                    "tertiary-fixed": "#ffe08a",
+                    "primary-container": "#c01818",
+                    "surface-tint": "#ffb4aa",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "surface-dim": "#061423",
+                    "secondary-container": "#00fbfb",
+                    "secondary": "#ffffff",
+                    "primary-fixed": "#ffdad5",
+                    "on-tertiary-container": "#4f3d00",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "on-error": "#690005",
+                    "surface-container-high": "#1d2b3b",
+                    "on-primary-fixed-variant": "#930008",
+                    "inverse-surface": "#d5e4f9",
+                    "on-primary": "#690004",
+                    "on-secondary": "#003737",
+                    "inverse-on-surface": "#243142",
+                    "surface-container-lowest": "#020f1e",
+                    "on-background": "#d5e4f9",
+                    "tertiary": "#e1c471",
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-surface-variant": "#e5bdb8",
+                    "secondary-fixed": "#00fbfb",
+                    "on-primary-fixed": "#410001",
+                    "on-primary-container": "#ffd2cd",
+                    "error-container": "#93000a",
+                    "secondary-fixed-dim": "#00dddd",
+                    "on-secondary-container": "#007070",
+                    "surface-variant": "#283646",
+                    "error": "#ffb4ab",
+                    "surface-container-low": "#0e1c2c",
+                    "inverse-primary": "#bc1416",
+                    "surface-container": "#132030",
+                    "surface-container-highest": "#283646",
+                    "on-tertiary-fixed": "#241a00",
+                    "tertiary-container": "#c4a959",
+                    "outline": "#ac8884",
+                    "outline-variant": "#5c403c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap": "1.5rem",
+                    "bracket-padding": "0.5rem",
+                    "hud-gutter": "1rem",
+                    "edge-margin": "2rem"
+            },
+            "fontFamily": {
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-lg": ["Stick No Bills"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "display-xl": ["Stick No Bills"],
+                    "body-jp": ["Noto Sans JP"]
+            },
+            "fontSize": {
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 251, 251, 0.02) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(229, 189, 184, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(229, 189, 184, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .bracket-tl { border-top: 2px solid #00fbfb; border-left: 2px solid #00fbfb; }
+        .bracket-tr { border-top: 2px solid #00fbfb; border-right: 2px solid #00fbfb; }
+        .bracket-bl { border-bottom: 2px solid #00fbfb; border-left: 2px solid #00fbfb; }
+        .bracket-br { border-bottom: 2px solid #00fbfb; border-right: 2px solid #00fbfb; }
+        
+        .tactical-btn {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: all 0.3s ease;
+        }
+        .tactical-btn:hover {
+            background-color: #00fbfb;
+            color: #061423;
+            box-shadow: 0 0 15px rgba(0, 251, 251, 0.5);
+        }
+        .glass-panel {
+            background: rgba(6, 20, 35, 0.7);
+            backdrop-filter: blur(12px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-data-sm selection:bg-secondary-container selection:text-on-secondary-container overflow-hidden">
+<!-- Atmospheric Overlays -->
+<div class="scanline-overlay"></div>
+<div class="fixed inset-0 grid-bg opacity-30 pointer-events-none"></div>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-hud-gutter h-16 bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant shadow-md">
+<div class="flex items-center gap-4">
+<span class="font-display-xl text-headline-lg text-primary drop-shadow-[0_0_10px_rgba(255,180,170,0.5)] tracking-tighter">PUTER_DEV_CENTER</span>
+<div class="hidden md:flex gap-6 items-center ml-8">
+<a class="text-primary border-b-2 border-primary pb-1 font-label-caps text-label-caps tracking-widest" href="#">RESOURCES</a>
+<a class="text-on-surface-variant hover:text-secondary hover:bg-surface-variant/50 transition-all duration-300 font-label-caps text-label-caps tracking-widest" href="#">API_DOCS</a>
+<a class="text-on-surface-variant hover:text-secondary hover:bg-surface-variant/50 transition-all duration-300 font-label-caps text-label-caps tracking-widest" href="#">COMMUNITY</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-high border border-outline-variant text-on-surface font-data-sm px-4 py-1 w-64 focus:ring-1 focus:ring-secondary-container focus:border-secondary-container outline-none transition-all" placeholder="SEARCH_DATABASE..." type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-1.5 text-on-surface-variant text-sm">search</span>
+</div>
+<div class="flex gap-4 items-center">
+<button class="text-on-surface-variant hover:text-secondary-container transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-secondary-container transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full border border-primary/50 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A cinematic, high-detail portrait of a cyberpunk flight pilot wearing a sleek, matte black oxygen mask and reflective glass visor. The background is a dimly lit cockpit with glowing amber and cyan telemetry displays. The lighting is dramatic and low-key, emphasizing the tactical and high-stakes atmosphere of a futuristic flight mission." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNXPP7vlRWW5TZ5SFUpAE_qkk6M1EzpGuj-FU9_A160kDVRWbWJ_PnawHZ8ij5vQ2PdCZtkVFYdUJHRqCs9EBd3ypAphhYKj5V4mVsIraFxu41RSD3shUQOAWLS28YoetlOEZfpXvbkUDGHRqrFDfg6YdUyCWUV3gOJPD-Thx5obyHW4D2E7KHc7JtbVwuVEopkVKkcL77CfYl2R0Br6VF7qaiO1cR7VSFrWMaOangNtWrEEqjcbe01L58xvksbgrkXJ1e_YDD7MRK"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 flex flex-col pt-20 pb-8 bg-surface-container-low/90 backdrop-blur-xl border-r border-outline-variant z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-2 h-2 bg-secondary-container animate-pulse"></div>
+<span class="font-headline-lg text-primary text-headline-lg tracking-wider">PROJECT_X</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant tracking-[0.2em] opacity-70">STATUS: IN_REVIEW</span>
+</div>
+<nav class="flex-1 space-y-1 px-3">
+<a class="flex items-center gap-4 px-4 py-3 text-on-secondary-container bg-secondary-container/20 border-l-4 border-secondary font-bold font-label-caps text-label-caps transition-all scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                MISSION_CONTROL
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+                ASSET_UPLOAD
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+                METADATA
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+                DISTRIBUTION
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+                ANALYTICS
+            </a>
+</nav>
+<div class="px-3 mt-auto space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+                SETTINGS
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+                HELP
+            </a>
+<div class="mt-4 px-4">
+<button class="w-full py-3 tactical-btn border border-secondary-container text-secondary-container font-label-caps text-label-caps tracking-widest">
+                    SUBMIT_BUILD
+                </button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-16 h-screen overflow-y-auto">
+<div class="p-edge-margin space-y-8 max-w-7xl mx-auto relative">
+<!-- Header Telemetry -->
+<div class="flex justify-between items-end border-b border-outline-variant pb-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary uppercase">Mission Control Center</h1>
+<p class="font-data-sm text-on-surface-variant opacity-80">LAT: 35.6895° N | LON: 139.6917° E | ALT: 25,000 FT</p>
+</div>
+<div class="text-right">
+<span class="font-data-sm text-secondary-container block">UPLINK_STRENGTH: 98.4%</span>
+<span class="font-data-sm text-primary block">THREAT_LEVEL: ZERO-G ALPHA</span>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Submission Checklist Card -->
+<div class="col-span-12 lg:col-span-7 relative">
+<div class="absolute -top-1 -left-1 w-4 h-4 bracket-tl"></div>
+<div class="absolute -top-1 -right-1 w-4 h-4 bracket-tr"></div>
+<div class="absolute -bottom-1 -left-1 w-4 h-4 bracket-bl"></div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bracket-br"></div>
+<div class="glass-panel p-6 border border-outline-variant/30">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-label-caps text-label-caps text-secondary-container tracking-widest">SUBMISSION_CHECKLIST</h3>
+<span class="px-2 py-1 bg-primary-container text-on-primary-container font-label-caps text-[10px]">PENDING_APPROVAL</span>
+</div>
+<div class="space-y-4">
+<!-- Checklist Item 1 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-high/50 border border-outline-variant/20 hover:border-secondary-container/50 transition-colors cursor-pointer group">
+<div class="w-16 h-16 flex-shrink-0 bg-background border border-outline-variant p-2 group-hover:scale-105 transition-transform">
+<img class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLsAvKhat4mMJ18vWrgBvpZW0WyXmlNPJXahtCmsy1CmZJ-lp6V0-iDaKsILOvS9Sn3knvUNkNpsqRAArx--vy-Q-_OpZTIsL-HN4bo-S_f8QU5eoqzcUwXn5cjGQkj1j2n1VygFZSi_zJVjFhgregpAWh4ipDxTEBvKtQk38-ibUa50LTGt_NgwFC0ncROIfRE9qHwEZ4OcGfNalxNjV3aJhODsV3x9xUxpvAogsf4mcW5cbLV1ofFciTnP"/>
+</div>
+<div class="flex-1">
+<h4 class="font-label-caps text-label-caps text-on-surface">Icon Requirements</h4>
+<p class="font-data-sm text-on-surface-variant text-[11px]">1024x1024 PX | HDR_COMPATIBLE | ALPHA_CHANNEL: OFF</p>
+</div>
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Checklist Item 2 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-high/50 border border-outline-variant/20 hover:border-secondary-container/50 transition-colors cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center bg-surface-variant/30 border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant">terminal</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-caps text-label-caps text-on-surface">Manifest (PWA)</h4>
+<p class="font-data-sm text-on-surface-variant text-[11px]">VERSION: 4.2.0_BETA | SCOPE: /ROOT | DISPLAY: STANDALONE</p>
+</div>
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Checklist Item 3 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-high/50 border border-outline-variant/20 hover:border-secondary-container/50 transition-colors cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center bg-surface-variant/30 border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant">info</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-caps text-label-caps text-on-surface">App Store Metadata</h4>
+<p class="font-data-sm text-on-surface-variant text-[11px]">EN_US, JP_JP, RU_RU | CATEGORY: TACTICAL_SIM</p>
+</div>
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Checklist Item 4 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-high/50 border border-outline-variant/20 hover:border-secondary-container/50 transition-colors cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center bg-surface-variant/30 border border-outline-variant">
+<span class="material-symbols-outlined text-primary">warning</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-caps text-label-caps text-on-surface">Developer Agreement</h4>
+<p class="font-data-sm text-on-surface-variant text-[11px]">REQUIRED: DIGITAL_SIGNATURE_AUTH_2FA</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">radio_button_unchecked</span>
+</div>
+</div>
+<div class="mt-8 flex justify-end">
+<button class="px-10 py-4 tactical-btn bg-secondary-container text-background font-headline-lg text-[18px] tracking-[0.1em] shadow-[0_0_20px_rgba(0,251,251,0.3)]">
+                                REQUEST_APPROVAL
+                            </button>
+</div>
+</div>
+</div>
+<!-- Secondary Diagnostics -->
+<div class="col-span-12 lg:col-span-5 space-y-6">
+<!-- Engine Telemetry Card -->
+<div class="glass-panel p-5 border border-outline-variant/30 relative">
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-4xl">analytics</span>
+</div>
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-4">DEPLOYMENT_STATISTICS</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-data-sm mb-1">
+<span>SYSTEM_OPTIMIZATION</span>
+<span>84%</span>
+</div>
+<div class="flex gap-1 h-2">
+<div class="flex-1 bg-secondary-container h-full"></div>
+<div class="flex-1 bg-secondary-container h-full"></div>
+<div class="flex-1 bg-secondary-container h-full"></div>
+<div class="flex-1 bg-secondary-container h-full"></div>
+<div class="flex-1 bg-secondary-container/20 h-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-data-sm mb-1">
+<span>BATTLE_READY_ASSETS</span>
+<span>100%</span>
+</div>
+<div class="flex gap-1 h-2">
+<div class="flex-1 bg-primary h-full"></div>
+<div class="flex-1 bg-primary h-full"></div>
+<div class="flex-1 bg-primary h-full"></div>
+<div class="flex-1 bg-primary h-full"></div>
+<div class="flex-1 bg-primary h-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- 3D Environment Preview (placeholder for visual flair) -->
+<div class="relative aspect-video overflow-hidden border border-outline-variant group">
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3000ms]" data-alt="A dramatic wide-angle view of a futuristic space hangar filled with tactical fighter jets and robotic machinery. High-contrast lighting with cyan laser scanning grids projecting onto the floor and walls. The atmosphere is dense with atmospheric fog and mechanical smoke, creating a heavy industrial brutalist feel with glowing tech accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUVZaZr6fWa-ESVBAxXXsvojKmf-CfCpRaNMEnoar8JGteI8DTHdgbAiN17VgAiz9pDl-ezP_B7-VOMFceWJlDY9jP8FE6EB5pImJRYk4llTtUfcNRIN5p_SdnonwO1yfjEHe0RsnfCYZSk-DPnXwSU0RRSHRJv8jZYgzWTdk1jBXGAN5loXNCYLm8ncQq2lOLjlrosXm1BMtPvFdERxvvNLaGbQEenwWKr4OidV3hWD_RMHDUSRi8-QYfFhth8PNWUx0ry9tgoz8M"/>
+<div class="absolute top-4 left-4 z-20 flex flex-col gap-1">
+<span class="bg-primary px-2 py-1 text-[9px] font-label-caps text-on-primary">LIVE_PREVIEW</span>
+<span class="text-[10px] text-on-surface font-data-sm backdrop-blur-sm bg-black/40 px-2">FPS: 144 | VRAM: 12GB</span>
+</div>
+<div class="absolute bottom-4 left-4 right-4 z-20">
+<div class="flex justify-between items-center text-white font-label-caps text-[10px] tracking-widest uppercase">
+<span>Core_Engine_3D</span>
+<span class="material-symbols-outlined text-sm">fullscreen</span>
+</div>
+</div>
+</div>
+<!-- Terminal Logs Card -->
+<div class="glass-panel p-4 border border-outline-variant/30 font-data-sm text-[11px] h-40 overflow-hidden relative">
+<div class="text-secondary-container border-b border-outline-variant/30 pb-2 mb-2 flex justify-between">
+<span>TERMINAL_OUTPUT_429</span>
+<span class="animate-pulse">_</span>
+</div>
+<div class="space-y-1 opacity-70">
+<p>&gt; Initializing Kamikazzi_3D kernel...</p>
+<p>&gt; Verifying build 0.8.2-delta signatures...</p>
+<p>&gt; Uploading 42 shader variants to cloud edge...</p>
+<p class="text-primary">&gt; WARNING: Latency spikes detected in EU-WEST clusters.</p>
+<p>&gt; Syncing manifest with global metadata store...</p>
+<p>&gt; Waiting for human authorization sequence...</p>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-surface to-transparent"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Global Footer -->
+<footer class="flex justify-between items-center w-full mt-auto py-4 px-edge-margin border-t border-outline-variant bg-surface-container-lowest">
+<div class="flex items-center gap-4">
+<span class="text-primary font-label-caps text-data-sm">© 2124 PUTER TACTICAL SYSTEMS. ALL RIGHTS RESERVED.</span>
+</div>
+<div class="flex gap-8">
+<a class="text-on-surface-variant font-data-sm hover:text-tertiary transition-colors opacity-80 hover:opacity-100" href="#">TERMINAL_LOGS</a>
+<a class="text-on-surface-variant font-data-sm hover:text-tertiary transition-colors opacity-80 hover:opacity-100" href="#">LEGAL_PROTOCOL</a>
+<a class="text-on-surface-variant font-data-sm hover:text-tertiary transition-colors opacity-80 hover:opacity-100" href="#">SUPPORT_CHANNEL</a>
+</div>
+</footer>
+</main>
+<!-- Center HUD Crosshair Overlay -->
+<div class="fixed inset-0 pointer-events-none flex items-center justify-center opacity-10">
+<div class="w-32 h-32 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-secondary-container"></div>
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-secondary-container"></div>
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-0.5 bg-secondary-container"></div>
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-0.5 bg-secondary-container"></div>
+<div class="absolute inset-0 border border-secondary-container rounded-full opacity-50"></div>
+</div>
+</div>
+<script>
+        // Micro-interactions for terminal flickering
+        const logs = document.querySelectorAll('.space-y-1 p');
+        setInterval(() => {
+            const randomLog = logs[Math.floor(Math.random() * logs.length)];
+            randomLog.style.opacity = Math.random() > 0.8 ? '1' : '0.7';
+        }, 100);
+
+        // Simulated button interaction
+        document.querySelector('.tactical-btn').addEventListener('mousedown', function() {
+            this.style.transform = 'scale(0.95)';
+        });
+        document.querySelector('.tactical-btn').addEventListener('mouseup', function() {
+            this.style.transform = 'scale(1)';
+        });
+    </script>
+</body></html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CRITICAL_SYSTEM_FAILURE | KAMIKAZZI_3D</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&amp;family=Stick+No+Bills:wght@700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+        }
+        @keyframes glitch {
+            0% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(10% 0 80% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(50% 0 20% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px rgba(192, 24, 24, 0.8)); }
+            50% { opacity: 0.7; filter: drop-shadow(0 0 5px rgba(192, 24, 24, 0.4)); }
+        }
+        .scanline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .scanline-move {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(255, 180, 170, 0.1);
+            animation: scanline 6s linear infinite;
+            z-index: 101;
+            pointer-events: none;
+        }
+        .glitch-effect {
+            animation: glitch 0.3s steps(2, end) infinite;
+        }
+        .flicker-heavy {
+            animation: flicker 2s linear infinite;
+        }
+        .clip-path-kamikazzi {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        .bracket-tl { border-top: 2px solid currentColor; border-left: 2px solid currentColor; width: 20px; height: 20px; position: absolute; top: 0; left: 0; }
+        .bracket-tr { border-top: 2px solid currentColor; border-right: 2px solid currentColor; width: 20px; height: 20px; position: absolute; top: 0; right: 0; }
+        .bracket-bl { border-bottom: 2px solid currentColor; border-left: 2px solid currentColor; width: 20px; height: 20px; position: absolute; bottom: 0; left: 0; }
+        .bracket-br { border-bottom: 2px solid currentColor; border-right: 2px solid currentColor; width: 20px; height: 20px; position: absolute; bottom: 0; right: 0; }
+        
+        body {
+            background-color: #061423;
+            background-image: radial-gradient(circle at center, #132030 0%, #061423 100%);
+            overflow: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#574400",
+                      "on-secondary-fixed": "#002020",
+                      "background": "#061423",
+                      "secondary-fixed": "#00fbfb",
+                      "primary": "#ffb4aa",
+                      "surface-container-lowest": "#020f1e",
+                      "primary-container": "#c01818",
+                      "error-container": "#93000a",
+                      "surface-bright": "#2d3a4b",
+                      "on-secondary": "#003737",
+                      "tertiary-fixed": "#ffe08a",
+                      "on-surface": "#d5e4f9",
+                      "secondary-container": "#00fbfb",
+                      "surface-container-highest": "#283646",
+                      "primary-fixed": "#ffdad5",
+                      "on-error": "#690005",
+                      "inverse-surface": "#d5e4f9",
+                      "surface-container-low": "#0e1c2c",
+                      "surface": "#061423",
+                      "on-tertiary": "#3d2f00",
+                      "on-primary-container": "#ffd2cd",
+                      "inverse-primary": "#bc1416",
+                      "tertiary": "#e1c471",
+                      "primary-fixed-dim": "#ffb4aa",
+                      "on-secondary-fixed-variant": "#004f4f",
+                      "error": "#ffb4ab",
+                      "secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#e1c471",
+                      "on-secondary-container": "#007070",
+                      "on-tertiary-fixed": "#241a00",
+                      "on-background": "#d5e4f9",
+                      "on-primary": "#690004",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#00dddd",
+                      "tertiary-container": "#c4a959",
+                      "on-tertiary-container": "#4f3d00",
+                      "on-primary-fixed": "#410001",
+                      "surface-tint": "#ffb4aa",
+                      "surface-container-high": "#1d2b3b",
+                      "surface-variant": "#283646",
+                      "surface-dim": "#061423",
+                      "surface-container": "#132030",
+                      "on-primary-fixed-variant": "#930008",
+                      "outline-variant": "#5c403c",
+                      "on-surface-variant": "#e5bdb8",
+                      "inverse-on-surface": "#243142",
+                      "outline": "#ac8884"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-gap": "1.5rem",
+                      "edge-margin": "2rem",
+                      "hud-gutter": "1rem",
+                      "bracket-padding": "0.5rem"
+              },
+              "fontFamily": {
+                      "label-caps": ["JetBrains Mono"],
+                      "headline-lg-mobile": ["Stick No Bills"],
+                      "data-sm": ["JetBrains Mono"],
+                      "data-lg": ["JetBrains Mono"],
+                      "display-xl": ["Stick No Bills"],
+                      "headline-lg": ["Stick No Bills"],
+                      "body-jp": ["Noto Sans JP"]
+              },
+              "fontSize": {
+                      "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                      "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                      "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                      "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface font-body-jp">
+<!-- HUD Overlay FX -->
+<div class="scanline-overlay"></div>
+<div class="scanline-move"></div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="speed">speed</span>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</h1>
+</div>
+<div class="flex items-center gap-6 opacity-60">
+<nav class="hidden md:flex gap-6 font-label-caps text-label-caps">
+<a class="text-on-surface-variant hover:text-secondary transition-all" href="#">FLIGHT_OPS</a>
+<a class="text-secondary drop-shadow-[0_0_5px_#ffffff] scale-95 duration-75" href="#">HANGAR</a>
+<a class="text-on-surface-variant hover:text-secondary transition-all" href="#">LEADERBOARD</a>
+<a class="text-on-surface-variant hover:text-secondary transition-all" href="#">LOUNGE</a>
+</nav>
+<div class="w-10 h-10 rounded-full border border-primary/40 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A gritty close-up portrait of a veteran cyberpunk pilot, COMMANDER VOSS, with glowing cybernetic eye implants and a worn flight suit. The lighting is harsh red and deep blue, matching the industrial cyber-brutalism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3_7_xVMsJ10mDt_LNOILA4odtKIOB8OFxl31fyJOymn321TpSwf1frFerJk1eHlReHZDj80lPPjdwEva_MrEF__hFX8m0Hg6rlIb8viX560-TCWfBTYgydzYf1MLUSQSs4oCCnXdivsumknXvp3aQfOsY2R0s29KHcwcR06nJoz8VSui4R3VQlNh6lLHAsPaqFgGNXD4MKnnNKNF96KDSgUmlIGWQ_q865oWw4Ft8KdMlSoAZlzWG-eS9P1w2RVJi2b3IuUR7CDTi"/>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Dimmed for Error State) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 bg-surface-dim/80 backdrop-blur-2xl h-full w-64 border-r border-outline-variant/50 opacity-40 grayscale pointer-events-none transition-opacity duration-500 hover:opacity-100 hover:grayscale-0 lg:opacity-60">
+<div class="px-6 py-4 border-b border-outline-variant/30 flex items-center gap-3">
+<div class="w-12 h-12 bg-primary/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary">COMMANDER_VOSS</p>
+<p class="text-[10px] text-tertiary">RANK: ACE</p>
+</div>
+</div>
+<div class="flex flex-col mt-4">
+<div class="text-on-surface-variant/70 px-4 py-3 font-label-caps text-label-caps flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span> FLIGHT_OPS
+            </div>
+<div class="bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-4 py-3 font-label-caps text-label-caps flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="home_repair_service">home_repair_service</span> SKIN_LAB
+            </div>
+<div class="text-on-surface-variant/70 px-4 py-3 font-label-caps text-label-caps flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span> LEADERBOARD
+            </div>
+<div class="text-on-surface-variant/70 px-4 py-3 font-label-caps text-label-caps flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="group">group</span> LOUNGE
+            </div>
+</div>
+<div class="mt-auto p-4 bg-gradient-to-r from-surface-container-low to-transparent">
+<p class="font-label-caps text-[8px] text-outline">SECTOR_7_CLEARED</p>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-0 lg:ml-64 pt-24 min-h-screen px-hud-gutter relative overflow-hidden">
+<!-- Background Grid FX -->
+<div class="absolute inset-0 z-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, #ffb4aa 1px, transparent 1px); background-size: 40px 40px;"></div>
+<!-- Error Alert Header -->
+<div class="relative z-10 max-w-4xl mx-auto flex flex-col items-center justify-center pt-12">
+<div class="flex flex-col items-center text-center gap-4 mb-12">
+<div class="text-primary-container inline-flex items-center justify-center p-4 rounded-full border-4 border-primary-container animate-[pulse-red_2s_infinite]">
+<span class="material-symbols-outlined text-6xl" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<h2 class="font-display-xl text-primary-container uppercase tracking-tighter drop-shadow-lg glitch-effect">
+                    CRITICAL_SYSTEM_FAILURE
+                </h2>
+<div class="px-6 py-2 bg-primary-container/20 border border-primary-container text-primary-container font-label-caps text-headline-lg-mobile clip-path-kamikazzi">
+                    ERROR_CODE: 0x884_HANGAR_DOOR_JAMMED
+                </div>
+</div>
+<!-- Blueprint Glitch Area -->
+<div class="relative w-full aspect-video bg-surface-container-low/40 border border-outline-variant/30 backdrop-blur-md p-bracket-padding">
+<div class="bracket-tl text-primary-container"></div>
+<div class="bracket-tr text-primary-container"></div>
+<div class="bracket-bl text-primary-container"></div>
+<div class="bracket-br text-primary-container"></div>
+<!-- Glitching Aircraft Blueprint -->
+<div class="w-full h-full relative overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 flex items-center justify-center opacity-40 mix-blend-screen glitch-effect">
+<img class="w-3/4 object-contain" data-alt="A technical blueprint diagram of a futuristic combat spacecraft, glowing in high-contrast cyan lines against a dark blue background. The image is distorted with heavy digital interference, red scanlines, and missing data segments to simulate a corrupted UI display in a tactical flight hangar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU6Q69GhTFqMvBuxsIKH9fuRmhmNY5ylWyAHHVFYP5YyZt7HTJBEb6hs0PT_KJpfX6NyEa-dKznybYgoMn8RD7_HNVupnEz-4YfFRc0Y2ziZdezUCzII7NOpKovg-2cmAESsLGqnPnJcSkBbhu9UDidyTOjKhn_MV0HT7B9HnqQO7xPFFx2ju3nFs5T5xJSky2pi43xGe61KoyZ1bGF3hGVSwqQOWTaRdkfENtUpoDyTGlrde0dBf-9Ivl3ldOW-R2OSXxkYIZYavk"/>
+</div>
+<!-- Tactical Overlays -->
+<div class="absolute top-8 left-8 flex flex-col gap-2 font-data-sm text-primary/70">
+<div class="flex items-center gap-2"><span class="w-2 h-2 bg-primary-container"></span> CHASSIS_INTEGRITY: ERR</div>
+<div class="flex items-center gap-2"><span class="w-2 h-2 bg-primary-container"></span> HYDRAULICS: NULL</div>
+<div class="flex items-center gap-2"><span class="w-2 h-2 bg-primary-container"></span> DOOR_ACTUATORS: JAMMED</div>
+</div>
+<div class="absolute bottom-8 right-8 flex flex-col items-end gap-2 font-data-sm text-primary-container">
+<p class="flicker-heavy">UNABLE_TO_RETRIEVE_ASSET</p>
+<p class="font-bold">CHASSIS_UNREACHABLE</p>
+</div>
+<!-- Center Error Crosshair -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-primary-container w-32 h-32 rounded-full border-dashed animate-spin flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="close">close</span>
+</div>
+</div>
+</div>
+<!-- Diagnostics & Recovery Actions -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-stack-gap mb-32">
+<div class="bg-surface-container p-4 border-l-4 border-primary-container flex flex-col gap-2">
+<p class="font-label-caps text-primary-container">LOG_REPORT</p>
+<p class="font-data-sm text-on-surface-variant">Access denied at 04:22:11. Hangar sector 4 lock detected mechanical obstruction. Manual override required.</p>
+</div>
+<div class="bg-surface-container p-4 border-l-4 border-outline flex flex-col gap-4">
+<p class="font-label-caps text-outline">RECOVERY_ACTION_01</p>
+<button class="w-full py-2 bg-primary/10 border border-primary text-primary font-label-caps text-label-caps hover:bg-primary hover:text-background transition-all clip-path-kamikazzi">
+                        INITIATE_MANUAL_BYPASS
+                    </button>
+</div>
+<div class="bg-surface-container p-4 border-l-4 border-primary-container flex flex-col gap-4">
+<p class="font-label-caps text-primary-container">RECOVERY_ACTION_02</p>
+<button class="w-full py-2 bg-primary-container text-on-primary-container font-label-caps text-label-caps hover:brightness-125 transition-all clip-path-kamikazzi">
+                        PURGE_SYSTEM_CACHE
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Floating HUD Style) -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-transparent">
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="settings_input_component">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="radar">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110">
+<span class="material-symbols-outlined text-2xl" data-icon="query_stats">query_stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="power_settings_new">power_settings_new</span>
+</button>
+</nav>
+<!-- HUD Center Visual Guidance (Invisible spacer to respect 20% radial clearance) -->
+<div class="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+<div class="w-[20vw] h-[20vw] rounded-full border border-white/5 opacity-0"></div>
+</div>
+<script>
+        // Micro-interactions and atmospheric glitching
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 10;
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            document.querySelector('main').style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
+        });
+
+        // Occasional Heavy Glitch
+        setInterval(() => {
+            const canvas = document.querySelector('main');
+            canvas.classList.add('flicker-heavy');
+            setTimeout(() => {
+                canvas.classList.remove('flicker-heavy');
+            }, 150);
+        }, 4000);
+    </script>
+</body></html>

@@ -3,6 +3,16 @@
  */
 const meta = {
   controls: [
+    // ── Undo / Redo ──
+    {
+      key: 'undo-row',
+      label: '',
+      type: 'label',
+      description: 'Undo/Redo',
+    },
+    { key: 'undo', label: '↩ Undo (Ctrl+Z)', type: 'button', onClick: () => window.ProModelerApp?.undo() },
+    { key: 'redo', label: '↪ Redo (Ctrl+Y)', type: 'button', onClick: () => window.ProModelerApp?.redo() },
+    { key: 'sep0', label: '──────────', type: 'label' },
     // ── Basic Actions ──
     { key: 'duplicate', label: 'Duplicate Selected', type: 'button', onClick: () => window.ProModelerApp?.duplicateSelected() },
     { key: 'delete',    label: 'Delete Selected',    type: 'button', onClick: () => window.ProModelerApp?.deleteSelected() },

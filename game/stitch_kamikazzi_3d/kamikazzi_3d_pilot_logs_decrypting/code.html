@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // DECRYPTING_STREAM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&amp;family=Stick+No Bills:wght@400;700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes jitter {
+            0% { transform: translate(0); opacity: 0.5; }
+            20% { transform: translate(-2px, 1px); opacity: 0.8; }
+            40% { transform: translate(2px, -1px); opacity: 0.4; }
+            60% { transform: translate(-1px, -2px); opacity: 0.7; }
+            80% { transform: translate(1px, 2px); opacity: 0.5; }
+            100% { transform: translate(0); opacity: 0.5; }
+        }
+        @keyframes pulse-amber {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(225, 196, 113, 0.4)); opacity: 0.8; }
+            50% { filter: drop-shadow(0 0 20px rgba(225, 196, 113, 0.9)); opacity: 1; }
+        }
+        @keyframes progress-fill {
+            0% { width: 0%; }
+            10% { width: 15%; }
+            30% { width: 18%; }
+            45% { width: 55%; }
+            70% { width: 62%; }
+            90% { width: 95%; }
+            100% { width: 100%; }
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .jitter-text {
+            animation: jitter 0.15s infinite;
+        }
+        .clip-path-bracket {
+            clip-path: polygon(0 0, 100% 0, 100% 20%, 95% 20%, 95% 5%, 5% 5%, 5% 95%, 95% 95%, 95% 80%, 100% 80%, 100% 100%, 0 100%);
+        }
+        .clip-corner {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .loading-bar-segment {
+            animation: progress-fill 4s infinite cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        .matrix-bg {
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#574400",
+                    "on-secondary-fixed": "#002020",
+                    "background": "#061423",
+                    "secondary-fixed": "#00fbfb",
+                    "primary": "#ffb4aa",
+                    "surface-container-lowest": "#020f1e",
+                    "primary-container": "#c01818",
+                    "error-container": "#93000a",
+                    "surface-bright": "#2d3a4b",
+                    "on-secondary": "#003737",
+                    "tertiary-fixed": "#ffe08a",
+                    "on-surface": "#d5e4f9",
+                    "secondary-container": "#00fbfb",
+                    "surface-container-highest": "#283646",
+                    "primary-fixed": "#ffdad5",
+                    "on-error": "#690005",
+                    "inverse-surface": "#d5e4f9",
+                    "surface-container-low": "#0e1c2c",
+                    "surface": "#061423",
+                    "on-tertiary": "#3d2f00",
+                    "on-primary-container": "#ffd2cd",
+                    "inverse-primary": "#bc1416",
+                    "tertiary": "#e1c471",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "error": "#ffb4ab",
+                    "secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#e1c471",
+                    "on-secondary-container": "#007070",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-background": "#d5e4f9",
+                    "on-primary": "#690004",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#00dddd",
+                    "tertiary-container": "#c4a959",
+                    "on-tertiary-container": "#4f3d00",
+                    "on-primary-fixed": "#410001",
+                    "surface-tint": "#ffb4aa",
+                    "surface-container-high": "#1d2b3b",
+                    "surface-variant": "#283646",
+                    "surface-dim": "#061423",
+                    "surface-container": "#132030",
+                    "on-primary-fixed-variant": "#930008",
+                    "outline-variant": "#5c403c",
+                    "on-surface-variant": "#e5bdb8",
+                    "inverse-on-surface": "#243142",
+                    "outline": "#ac8884"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap": "1.5rem",
+                    "edge-margin": "2rem",
+                    "hud-gutter": "1rem",
+                    "bracket-padding": "0.5rem"
+            },
+            "fontFamily": {
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-lg-mobile": ["Stick No Bills"],
+                    "data-sm": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "display-xl": ["Stick No Bills"],
+                    "headline-lg": ["Stick No Bills"],
+                    "body-jp": ["Noto Sans JP"]
+            },
+            "fontSize": {
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                    "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-jp overflow-hidden selection:bg-primary selection:text-on-primary">
+<!-- GLOBAL OVERLAYS -->
+<div class="fixed inset-0 scanline-overlay z-[100] opacity-20 pointer-events-none"></div>
+<div class="fixed inset-0 z-[101] pointer-events-none border-[12px] border-surface-container-lowest/50"></div>
+<!-- TOP APP BAR -->
+<header class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-4 font-label-caps text-label-caps">
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">RADAR</a>
+<a class="text-secondary drop-shadow-[0_0_5px_#ffffff] px-2 py-1" href="#">LOGS</a>
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">SQUAD</a>
+</nav>
+<div class="flex items-center gap-2 px-3 py-1 border border-primary/30 clip-corner bg-primary/5">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-primary/50">
+<img class="w-full h-full object-cover" data-alt="A futuristic cybernetic pilot portrait with high-tech glowing visor and tactical flight suit, atmospheric orange and teal lighting, digital painting style with sharp mechanical details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5dHgVjL19qzuBVoLVFechJ7PUJKRsvNmhwK18hX89cmMxYAdno7h8A6EPgtC2GkBrTXGQ5BbiqYql-ifOThgGlcVKB08YGhDaV07kr04MqsBkiNALOe-UbKQuN2Ae6DuK8gZUCd2Sg7j4mOUkefjQzIC3bbqxUvVA6FA80Gho1eLJ9YKAazy5FTXDp-8kkTXEG7eSlAG-MsthrVe-xUiFirMR149xSnrGhUlTH6dfCga6pXoT6PrV3QXvVKanncLdS6SLue3IaBGJ"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-[8px] leading-none text-primary">PILOT_ALPHA_01</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">RANK: ACE</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="relative w-full h-screen flex items-center justify-center pt-16">
+<!-- Jitter Text Background Layer -->
+<div class="absolute inset-0 z-0 overflow-hidden opacity-10 font-data-sm select-none matrix-bg">
+<div class="grid grid-cols-4 md:grid-cols-8 gap-4 p-8" id="jitter-container">
+<!-- Dynamically filled by JS -->
+</div>
+</div>
+<!-- BLURRED MISSION STREAM BACKGROUND -->
+<div class="absolute inset-0 z-10 flex flex-col gap-6 px-edge-margin py-20 opacity-20 blur-xl pointer-events-none">
+<div class="w-full h-32 bg-surface-container-highest border border-outline-variant/30"></div>
+<div class="w-full h-48 bg-surface-container-highest border border-outline-variant/30"></div>
+<div class="w-full h-32 bg-surface-container-highest border border-outline-variant/30"></div>
+<div class="w-full h-40 bg-surface-container-highest border border-outline-variant/30"></div>
+</div>
+<!-- CENTRAL LOADING HUD -->
+<section class="relative z-20 flex flex-col items-center max-w-xl w-full px-6">
+<!-- Corner Brackets -->
+<div class="absolute -inset-10 clip-path-bracket border-2 border-tertiary/20 opacity-50 pointer-events-none"></div>
+<!-- Decryption Status -->
+<div class="mb-8 flex flex-col items-center">
+<div class="flex items-center gap-4 mb-2">
+<span class="material-symbols-outlined text-tertiary text-4xl animate-pulse" data-icon="lock_open" style="font-variation-settings: 'FILL' 1;">lock_open</span>
+<h2 class="font-display-xl text-headline-lg tracking-[0.2em] text-tertiary drop-shadow-[0_0_10px_rgba(225,196,113,0.6)]">DECRYPTING_STREAM</h2>
+</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant flex gap-4">
+<span>SECTOR: 0x7F2_GAMMA</span>
+<span>PROTOCOL: SHIELD_BYPASS_V4</span>
+</div>
+</div>
+<!-- Progress Bar Container -->
+<div class="w-full relative py-4 group">
+<!-- Bar Track -->
+<div class="h-4 w-full bg-surface-container-low border border-tertiary/30 p-1 flex items-center">
+<!-- Amber Glow Fill -->
+<div class="loading-bar-segment h-full bg-tertiary relative overflow-hidden" style="animation: progress-fill 5s infinite cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 0 15px #e1c471;">
+<!-- Animated stripes inside the fill -->
+<div class="absolute inset-0 opacity-30" style="background: repeating-linear-gradient(45deg, transparent, transparent 10px, black 10px, black 20px);"></div>
+</div>
+</div>
+<!-- HUD Data Accents -->
+<div class="absolute -bottom-4 left-0 font-data-sm text-[10px] text-tertiary/60 tracking-tighter">
+                    BUFFER_ALLOCATION: [||||||||||||||||||||||||||||] 88%
+                </div>
+<div class="absolute -bottom-4 right-0 font-data-sm text-[10px] text-tertiary/60 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+                    ACTIVE_LINK_STABLE
+                </div>
+</div>
+<!-- Mechanical Jitter Callouts -->
+<div class="mt-12 w-full grid grid-cols-3 gap-4">
+<div class="bg-surface-container/40 p-3 border-l-2 border-primary/40 flex flex-col gap-1">
+<span class="font-label-caps text-[8px] text-primary">PACKET_LOSS</span>
+<span class="font-data-lg text-secondary jitter-text">0.002%</span>
+</div>
+<div class="bg-surface-container/40 p-3 border-l-2 border-tertiary/40 flex flex-col gap-1">
+<span class="font-label-caps text-[8px] text-tertiary">LATENCY</span>
+<span class="font-data-lg text-secondary jitter-text">14ms</span>
+</div>
+<div class="bg-surface-container/40 p-3 border-l-2 border-secondary/40 flex flex-col gap-1">
+<span class="font-label-caps text-[8px] text-secondary">RATE</span>
+<span class="font-data-lg text-secondary jitter-text">4.2GB/s</span>
+</div>
+</div>
+</section>
+</main>
+<!-- NAVIGATION DRAWER (DESKTOP SIDENAV) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 hidden md:flex h-full w-64 border-r border-outline-variant/50 bg-surface-dim/80 backdrop-blur-2xl">
+<div class="px-6 py-4 flex items-center gap-4 border-b border-outline-variant/20 mb-4 bg-gradient-to-r from-surface-container-low to-transparent">
+<div class="w-12 h-12 bg-tertiary/20 flex items-center justify-center border border-tertiary/40">
+<span class="material-symbols-outlined text-tertiary" data-icon="architecture">architecture</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-tertiary">COMMANDER_VOSS</p>
+<p class="font-data-sm text-[10px] text-on-surface-variant/60">SECTOR_7_CLEARED</p>
+</div>
+</div>
+<nav class="flex flex-col flex-1">
+<a class="text-on-surface-variant/70 px-6 py-4 hover:text-on-surface flex items-center gap-4 hover:bg-surface-variant/40 transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+                FLIGHT_OPS
+            </a>
+<a class="bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-6 py-4 flex items-center gap-4 font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+                LEADERBOARD
+            </a>
+<a class="text-on-surface-variant/70 px-6 py-4 hover:text-on-surface flex items-center gap-4 hover:bg-surface-variant/40 transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="architecture">architecture</span>
+                SKIN_LAB
+            </a>
+<a class="text-on-surface-variant/70 px-6 py-4 hover:text-on-surface flex items-center gap-4 hover:bg-surface-variant/40 transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                LOUNGE
+            </a>
+</nav>
+<div class="mt-auto p-6">
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%] shadow-[0_0_8px_#ffb4aa]"></div>
+</div>
+<p class="font-label-caps text-[8px] mt-2 text-on-surface-variant">XP_TO_NEXT_LEVEL: 1,420</p>
+</div>
+</aside>
+<!-- BOTTOM NAV (MOBILE) -->
+<nav class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-transparent">
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 active:scale-90">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+</button>
+</nav>
+<script>
+        // Generate Jittery background text
+        const container = document.getElementById('jitter-container');
+        const snippets = [
+            'PKG_0X44A', 'RE_INDEX_STREAM', 'ADDR_CONFLICT_RESOLVED', 
+            'SYMMETRIC_KEY_VALID', 'PARITY_CHECK_PASS', 'TCP_SYN_ACK',
+            'ENCRYPT_AES_256', 'VECTOR_442_INIT', 'HEX_0110101', 
+            'STREAM_FRAG_09', 'PILOT_ID_ACE_01', 'AUTH_TOKEN_EXPIRED',
+            'DECRYPT_PROC_RUNNING', 'LOG_ENTRY_SYNC', 'SECTOR_MAP_Z'
+        ];
+
+        function populateJitter() {
+            container.innerHTML = '';
+            for (let i = 0; i < 40; i++) {
+                const span = document.createElement('span');
+                span.className = 'jitter-text';
+                span.style.animationDelay = (Math.random() * 2) + 's';
+                span.textContent = snippets[Math.floor(Math.random() * snippets.length)];
+                container.appendChild(span);
+            }
+        }
+
+        populateJitter();
+        setInterval(populateJitter, 2000); // Re-roll background every few seconds for variety
+
+        // Dynamic Loading percentage counter
+        const progressBar = document.querySelector('.loading-bar-segment');
+        const rateDisplay = document.querySelector('.jitter-text:last-of-type');
+        
+        let rate = 4.2;
+        setInterval(() => {
+            rate = (4.0 + Math.random() * 0.5).toFixed(2);
+            if (rateDisplay) rateDisplay.textContent = rate + 'GB/s';
+        }, 100);
+    </script>
+</body></html>

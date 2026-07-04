@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // SKIN_LAB</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            5% { opacity: 0.9; }
+            10% { opacity: 0.8; }
+            15% { opacity: 1; }
+            20% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+        @keyframes rotate-ring {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 251, 251, 0.4)); }
+            50% { filter: drop-shadow(0 0 15px rgba(0, 251, 251, 0.8)); }
+        }
+        @keyframes laser-scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        @keyframes shimmer-fast {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes hud-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .scanline-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 251, 251, 0.02) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .moving-scan {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 10%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 251, 251, 0.1), transparent);
+            animation: scanline 8s linear infinite;
+            z-index: 101;
+            pointer-events: none;
+        }
+
+        .tech-grid {
+            background-image: 
+                linear-gradient(to right, rgba(172, 136, 132, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(172, 136, 132, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .clip-corner {
+            clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 10% 100%, 0 90%);
+        }
+
+        .bracket-tl { border-top: 2px solid #00fbfb; border-left: 2px solid #00fbfb; width: 20px; height: 20px; position: absolute; top: -2px; left: -2px; }
+        .bracket-tr { border-top: 2px solid #00fbfb; border-right: 2px solid #00fbfb; width: 20px; height: 20px; position: absolute; top: -2px; right: -2px; }
+        .bracket-bl { border-bottom: 2px solid #00fbfb; border-left: 2px solid #00fbfb; width: 20px; height: 20px; position: absolute; bottom: -2px; left: -2px; }
+        .bracket-br { border-bottom: 2px solid #00fbfb; border-right: 2px solid #00fbfb; width: 20px; height: 20px; position: absolute; bottom: -2px; right: -2px; }
+
+        .loading-ring {
+            border: 2px dashed rgba(0, 251, 251, 0.3);
+            border-top: 2px solid #00fbfb;
+            animation: rotate-ring 4s linear infinite;
+        }
+
+        .laser-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00fbfb, transparent);
+            box-shadow: 0 0 15px #00fbfb;
+            z-index: 20;
+            animation: laser-scan 3s ease-in-out infinite;
+        }
+
+        .nav-glow:hover {
+            filter: drop-shadow(0 0 8px #ffb4aa);
+            text-shadow: 0 0 10px rgba(255,180,170,0.5);
+        }
+
+        body {
+            cursor: crosshair;
+            background-color: #061423;
+            overflow: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#ffb4aa",
+                      "on-tertiary": "#3d2f00",
+                      "background": "#061423",
+                      "on-surface": "#d5e4f9",
+                      "surface": "#061423",
+                      "primary-fixed-dim": "#ffb4aa",
+                      "on-secondary-fixed": "#002020",
+                      "on-error-container": "#ffdad6",
+                      "surface-bright": "#2d3a4b",
+                      "tertiary-fixed": "#ffe08a",
+                      "primary-container": "#c01818",
+                      "surface-tint": "#ffb4aa",
+                      "tertiary-fixed-dim": "#e1c471",
+                      "surface-dim": "#061423",
+                      "secondary-container": "#00fbfb",
+                      "secondary": "#ffffff",
+                      "primary-fixed": "#ffdad5",
+                      "on-tertiary-container": "#4f3d00",
+                      "on-secondary-fixed-variant": "#004f4f",
+                      "on-error": "#690005",
+                      "surface-container-high": "#1d2b3b",
+                      "on-primary-fixed-variant": "#930008",
+                      "inverse-surface": "#d5e4f9",
+                      "on-primary": "#690004",
+                      "on-secondary": "#003737",
+                      "inverse-on-surface": "#243142",
+                      "surface-container-lowest": "#020f1e",
+                      "on-background": "#d5e4f9",
+                      "tertiary": "#e1c471",
+                      "on-tertiary-fixed-variant": "#574400",
+                      "on-surface-variant": "#e5bdb8",
+                      "secondary-fixed": "#00fbfb",
+                      "on-primary-fixed": "#410001",
+                      "on-primary-container": "#ffd2cd",
+                      "error-container": "#93000a",
+                      "secondary-fixed-dim": "#00dddd",
+                      "on-secondary-container": "#007070",
+                      "surface-variant": "#283646",
+                      "error": "#ffb4ab",
+                      "surface-container-low": "#0e1c2c",
+                      "inverse-primary": "#bc1416",
+                      "surface-container": "#132030",
+                      "surface-container-highest": "#283646",
+                      "on-tertiary-fixed": "#241a00",
+                      "tertiary-container": "#c4a959",
+                      "outline": "#ac8884",
+                      "outline-variant": "#5c403c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-gap": "1.5rem",
+                      "bracket-padding": "0.5rem",
+                      "hud-gutter": "1rem",
+                      "edge-margin": "2rem"
+              },
+              "fontFamily": {
+                      "display-xl": ["Stick No Bills"],
+                      "body-jp": ["Noto Sans JP"],
+                      "headline-lg-mobile": ["Stick No Bills"],
+                      "data-sm": ["JetBrains Mono"],
+                      "data-lg": ["JetBrains Mono"],
+                      "label-caps": ["JetBrains Mono"],
+                      "headline-lg": ["Stick No Bills"]
+              },
+              "fontSize": {
+                      "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                      "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                      "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                      "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body-jp selection:bg-secondary-container selection:text-on-secondary-fixed">
+<!-- Visual Overlays -->
+<div class="scanline-overlay"></div>
+<div class="moving-scan"></div>
+<div class="fixed inset-0 tech-grid pointer-events-none"></div>
+<!-- Top Navigation Anchor -->
+<nav class="flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50 bg-surface-container-low/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">speed</span>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</h1>
+</div>
+<div class="hidden md:flex gap-8 items-center font-label-caps text-label-caps">
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">FLIGHT_OPS</a>
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">LEADERBOARD</a>
+<a class="text-secondary drop-shadow-[0_0_5px_#ffffff] px-2 py-1 border-b-2 border-secondary" href="#">SKIN_LAB</a>
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">LOUNGE</a>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-primary">COMMANDER_VOSS</p>
+<p class="font-data-sm text-[10px] text-on-surface-variant/70">RANK: ACE</p>
+</div>
+<div class="w-10 h-10 bg-surface-variant border border-primary/40 p-0.5">
+<img class="w-full h-full object-cover" data-alt="A futuristic tactical pilot portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBc6M3qihta15BnLJoqMsABrDpmPEDEtV0kGgRtU5k13vYUoENhu4m-9c9hahhL24TEa0fop5AjvdJ0r4QkNaupWeTLBCNaO2JKLXWOvUETrSPDh9bH0WARX_3GqIn_Kz29fLcQMrVHvaqsmqHH34Bfq8scTXF-_bodhEFFd0rvWHMtRuPGSiaV1tvxP72CdPacvNBG1Y7O25rAm9BCmh0TOvAfvrCpga-ZDE9NCpB5yTwzV7WR4szBAb4ngytnpUx14HSJK3HG9No_"/>
+</div>
+</div>
+</nav>
+<!-- Sidebar Navigation Drawer -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 bg-surface-dim/80 backdrop-blur-2xl h-full w-64 border-r border-outline-variant/50 hidden lg:flex">
+<div class="px-6 py-4 mb-8">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-caps text-label-caps">SECTOR_7_CLEARED</span>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<div class="group flex items-center gap-4 text-on-surface-variant/70 px-6 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all cursor-pointer">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="font-label-caps text-label-caps">FLIGHT_OPS</span>
+</div>
+<div class="group flex items-center gap-4 text-on-surface-variant/70 px-6 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all cursor-pointer">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-caps text-label-caps">LEADERBOARD</span>
+</div>
+<div class="group flex items-center gap-4 bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-6 py-3 brightness-125">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">architecture</span>
+<span class="font-label-caps text-label-caps">SKIN_LAB</span>
+</div>
+<div class="group flex items-center gap-4 text-on-surface-variant/70 px-6 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps">LOUNGE</span>
+</div>
+</nav>
+</aside>
+<!-- Main Canvas Area -->
+<main class="ml-0 lg:ml-64 pt-20 h-screen relative flex flex-col items-center justify-center">
+<!-- Central HUD Canvas -->
+<div class="relative w-[80vw] h-[618px] flex items-center justify-center">
+<!-- Target Brackets (Pulse) -->
+<div class="absolute w-[50%] h-[60%] pointer-events-none animate-[flicker_4s_infinite]">
+<div class="bracket-tl"></div>
+<div class="bracket-tr"></div>
+<div class="bracket-bl"></div>
+<div class="bracket-br"></div>
+</div>
+<!-- Rotating Wireframe Jet & Progress Ring -->
+<div class="relative flex items-center justify-center">
+<!-- Outer Progress Ring -->
+<div class="loading-ring w-64 h-64 md:w-96 md:h-96 rounded-full absolute"></div>
+<div class="w-72 h-72 md:w-[28rem] md:h-[28rem] rounded-full border border-secondary-container/10 absolute animate-[rotate-ring_12s_linear_infinite_reverse]"></div>
+<!-- The Jet Area with Blueprint Scan Laser -->
+<div class="w-80 h-80 md:w-[32rem] md:h-[32rem] flex items-center justify-center z-10 relative overflow-hidden rounded-full">
+<div class="laser-line"></div>
+<!-- Overlay Text on Jet -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-center z-30">
+<p class="font-data-lg text-secondary-container/80 tracking-[0.5em] animate-pulse">SCANNING_BLUEPRINT</p>
+</div>
+</div>
+</div>
+<!-- Side HUD Telemetry: LEFT -->
+<div class="absolute left-hud-gutter top-1/2 -translate-y-1/2 flex flex-col gap-6 w-48 animate-[hud-float_5s_ease-in-out_infinite]">
+<div class="bg-surface-container-low/80 backdrop-blur-md border-l-2 border-secondary-container p-3">
+<p class="font-label-caps text-[10px] text-secondary-container/60 mb-1">CLOUD_UPLINK</p>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary-container rounded-full animate-pulse"></span>
+<p class="font-data-lg text-secondary-container uppercase">ACTIVE</p>
+</div>
+</div>
+<div class="bg-surface-container-low/80 backdrop-blur-md border-l-2 border-secondary-container p-3">
+<p class="font-label-caps text-[10px] text-secondary-container/60 mb-1">LATENCY</p>
+<p class="font-data-lg text-secondary-container font-mono">0.02<span class="text-sm">MS</span></p>
+</div>
+<div class="bg-surface-container-low/80 backdrop-blur-md border-l-2 border-secondary-container p-3">
+<p class="font-label-caps text-[10px] text-secondary-container/60 mb-1">SYNC_PACKETS</p>
+<p class="font-data-sm text-secondary-container">TX: 4.8 GB/S<br/>RX: 1.2 GB/S</p>
+</div>
+</div>
+<!-- Side HUD Telemetry: RIGHT -->
+<div class="absolute right-hud-gutter top-1/2 -translate-y-1/2 flex flex-col gap-6 w-48 text-right">
+<div class="bg-surface-container-low/80 backdrop-blur-md border-r-2 border-primary p-3">
+<p class="font-label-caps text-[10px] text-primary/60 mb-1">JET_CORE_TEMP</p>
+<p class="font-data-lg text-primary">422<span class="text-sm">K</span></p>
+</div>
+<div class="bg-surface-container-low/80 backdrop-blur-md border-r-2 border-primary p-3">
+<p class="font-label-caps text-[10px] text-primary/60 mb-1">STRUCTURAL_INTEGRITY</p>
+<div class="flex flex-col gap-1 items-end mt-1">
+<div class="flex gap-0.5">
+<div class="w-2 h-4 bg-primary"></div>
+<div class="w-2 h-4 bg-primary"></div>
+<div class="w-2 h-4 bg-primary"></div>
+<div class="w-2 h-4 bg-primary"></div>
+<div class="w-2 h-4 bg-primary/20"></div>
+</div>
+<p class="font-data-sm text-primary">80%</p>
+</div>
+</div>
+<div class="bg-surface-container-low/80 backdrop-blur-md border-r-2 border-primary p-3">
+<p class="font-label-caps text-[10px] text-primary/60 mb-1">AMMUNITION_STATUS</p>
+<p class="font-data-sm text-primary">RKT_08 | CN_2000</p>
+</div>
+</div>
+</div>
+<!-- Bottom Sync Status Bar -->
+<div class="w-full max-w-4xl px-edge-margin mb-12">
+<div class="flex justify-between items-end mb-2 font-data-sm text-secondary-container">
+<span class="flex items-center gap-2">
+<span class="animate-pulse">_</span> SYNCING_METADATA...
+                </span>
+<span class="font-data-lg">74%</span>
+</div>
+<div class="h-4 w-full bg-surface-container-highest border border-secondary-container/30 relative overflow-hidden">
+<div class="h-full bg-secondary-container drop-shadow-[0_0_10px_rgba(0,251,251,0.5)] transition-all duration-1000 ease-out relative overflow-hidden" id="progress-bar" style="width: 74%;">
+<!-- Shimmering Highlight Effect -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full -translate-x-full animate-[shimmer-fast_1.5s_infinite]"></div>
+</div>
+<!-- Scanning Sweep Shimmer -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent w-full h-full -translate-x-full animate-[scanline_2s_linear_infinite]"></div>
+</div>
+<div class="mt-4 flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<div class="bg-surface-container-low border border-outline-variant/30 px-4 py-2 flex-shrink-0 flex items-center gap-3">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<p class="font-data-sm text-[10px] text-on-surface-variant">LOG: RECONSTRUCTING_POLYGON_MESH... DONE</p>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/30 px-4 py-2 flex-shrink-0 flex items-center gap-3">
+<span class="material-symbols-outlined text-[14px]">cloud_sync</span>
+<p class="font-data-sm text-[10px] text-on-surface-variant">LOG: SYNCING_PARTICLE_ARRAYS... PENDING</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile/HUD) -->
+<footer class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-transparent">
+<button class="nav-glow flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<button class="nav-glow flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">radar</span>
+</button>
+<button class="nav-glow flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+</button>
+<button class="nav-glow flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">power_settings_new</span>
+</button>
+</footer>
+<!-- Decorative Corner UI Elements -->
+<div class="fixed bottom-hud-gutter left-hud-gutter pointer-events-none">
+<p class="font-label-caps text-[8px] text-outline/30 uppercase leading-none">system_protocol: zero-g</p>
+<p class="font-label-caps text-[8px] text-outline/30 uppercase leading-none mt-1">auth_key: k3d-voss-alpha-7</p>
+</div>
+<div class="fixed bottom-hud-gutter right-hud-gutter pointer-events-none text-right">
+<p class="font-label-caps text-[8px] text-outline/30 uppercase leading-none">node: tokyo_central_01</p>
+<p class="font-label-caps text-[8px] text-outline/30 uppercase leading-none mt-1">timestamp: 2144.11.02.04:44</p>
+</div>
+<script>
+        // Micro-interaction for the progress bar
+        let progress = 74;
+        const progressBar = document.getElementById('progress-bar');
+        
+        setInterval(() => {
+            if (progress < 99) {
+                progress += Math.random() * 0.2;
+                progressBar.style.width = `${progress}%`;
+            }
+        }, 3000);
+
+        // Simple mouse tracking for HUD depth effect
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 10;
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            const main = document.querySelector('main');
+            if(main) main.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
+        });
+    </script>
+</body></html>

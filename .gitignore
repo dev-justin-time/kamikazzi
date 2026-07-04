@@ -42,3 +42,6 @@ la_dodger/
 screen.jpg
 screen.png
 assets/image/china.jpg
+
+# Windows reserved device name (artifact from curl output redirection to NUL)
+nul

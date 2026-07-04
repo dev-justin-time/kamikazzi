@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // TACTICAL_LEADERBOARD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&amp;family=Stick+No+Bills:wght@400;700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-overlay {
+            background: linear-gradient(to bottom, transparent, rgba(255, 180, 170, 0.05) 50%, transparent);
+            animation: scanline 8s linear infinite;
+        }
+        .hud-grid {
+            background-image: 
+                linear-gradient(rgba(255, 180, 170, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 180, 170, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .clip-path-tactical {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        .clip-path-button {
+            clip-path: polygon(0 0, 85% 0, 100% 30%, 100% 100%, 15% 100%, 0 70%);
+        }
+        .glitch-text:hover {
+            text-shadow: 2px 0 #ffb4aa, -2px 0 #00fbfb;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#4f3d00",
+                        "inverse-primary": "#bc1416",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "outline": "#ac8884",
+                        "on-secondary-fixed": "#002020",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "primary": "#ffb4aa",
+                        "on-secondary-container": "#007070",
+                        "secondary-container": "#00fbfb",
+                        "on-primary": "#690004",
+                        "tertiary-fixed": "#ffe08a",
+                        "surface": "#061423",
+                        "on-tertiary": "#3d2f00",
+                        "primary-fixed": "#ffdad5",
+                        "surface-container-low": "#0e1c2c",
+                        "inverse-surface": "#d5e4f9",
+                        "tertiary": "#e1c471",
+                        "on-tertiary-fixed": "#241a00",
+                        "tertiary-container": "#c4a959",
+                        "inverse-on-surface": "#243142",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "on-primary-fixed": "#410001",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#930008",
+                        "surface-bright": "#2d3a4b",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "secondary-fixed": "#00fbfb",
+                        "secondary": "#ffffff",
+                        "primary-container": "#c01818",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-surface": "#d5e4f9",
+                        "on-secondary": "#003737",
+                        "on-background": "#d5e4f9",
+                        "surface-tint": "#ffb4aa",
+                        "surface-container-high": "#1d2b3b",
+                        "on-error": "#690005",
+                        "surface-container-lowest": "#020f1e",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#061423",
+                        "background": "#061423",
+                        "on-primary-container": "#ffd2cd",
+                        "surface-container-highest": "#283646",
+                        "outline-variant": "#5c403c",
+                        "error-container": "#93000a",
+                        "surface-container": "#132030",
+                        "surface-variant": "#283646",
+                        "on-surface-variant": "#e5bdb8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "1.5rem",
+                        "bracket-padding": "0.5rem",
+                        "edge-margin": "2rem",
+                        "hud-gutter": "1rem"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Stick No Bills"],
+                        "display-xl": ["Stick No Bills"],
+                        "data-sm": ["JetBrains Mono"],
+                        "body-jp": ["Noto Sans JP"],
+                        "headline-lg": ["Stick No Bills"],
+                        "data-lg": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                        "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                        "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-label-caps overflow-hidden h-screen selection:bg-primary/30 animate-pulse">
+<!-- ATMOSPHERIC OVERLAYS -->
+<div class="fixed inset-0 pointer-events-none z-[100]">
+<div class="absolute inset-0 scanline-overlay opacity-30"></div>
+<div class="absolute inset-0 hud-grid opacity-20"></div>
+<div class="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-black/60"></div>
+<div class="absolute inset-0 overflow-hidden"><div class="absolute w-1 h-1 bg-tertiary/40 rounded-full top-1/4 left-1/4 animate-pulse"></div><div class="absolute w-1 h-1 bg-tertiary/30 rounded-full top-3/4 left-1/2 animate-pulse"></div><div class="absolute w-1 h-1 bg-tertiary/20 rounded-full top-1/2 left-3/4 animate-pulse"></div></div></div>
+<!-- TOP APP BAR -->
+<header class="bg-surface-container-low/60 backdrop-blur-xl text-primary font-label-caps docked full-width top-0 border-b border-outline-variant/30 shadow-[0_0_15px_rgba(255,180,170,0.2)] flex justify-between items-center w-full px-hud-gutter py-2 fixed top-0 z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+<h1 class="font-display-xl text-headline-lg-mobile tracking-widest text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">KAMIKAZZI_3D</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8">
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">FLIGHT_OPS</a>
+<a class="text-secondary drop-shadow-[0_0_5px_#ffffff] hover:bg-primary/20 transition-all px-2 py-1" href="#">LEADERBOARD</a>
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">SKIN_LAB</a>
+<a class="text-on-surface-variant hover:bg-primary/20 hover:text-secondary transition-all px-2 py-1" href="#">LOUNGE</a>
+</div>
+<div class="w-10 h-10 bg-primary/20 border border-primary/40 rounded-full flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A futuristic tactical pilot portrait avatar, high-tech flight helmet with a red glowing visor, dark industrial background with faint cockpit interface details, sharp cinematic lighting, digital art style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPSuRUV6VgGwydec2D-lVIGIlrPRbSlgCAMcJe4nKhdPHmc_GbwExC3CKPs4RZtwUf1Tn_pjEvsXujcEdegaDOneq9NZSqxMyduY44m_-TD-rq-kIpdBa4JL6EeV8vmUvJaSr5lNoM8g2jKjtp939PZA_YnEef9RVrAdwsBIGWLgXAkQNhX6IYMrHj9GhQIYHVb2lc160W10UcAiEFdKcsYMWq6KCkH7zm1IOG1cqw-3PjDacndRnyhDfxq_8SnVXjf2dO5opZaayN"/>
+</div>
+</div>
+</header>
+<!-- NAVIGATION DRAWER (DESKTOP) -->
+<nav class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 hidden md:flex h-full w-64 border-r border-outline-variant/50 bg-surface-dim/80 backdrop-blur-2xl">
+<div class="px-6 py-8 border-b border-outline-variant/30">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-2 h-2 bg-primary animate-pulse"></div>
+<span class="text-tertiary font-label-caps text-label-caps tracking-widest">COMMANDER_VOSS</span>
+</div>
+<div class="text-on-surface-variant/70 text-[10px]">RANK: ACE // SECTOR_7_CLEARED</div>
+</div>
+<div class="flex-1 py-4 flex flex-col gap-1">
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+<span>FLIGHT_OPS</span>
+</a>
+<a class="bg-tertiary/10 text-tertiary border-l-4 border-tertiary px-4 py-3 brightness-125 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span>LEADERBOARD</span>
+</a>
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="architecture">architecture</span>
+<span>SKIN_LAB</span>
+</a>
+<a class="text-on-surface-variant/70 px-4 py-3 hover:text-on-surface hover:bg-surface-variant/40 hover:translate-x-1 transition-all flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>LOUNGE</span>
+</a>
+</div>
+<div class="p-4 mt-auto">
+<div class="bg-primary-container/20 p-3 clip-path-tactical border border-primary/30">
+<div class="text-[9px] text-primary/60 mb-1">FUEL_STABILITY</div>
+<div class="flex gap-0.5">
+<div class="w-full h-1 bg-primary"></div>
+<div class="w-full h-1 bg-primary"></div>
+<div class="w-full h-1 bg-primary"></div>
+<div class="w-full h-1 bg-primary/20"></div>
+</div>
+</div>
+</div>
+</nav>
+<!-- MAIN CONTENT CANVAS -->
+<main class="md:ml-64 pt-24 px-hud-gutter pb-24 h-screen overflow-y-auto custom-scrollbar">
+<!-- HEADER HUD SECTION -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-tertiary tracking-tighter mb-1">TACTICAL_PILOT_RANKINGS</h2>
+<p class="text-on-surface-variant font-label-caps text-[10px] tracking-widest opacity-60">GLOBAL_TELEMETRY // UPDATED_REAL_TIME</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-surface-container-highest border border-outline-variant/30 px-4 py-2 clip-path-button font-label-caps text-[12px] flex items-center gap-2 hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+                    REGION: SECTOR_7
+                </button>
+<button class="bg-surface-container-highest border border-outline-variant/30 px-4 py-2 clip-path-button font-label-caps text-[12px] flex items-center gap-2 hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-[16px]" data-icon="history">history</span>
+                    SEASON_04
+                </button>
+</div>
+</div>
+<!-- LEADERBOARD TABLE -->
+<div class="grid grid-cols-1 gap-4 mb-20">
+<!-- TOP 3 BENTO HIGHLIGHT -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-gap mb-4">
+<!-- RANK 2 -->
+<div class="relative bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/20 p-6 flex flex-col items-center group transition-all hover:border-secondary/40">
+<div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-tertiary"></div>
+<span class="font-display-xl text-headline-lg text-on-surface-variant/30 mb-2">02</span>
+<div class="w-16 h-16 rounded-full border-2 border-tertiary/50 p-1 mb-4">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic sci-fi avatar of a pilot with neon cybernetic eyes and a sleek matte black helmet, digital interface overlay, moody lighting, industrial cyber-brutalism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqX6zSc_1h_s7ccu5vsBC4kLt22MXi8EDco1BGrjtbaNWPxd_-8APhyxtbM9WrnfvSH_UBCKx5jVn3U4J7WDAT0EKtqTIvjTMwv1oljVSk0Prdplem8Vf8msAAthrhxny79YqwSEp48lJVvf51kxGiisGpFSK4jbdkxXmF7B6eo_KpaByx8iLcGucNbtmUww3b_ILMNNca7YQQHnhKQkfREAe0j0drVM3mzAPNKyUKU9yF2tQVBxhl_fom7aUKktWu-8WkZrbQmOKt"/>
+</div>
+<div class="text-secondary font-headline-lg text-label-caps mb-1">GHOST_WALKER</div>
+<div class="text-tertiary text-data-sm">98.4K <span class="opacity-50">PTS</span></div>
+</div>
+<!-- RANK 1 -->
+<div class="relative bg-primary/5 backdrop-blur-lg border-2 border-primary/40 p-8 flex flex-col items-center scale-105 z-10 group transition-all shadow-[0_0_30px_rgba(255,180,170,0.15)] shadow-[0_0_20px_rgba(225,196,113,0.15)]">
+<div class="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-primary"></div>
+<span class="font-display-xl text-headline-lg text-primary drop-shadow-[0_0_10px_rgba(255,180,170,0.6)] mb-2">01</span>
+<div class="w-24 h-24 rounded-full border-4 border-primary p-1 mb-4 shadow-[0_0_20px_rgba(255,180,170,0.4)]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Highly detailed tactical ace pilot avatar, chrome and carbon fiber flight helmet, glowing amber tactical displays reflected on visor, futuristic cockpit environment, dramatic lighting, high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7f9mi60t_sKw1o_XWZn2FfphAIMI7h7JwRKvlhpN9vrfRTsWskkUqB3_u-KSa7s1RUEKRR29IaHr1xNU6iTY5v5l0Hsf9cafkuKYSVVu8yFF_Gc1NqDR4DFSRGhSfj76WoWhxuBrHSPRO3OBhKGkIZ1AXehbnPH0qSUOSWC3lJj2vpBL3iuX0XXS2OXRYGABXFH06SVfg1WRfMQfuEZ--Fk_BX0K9wRkyOz4udQDo4Bqta0x55lgE-ryG4FhZtjEGz7g6HIAzRuLP"/>
+</div>
+<div class="text-primary font-headline-lg text-headline-lg tracking-widest mb-1 glitch-text">VORTEX_ZERO</div>
+<div class="text-primary text-data-lg font-bold">124.9K <span class="opacity-50">PTS</span></div>
+<div class="mt-4 px-3 py-1 bg-primary text-on-primary text-[10px] clip-path-button font-bold">LEGENDARY_ACE</div>
+</div>
+<!-- RANK 3 -->
+<div class="relative bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/20 p-6 flex flex-col items-center group transition-all hover:border-secondary/40">
+<div class="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-tertiary"></div>
+<span class="font-display-xl text-headline-lg text-on-surface-variant/30 mb-2">03</span>
+<div class="w-16 h-16 rounded-full border-2 border-tertiary/50 p-1 mb-4">
+<img class="w-full h-full object-cover rounded-full" data-alt="Female tactical pilot avatar with glowing facial tattoos and tactical headset, dark atmospheric lighting, holographic HUD elements in background, industrial cyber-brutalism style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaDrYvqs7rUwEQoEQLj0J_u7NwjCa1W5YxPZUila5-ZVIDWFz8k7r5QxfI2-tFW1OFF5tSZF_mn2-9ly-mjZT-uzEp_Hx-b_U8GlBrkPKn5vDpPjZNJaWprpXyH1maAyPYJmzsu2BxuV5qgcVqUFkXW-OnK7u_R509UbK5nHgxdCrrHTXX3XdFHqOhkfzdtQXWwS4qPb_wcdCsgf7o2kZ6lhhJg9GpkYgDuXDSsCjVUKkIGuer6mXUTP_AlAriJtvWzVFciuslDhZ0"/>
+</div>
+<div class="text-secondary font-headline-lg text-label-caps mb-1">RAVEN_X</div>
+<div class="text-tertiary text-data-sm">92.1K <span class="opacity-50">PTS</span></div>
+</div>
+</div>
+<!-- RANKING LIST -->
+<div class="space-y-2">
+<!-- RANK 04 -->
+<div class="flex items-center gap-4 bg-surface-container-lowest/80 border border-outline-variant/20 p-4 hover:bg-surface-container-low transition-all glitch-text">
+<div class="w-12 text-on-surface-variant font-bold text-center">04</div>
+<div class="w-10 h-10 border border-outline-variant/40 rounded flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Futuristic cybernetic pilot avatar, industrial metal mask, red glow coming from eye sockets, detailed mechanical textures, cinematic dark atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeSli4Xf4Pudg5dY7Lp4cnntgXQ8pvhzEZiFwMrrDUXK3hAlxD7e2gQi-QP3ZixYXyHEWuFZ40nUJ_4-d1fQvFnHnge4jsEQLHghoR14TiTuLyJXJxzIuwZ4bUJ4RsVf-ilvZcY8jbxgf2isxNFDU2d51nP5TYWRXkPTOai0yabTkwhW9ZKCOKDZTLXCRbRWhjh9PnZBeci5l3fPM7EoTjW6cW75uXTK9pS5ZZgBynIhs_0zEfKa3F1Ux4DJhw6GClsdk4L0UAN90i"/>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="text-secondary text-label-caps">SILENT_KILLER</span>
+<span class="text-[9px] text-on-surface-variant/50">PILOT_ID: SK-9002</span>
+</div>
+<div class="hidden md:flex flex-col items-end px-8">
+<span class="text-[10px] text-on-surface-variant/50">W/L_RATIO</span>
+<span class="text-secondary text-data-sm">3.42</span>
+</div>
+<div class="text-tertiary text-data-sm font-bold w-32 text-right">88,240 <span class="text-[10px] font-normal opacity-50">PTS</span></div>
+</div>
+<!-- YOUR RANK HIGHLIGHT -->
+<div class="flex items-center gap-4 bg-tertiary-container/10 border-2 border-tertiary/60 p-5 relative shadow-[0_0_20px_rgba(225,196,113,0.15)] group glitch-text">
+<div class="absolute inset-y-0 left-0 w-1 bg-tertiary"></div>
+<div class="w-12 text-tertiary font-bold text-center">05</div>
+<div class="w-12 h-12 border-2 border-tertiary rounded flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Futuristic tactical pilot portrait avatar, high-tech flight helmet with a red glowing visor, dark industrial background with faint cockpit interface details, sharp cinematic lighting, digital art style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf_yJhtWj5v4fnAHosP4m5M-9dXsE6EC0fhBt6MarDRh4kYz3ol-k1Ww7K9yECW6q2bbfQ3uNuPexjh0haxO7RzNGjegl7rYcqVcL3u5SeglBtfRYYReVf-QcLExNOEzIJdR8hp1MLXbNPGKrXPsZEXBQRhDPLauQ-Pqm0JbQlbQzaVacQRk8m8K7uOI6iNpm8rHKfgeNVk9RCRFK2xYRcLjlGDNqoIjRCa_7b1fgWAzicfe9FHK7RuoThsOCnEKhDVl86N02J7VN-"/>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="text-tertiary text-label-caps font-bold">COMMANDER_VOSS <span class="ml-2 text-[9px] px-2 py-0.5 bg-tertiary text-on-tertiary clip-path-button">YOU</span></span>
+<span class="text-[9px] text-tertiary/70">PILOT_ID: CV-1107 // SECTOR_LEADER</span>
+</div>
+<div class="hidden md:flex flex-col items-end px-8">
+<span class="text-[10px] text-tertiary/50 uppercase">W/L_RATIO</span>
+<span class="text-tertiary text-data-sm">2.91</span>
+</div>
+<div class="text-tertiary text-data-lg font-extrabold w-32 text-right">84,150 <span class="text-[10px] font-normal opacity-50">PTS</span></div>
+</div>
+<!-- RANK 06 -->
+<div class="flex items-center gap-4 bg-surface-container-lowest/80 border border-outline-variant/20 p-4 hover:bg-surface-container-low transition-all glitch-text">
+<div class="w-12 text-on-surface-variant font-bold text-center">06</div>
+<div class="w-10 h-10 border border-outline-variant/40 rounded flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Tactical soldier pilot with glowing green night vision goggles, high tech armored suit, dark environment with smoke and debris, intense cinematic action style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALZJQ6YvC0pJHoJY1x_Kk7lPk4-FL27TwIaZfA-BDfEvSIW5LT1UTTnXWCPP8XYTajIaqm-JHK8TzTF77vrJeo23Ythg0NFBXWoOje9c-fgamypsdN7QR95WsSsfFIrfFVRWlF7PJyE3ocpz_j5vtqElI0cF9VovLfsbRet8WkOO8vgzr3f2siXxx7mBrwLcumMUG_7Dd315VXdClJ26hjFWuWpHhYiHGoZSsJ6Y3FgGlbCi5d9ipUZGq0UJ1_o5KIvJbeQgIw0wHE"/>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="text-secondary text-label-caps">NEON_DRIFTER</span>
+<span class="text-[9px] text-on-surface-variant/50">PILOT_ID: ND-4541</span>
+</div>
+<div class="hidden md:flex flex-col items-end px-8">
+<span class="text-[10px] text-on-surface-variant/50">W/L_RATIO</span>
+<span class="text-secondary text-data-sm">2.88</span>
+</div>
+<div class="text-tertiary text-data-sm font-bold w-32 text-right">81,090 <span class="text-[10px] font-normal opacity-50">PTS</span></div>
+</div>
+<!-- RANK 07 -->
+<div class="flex items-center gap-4 bg-surface-container-lowest/80 border border-outline-variant/20 p-4 hover:bg-surface-container-low transition-all glitch-text">
+<div class="w-12 text-on-surface-variant font-bold text-center">07</div>
+<div class="w-10 h-10 border border-outline-variant/40 rounded flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Abstract cyborg pilot, internal circuits glowing red through transparent skin panels, futuristic armor plating, dark industrial backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9UUn8dvECXXcuaP6DlB9zTXRKMpDipbdb46stozvpFxlVxNhiu5rmNB4srUqu1hQx5J_F0fZI-wwJDIjhxHSoLo-xzeW4JkwiY4J6P0qjrDdYvLqcyZkel7lfbwVfFB3WEaWoK-xEsB5Go1Ea5do4ZCe5xW7r8Vj1lN2b26JUL-qehJLS6v-SrXXd5XZ-XVEHGqMAgL0xi_USpuKmQF6zAVJiAQUozkowUFG3jVq6h6QA84C1T38tBF7PAbIJVQyxKLjAhb8hrjWQ"/>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="text-secondary text-label-caps">STEEL_FANG</span>
+<span class="text-[9px] text-on-surface-variant/50">PILOT_ID: SF-7712</span>
+</div>
+<div class="hidden md:flex flex-col items-end px-8">
+<span class="text-[10px] text-on-surface-variant/50">W/L_RATIO</span>
+<span class="text-secondary text-data-sm">2.15</span>
+</div>
+<div class="text-tertiary text-data-sm font-bold w-32 text-right">79,500 <span class="text-[10px] font-normal opacity-50">PTS</span></div>
+</div>
+</div>
+</div>
+</main>
+<!-- BOTTOM NAV BAR (MOBILE) -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto flex gap-stack-gap px-edge-margin py-bracket-padding border border-outline/20 rounded-full backdrop-blur-md z-50 bg-transparent md:hidden">
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors Active: scale-90">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors Active: scale-90">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_10px_rgba(255,180,170,1)] scale-110 Active: scale-90">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline/50 hover:text-primary transition-colors Active: scale-90">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+</button>
+</nav>
+<!-- FLOATING TACTICAL DATA -->
+<div class="fixed bottom-10 right-10 hidden xl:flex flex-col gap-2 z-30">
+<div class="bg-surface-container-high/60 backdrop-blur-md p-4 border border-outline-variant/30 clip-path-tactical">
+<div class="text-primary text-[9px] mb-2 tracking-widest flex justify-between">
+                SYSTEM_LOAD <span>84%</span>
+</div>
+<div class="w-32 h-1 bg-outline-variant/30 relative">
+<div class="absolute inset-y-0 left-0 w-4/5 bg-primary shadow-[0_0_8px_#ffb4aa]"></div>
+</div>
+</div>
+<div class="bg-surface-container-high/60 backdrop-blur-md p-4 border border-outline-variant/30 clip-path-tactical">
+<div class="text-tertiary text-[9px] mb-1 tracking-widest">NETWORK_LATENCY</div>
+<div class="text-secondary text-data-sm font-bold">14 MS</div>
+</div>
+</div>
+<!-- RADAR DECORATION (CENTER CLEARANCE) -->
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-10">
+<div class="w-[400px] h-[400px] border border-primary/20 rounded-full flex items-center justify-center">
+<div class="w-[300px] h-[300px] border border-primary/40 rounded-full flex items-center justify-center">
+<div class="w-[100px] h-[100px] border border-primary/60 rounded-full"></div>
+</div>
+<div class="absolute w-full h-[1px] bg-primary/20"></div>
+<div class="absolute h-full w-[1px] bg-primary/20"></div>
+</div>
+</div>
+<script>
+        // Micro-interaction for rank highlighting
+        document.querySelectorAll('.ranking-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.transform = 'translateX(10px)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Simulating flickering HUD effects
+        setInterval(() => {
+            const glitchText = document.querySelector('.glitch-text');
+            if(Math.random() > 0.95) {
+                glitchText.style.opacity = '0.5';
+                setTimeout(() => glitchText.style.opacity = '1', 50);
+            }
+        }, 2000);
+    </script>
+</body></html>

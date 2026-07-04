@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI 3D Dev Center - DISTRIBUTION</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Stick+No Bills:wght@400;700;800&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4aa",
+                        "on-tertiary": "#3d2f00",
+                        "background": "#061423",
+                        "on-surface": "#d5e4f9",
+                        "surface": "#061423",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "on-secondary-fixed": "#002020",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#2d3a4b",
+                        "tertiary-fixed": "#ffe08a",
+                        "primary-container": "#c01818",
+                        "surface-tint": "#ffb4aa",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "surface-dim": "#061423",
+                        "secondary-container": "#00fbfb",
+                        "secondary": "#ffffff",
+                        "primary-fixed": "#ffdad5",
+                        "on-tertiary-container": "#4f3d00",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error": "#690005",
+                        "surface-container-high": "#1d2b3b",
+                        "on-primary-fixed-variant": "#930008",
+                        "inverse-surface": "#d5e4f9",
+                        "on-primary": "#690004",
+                        "on-secondary": "#003737",
+                        "inverse-on-surface": "#243142",
+                        "surface-container-lowest": "#020f1e",
+                        "on-background": "#d5e4f9",
+                        "tertiary": "#e1c471",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "on-surface-variant": "#e5bdb8",
+                        "secondary-fixed": "#00fbfb",
+                        "on-primary-fixed": "#410001",
+                        "on-primary-container": "#ffd2cd",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-secondary-container": "#007070",
+                        "surface-variant": "#283646",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#0e1c2c",
+                        "inverse-primary": "#bc1416",
+                        "surface-container": "#132030",
+                        "surface-container-highest": "#283646",
+                        "on-tertiary-fixed": "#241a00",
+                        "tertiary-container": "#c4a959",
+                        "outline": "#ac8884",
+                        "outline-variant": "#5c403c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "1.5rem",
+                        "bracket-padding": "0.5rem",
+                        "hud-gutter": "1rem",
+                        "edge-margin": "2rem"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-lg": ["Stick No Bills"],
+                        "headline-lg-mobile": ["Stick No Bills"],
+                        "data-sm": ["JetBrains Mono"],
+                        "data-lg": ["JetBrains Mono"],
+                        "display-xl": ["Stick No Bills"],
+                        "body-jp": ["Noto Sans JP"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["10px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "data-sm": ["12px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "data-lg": ["20px", { "lineHeight": "1.5", "fontWeight": "500" }],
+                        "display-xl": ["72px", { "lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800" }],
+                        "body-jp": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scanline-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .tactical-bracket {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #ffb4aa;
+        }
+        .bracket-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+        .bracket-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+        .bracket-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+        .bracket-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+
+        .glow-cyan { filter: drop-shadow(0 0 5px #00fbfb); }
+        .glow-red { filter: drop-shadow(0 0 5px #ffb4aa); }
+
+        .clipped-button {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-slow { animation: pulse-slow 3s infinite; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-jp selection:bg-primary-container selection:text-white overflow-x-hidden">
+<div class="scanline-overlay"></div>
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center px-hud-gutter w-full fixed z-50 bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant h-16 shadow-md">
+<div class="flex items-center gap-4">
+<span class="font-display-xl text-headline-lg text-primary drop-shadow-[0_0_10px_rgba(255,180,170,0.5)]">PUTER_DEV_CENTER</span>
+</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary hover:bg-surface-variant/50 px-2 py-1 transition-all duration-300" href="#">RESOURCES</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary hover:bg-surface-variant/50 px-2 py-1 transition-all duration-300" href="#">API_DOCS</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary hover:bg-surface-variant/50 px-2 py-1 transition-all duration-300" href="#">COMMUNITY</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer" style="font-variation-settings: 'FILL' 0;">settings</span>
+<div class="w-8 h-8 rounded-full border border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A futuristic pilot profile avatar in a digital helmet with integrated HUD displays, glowing orange and cyan accents, against a dark metallic interior of a cockpit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXGfEtG3_wMol0h7_EwWJnJFwpT6FIW-al5C0RDlfYERl2Vkva-QxgI95g9c1xl9x0YXlfMscwXSTXaJ0IFB54hgy9vQf3w4PYrlnKUGy3_tuyVpX5VbSK_MmT9zrRKvSQipx037La2lMbf9oW-T_tBM37YOHozx_ZUsCO6sc4OAKbO7THQjwPVHpry7ZAQYN-1w1yrgMS80jDjM3dn2xA1IFWE3q3Moqo8E_dHSQ1E-MornUiukqV0c86RNMb2EngOx5ZVCZyNp4L"/>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low/90 backdrop-blur-xl border-r border-outline-variant flex flex-col pt-20 pb-8 z-40 hidden lg:flex">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<img class="w-8 h-8" data-alt="A stylized minimalist wing icon in bright white with a red circular glow background, tactical dash lines beneath, military aerospace aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALT9MglZULIbI3xPc4Xm7ajO5YT81jKh3Iap4nalWCy0vMoycYX2F07K_hmNRuIm_dthCXpkaleGVsHEvRMdgtOu97KHDtS4gziqV02JzU2eRQcAS9pKpjjX3YA2MxbuGJwMOSDbtdY6NEv9RcGDbu-cSeofHOsy_xSa1sJmTfTN1Q9uNLOLncx0a74jRYxv4TXueinzY8yCerHo7_AXhToR_oHmBP6oTXi_NJOBipF48y0vcFqXammrpOmGwNmJgm8jfWdjIcbjNP"/>
+<div>
+<div class="font-headline-lg text-[18px] text-primary tracking-tighter">PROJECT_X</div>
+<div class="font-label-caps text-[10px] text-primary/70">STATUS: IN_REVIEW</div>
+</div>
+</div>
+</div>
+<div class="flex-1 space-y-1 px-3">
+<a class="flex items-center gap-4 px-4 py-3 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span> MISSION_CONTROL
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">upload_file</span> ASSET_UPLOAD
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">description</span> METADATA
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label-caps text-label-caps text-on-secondary-container bg-secondary-container/20 border-l-4 border-secondary font-bold scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">rocket_launch</span> DISTRIBUTION
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">monitoring</span> ANALYTICS
+            </a>
+</div>
+<button class="mx-4 my-6 bg-primary text-on-primary font-label-caps py-3 clipped-button hover:bg-primary/80 transition-colors">
+            SUBMIT_BUILD
+        </button>
+<div class="mt-auto px-3 space-y-1">
+<a class="flex items-center gap-4 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">settings</span> SETTINGS
+            </a>
+<a class="flex items-center gap-4 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">help</span> HELP
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 pb-16 px-hud-gutter min-h-screen relative">
+<!-- Global Background Atmosphere -->
+
+<div class="max-w-6xl mx-auto space-y-stack-gap">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-l-2 border-primary pl-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-widest uppercase">Distribution &amp; Approval</h1>
+<p class="font-data-sm text-data-sm text-on-surface-variant">NODE_ID: KAMIKAZZI-3D-CENTER // SECTOR: DELTA_04</p>
+</div>
+<div class="flex items-center gap-2 bg-primary-container/20 px-4 py-2 border border-primary-container animate-pulse-slow">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-caps text-label-caps text-primary-container">SYSTEM_LOCK: ACTIVE</span>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Large Status Card (Bento Row 1) -->
+<div class="md:col-span-8 relative bg-surface-container-low border border-outline-variant p-8 overflow-hidden group">
+<div class="tactical-bracket bracket-tl"></div><div class="tactical-bracket bracket-tr"></div>
+<div class="tactical-bracket bracket-bl"></div><div class="tactical-bracket bracket-br"></div>
+<div class="relative z-10 flex flex-col h-full justify-between">
+<div class="flex justify-between items-start mb-8">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Status Matrix</h2>
+<span class="font-data-sm text-primary">TIMESTAMP: 2124.03.14.0800</span>
+</div>
+<div class="flex flex-col items-center py-12">
+<div class="relative mb-6">
+<div class="w-48 h-48 rounded-full border-4 border-primary-container/30 flex items-center justify-center">
+<div class="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+<div class="text-center">
+<div class="font-display-xl text-[48px] text-primary">84%</div>
+<div class="font-label-caps text-[10px] text-on-surface-variant">VALIDATING...</div>
+</div>
+</div>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-primary glow-red tracking-tighter">UNDER_REVIEW</h3>
+<p class="font-data-sm text-on-surface-variant text-center max-w-md mt-4">Automated diagnostic suites are currently parsing project geometry for tactical efficiency and protocol compliance.</p>
+</div>
+<div class="flex justify-between items-center mt-8 border-t border-outline-variant pt-4">
+<div class="flex gap-2">
+<div class="w-12 h-2 bg-primary-container"></div>
+<div class="w-12 h-2 bg-primary-container"></div>
+<div class="w-12 h-2 bg-primary-container"></div>
+<div class="w-12 h-2 bg-outline-variant/30"></div>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">PHASE 3: PROTOCOL_VALIDATION</span>
+</div>
+</div>
+</div>
+<!-- Review Checklist (Bento Side) -->
+<div class="md:col-span-4 bg-surface-container-highest/40 backdrop-blur-md border border-outline-variant p-6 relative">
+<div class="tactical-bracket bracket-tl"></div>
+<div class="tactical-bracket bracket-br"></div>
+<h2 class="font-label-caps text-label-caps text-on-surface-variant mb-6 border-b border-outline-variant pb-2">CRITERIA_CHECKLIST</h2>
+<ul class="space-y-4">
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<span class="font-data-sm text-on-surface">Functional &amp; Complete</span>
+<span class="bg-secondary-container/20 text-secondary-container font-label-caps text-[9px] px-2 py-0.5 border border-secondary-container">PASSED</span>
+</li>
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<span class="font-data-sm text-on-surface">App-like Experience</span>
+<span class="bg-secondary-container/20 text-secondary-container font-label-caps text-[9px] px-2 py-0.5 border border-secondary-container">PASSED</span>
+</li>
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<span class="font-data-sm text-on-surface">Meaningful Purpose</span>
+<span class="bg-secondary-container/20 text-secondary-container font-label-caps text-[9px] px-2 py-0.5 border border-secondary-container">PASSED</span>
+</li>
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<span class="font-data-sm text-on-surface">Original Work</span>
+<span class="bg-secondary-container/20 text-secondary-container font-label-caps text-[9px] px-2 py-0.5 border border-secondary-container">PASSED</span>
+</li>
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<span class="font-data-sm text-on-surface">Icon Quality</span>
+<span class="bg-secondary-container/20 text-secondary-container font-label-caps text-[9px] px-2 py-0.5 border border-secondary-container">PASSED</span>
+</li>
+<li class="flex items-center justify-between border-b border-outline-variant/30 pb-3 opacity-50">
+<span class="font-data-sm text-on-surface">Manual Verification</span>
+<span class="bg-outline-variant/20 text-on-surface-variant font-label-caps text-[9px] px-2 py-0.5 border border-outline-variant">PENDING</span>
+</li>
+</ul>
+<div class="mt-8 p-4 bg-primary-container/10 border border-primary-container/30">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary-container text-sm">warning</span>
+<span class="font-label-caps text-[10px] text-primary-container uppercase">Attention Required</span>
+</div>
+<p class="font-data-sm text-[11px] text-on-surface-variant">Manual clearance by sector command is required before final deployment.</p>
+</div>
+</div>
+<!-- System Logs Terminal (Bento Bottom) -->
+<div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant font-data-sm relative overflow-hidden group">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center border-b border-outline-variant">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-error"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-secondary-container"></div>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">SYSTEM_LOG_TERMINAL_V.21</span>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-sm">search</span>
+<span class="material-symbols-outlined text-sm">close</span>
+</div>
+</div>
+<div class="p-4 h-48 overflow-y-auto space-y-1 custom-scrollbar">
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:45:12]</span>
+<span class="text-on-surface">Initializing geometric integrity checks... OK</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:45:45]</span>
+<span class="text-on-surface">Validating asset "KAMIKAZZI_DRONE_V4"... HASH: 0x82FA... MATCH</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:46:10]</span>
+<span class="text-primary-container shrink-0">[NOTICE]</span>
+<span class="text-on-surface">Performance optimization suggested for LOD_0 textures.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:47:01]</span>
+<span class="text-on-surface">Checking legal protocol headers... ALL CLEAR</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:48:22]</span>
+<span class="text-on-surface">Automated criteria sweep completed. (5/5 PASSED)</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary-container shrink-0">[08:48:55]</span>
+<span class="text-on-surface">Waiting for human operator handshake... <span class="animate-pulse">_</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Section -->
+<div class="flex flex-col sm:flex-row justify-end items-center gap-4 mt-8">
+<button class="w-full sm:w-auto px-12 py-4 bg-transparent border border-outline text-on-surface font-label-caps hover:bg-surface-variant/20 transition-all clipped-button uppercase">
+                    Abort Submission
+                </button>
+<button class="w-full sm:w-auto px-12 py-4 bg-primary text-on-primary font-label-caps shadow-[0_0_15px_rgba(255,180,170,0.4)] hover:shadow-[0_0_25px_rgba(255,180,170,0.6)] transition-all clipped-button uppercase">
+                    Force Deploy Alpha
+                </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-4 px-edge-margin border-t border-outline-variant bg-surface-container-lowest flex flex-col md:flex-row justify-between items-center gap-4 z-50">
+<div class="text-primary font-label-caps text-label-caps">KAMIKAZZI SYSTEMS</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant opacity-80 uppercase tracking-widest">
+            © 2124 PUTER TACTICAL SYSTEMS. ALL RIGHTS RESERVED.
+        </div>
+<div class="flex gap-8">
+<a class="font-data-sm text-data-sm text-on-surface-variant hover:text-tertiary transition-colors uppercase" href="#">TERMINAL_LOGS</a>
+<a class="font-data-sm text-data-sm text-on-surface-variant hover:text-tertiary transition-colors uppercase" href="#">LEGAL_PROTOCOL</a>
+<a class="font-data-sm text-data-sm text-on-surface-variant hover:text-tertiary transition-colors uppercase" href="#">SUPPORT_CHANNEL</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions and interactive terminal simulation
+        document.addEventListener('DOMContentLoaded', () => {
+            const logsContainer = document.querySelector('.custom-scrollbar');
+            const messages = [
+                "[08:49:12] Handshake request sent to Sector-7 Commander...",
+                "[08:49:25] Received encrypted packet... DECRYPTING...",
+                "[08:49:40] Validation progress increased to 89%.",
+                "[08:50:02] Monitoring sub-atomic texture density... NOMINAL.",
+                "[08:50:15] Global distribution servers are ready for staging."
+            ];
+            
+            let msgIndex = 0;
+            const addLogLine = () => {
+                if (msgIndex < messages.length) {
+                    const line = document.createElement('div');
+                    line.className = 'flex gap-4 opacity-0 transition-opacity duration-500';
+                    line.innerHTML = `<span class="text-secondary-container shrink-0">[${new Date().toLocaleTimeString()}]</span><span class="text-on-surface">${messages[msgIndex]}</span>`;
+                    logsContainer.appendChild(line);
+                    setTimeout(() => line.classList.remove('opacity-0'), 50);
+                    logsContainer.scrollTop = logsContainer.scrollHeight;
+                    msgIndex++;
+                    setTimeout(addLogLine, 5000 + Math.random() * 5000);
+                }
+            };
+            
+            setTimeout(addLogLine, 3000);
+        });
+    </script>
+</body></html>

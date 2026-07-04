@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>KAMIKAZZI 3D - Mission Briefing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --scanline-color: rgba(192, 24, 24, 0.05);
+        }
+
+        body {
+            background-color: #061423;
+            color: #d5e4f9;
+            overflow-x: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                var(--scanline-color) 51%
+            );
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            animation: scanlineScroll 10s linear infinite;
+        }
+
+        @keyframes scanlineScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        .hud-bracket-tl { border-top: 2px solid #ffb4aa; border-left: 2px solid #ffb4aa; width: 20px; height: 20px; position: absolute; top: 0; left: 0; }
+        .hud-bracket-tr { border-top: 2px solid #ffb4aa; border-right: 2px solid #ffb4aa; width: 20px; height: 20px; position: absolute; top: 0; right: 0; }
+        .hud-bracket-bl { border-bottom: 2px solid #ffb4aa; border-left: 2px solid #ffb4aa; width: 20px; height: 20px; position: absolute; bottom: 0; left: 0; }
+        .hud-bracket-br { border-bottom: 2px solid #ffb4aa; border-right: 2px solid #ffb4aa; width: 20px; height: 20px; position: absolute; bottom: 0; right: 0; }
+
+        .glitch-flicker {
+            animation: flicker 2s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+        }
+
+        .clipped-btn {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+
+        .status-segment {
+            width: 4px;
+            height: 12px;
+            background: #00dddd;
+            margin-right: 2px;
+        }
+        
+        .status-segment.empty {
+            background: rgba(0, 221, 221, 0.2);
+        }
+
+        .chromatic-aberration {
+            text-shadow: 2px 0 #ff0000, -2px 0 #00ffff;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#ffffff",
+                        "primary-container": "#c01818",
+                        "tertiary": "#e1c471",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "background": "#061423",
+                        "surface-dim": "#061423",
+                        "tertiary-container": "#c4a959",
+                        "surface-container": "#132030",
+                        "on-surface-variant": "#e5bdb8",
+                        "on-tertiary-container": "#4f3d00",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffb4aa",
+                        "primary": "#ffb4aa",
+                        "outline": "#ac8884",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#574400",
+                        "on-tertiary": "#3d2f00",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-primary-fixed": "#410001",
+                        "on-secondary": "#003737",
+                        "surface-container-lowest": "#020f1e",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#283646",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-background": "#d5e4f9",
+                        "surface-bright": "#2d3a4b",
+                        "surface-variant": "#283646",
+                        "on-secondary-container": "#007070",
+                        "tertiary-fixed-dim": "#e1c471",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary": "#690004",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-fixed-variant": "#930008",
+                        "outline-variant": "#5c403c",
+                        "on-primary-container": "#ffd2cd",
+                        "surface-container-low": "#0e1c2c",
+                        "secondary-container": "#00fbfb",
+                        "secondary-fixed": "#00fbfb",
+                        "inverse-surface": "#d5e4f9",
+                        "on-surface": "#d5e4f9",
+                        "primary-fixed": "#ffdad5",
+                        "inverse-on-surface": "#243142",
+                        "surface-container-high": "#1d2b3b",
+                        "inverse-primary": "#bc1416",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffe08a",
+                        "surface": "#061423"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "hud-gutter": "1rem",
+                        "stack-gap": "1.5rem",
+                        "edge-margin": "2rem",
+                        "bracket-padding": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Stick No Bills"],
+                        "body-jp": ["Noto Sans JP"],
+                        "headline-lg": ["Stick No Bills"],
+                        "data-sm": ["JetBrains Mono"],
+                        "data-lg": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-xl": ["Stick No Bills"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                        "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen pb-32">
+<div class="scanlines"></div>
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-hud-gutter h-16 bg-background/60 backdrop-blur-xl bg-surface-container/60 border-b border-primary/20 drop-shadow-[0_2px_4px_rgba(255,180,170,0.2)]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 border border-primary/40 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-lg-mobile text-headline-lg-mobile uppercase tracking-widest text-primary drop-shadow-[0_0_8px_rgba(192,24,24,0.8)]">PILOT_ALPHA_01</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">RANK: ACE</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6 font-label-caps text-label-caps">
+<a class="text-primary hover:text-primary-fixed-dim transition-colors" href="#">FLIGHT_OPS</a>
+<a class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors" href="#">LEADERBOARD</a>
+</div>
+<span class="material-symbols-outlined text-primary">signal_cellular_4_bar</span>
+</div>
+</header>
+<main class="pt-20 px-4 max-w-lg mx-auto space-y-6">
+<!-- Mission Title Section -->
+<section class="relative p-bracket-padding mb-8">
+<div class="hud-bracket-tl"></div>
+<div class="hud-bracket-tr"></div>
+<div class="flex flex-col gap-1 p-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase">MISSION_BRIEFING</h1>
+</div>
+<div class="flex justify-between items-end border-b border-primary/20 pb-2">
+<span class="font-data-sm text-data-sm text-secondary-fixed-dim">SECTOR: ZERO-G_RAVINE</span>
+<span class="font-data-sm text-data-sm text-on-surface-variant">SYNCED_VIA: PUTER_OS_V4.2</span>
+</div>
+</div>
+</section>
+<!-- Tactical Map Section -->
+<section class="relative aspect-video w-full rounded-xl overflow-hidden border border-primary/30 group">
+<div class="absolute inset-0 z-0 bg-surface-container-lowest">
+<div class="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,_transparent_0%,_#061423_80%)]"></div>
+<!-- Placeholder for Tactical Map -->
+<div class="w-full h-full bg-cover bg-center" data-alt="A top-down tactical military flight display showing neon cyan and deep red wireframe mountains and valleys in a 3D grid layout. High-tech HUD overlays with targeting reticles, altitude markers, and digital telemetry data illuminate the dark, industrial cyber-brutalist aesthetic. The lighting is dominated by intense neon glows against a pitch-black cockpit background." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC6kbLSyxLR-qbWhNZmcE_0CZEiGReBkTyTMl4s7y6jeG7F8mEU64VXcrPIvjZ_fS6waSySDxv1K0xB7x9VpxCMzC6fVsingNwAxfo0eq78LiSlBwjuCZjMHFxHs1FM7nJeGu75QcPtFFqj0yMRJyFhl4FtTl9eUhKR0P3A2N0YFXwp_3PiSlgCGndAolscyaMd_qhA5voyxT3tpGcYT4aKEvpvpUjWM3ixJf-euNLrpvaMQMbHjU5tZTIfOHUWgE8Emm82TDXZk4ae')">
+</div>
+</div>
+<!-- Map HUD Overlays -->
+<div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+<div class="w-16 h-16 border-2 border-dashed border-secondary-fixed-dim/40 rounded-full animate-[spin_10s_linear_infinite]"></div>
+<div class="absolute w-3/4 h-3/4 border border-primary/10 rounded-lg"></div>
+</div>
+<!-- Coordinate Readouts -->
+<div class="absolute bottom-2 left-2 font-data-sm text-[8px] text-secondary-fixed-dim/70 space-y-1">
+<div>LAT: 35.6895° N</div>
+<div>LON: 139.6917° E</div>
+<div>ALT: 12,400FT MSL</div>
+</div>
+<div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+<div class="px-2 py-0.5 bg-primary-container text-[10px] font-bold text-white uppercase italic">LIVE_FEED</div>
+<div class="flex gap-1">
+<div class="w-1 h-1 bg-primary rounded-full animate-ping"></div>
+<div class="font-data-sm text-[8px] text-primary">RECON_SAT_9</div>
+</div>
+</div>
+</section>
+<!-- Mission Objectives -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 border-l-4 border-primary pl-2">
+<h2 class="font-label-caps text-label-caps text-on-surface">MISSION_OBJECTIVES</h2>
+</div>
+<div class="grid gap-3">
+<!-- Objective Card -->
+<div class="flex items-center gap-4 bg-surface-container-low/80 backdrop-blur-md p-4 rounded-lg border border-outline-variant/30 hover:border-secondary-fixed-dim/50 transition-all cursor-pointer">
+<div class="w-6 h-6 border-2 border-secondary-fixed-dim flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex-1">
+<div class="font-data-sm text-data-sm text-on-surface">NEUTRALIZE_AA_BATTERY_SIGMA</div>
+<div class="text-[10px] text-on-surface-variant">PRIORITY: ALPHA</div>
+</div>
+<div class="text-[10px] font-bold text-secondary-fixed-dim">COMPLETED</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low/80 backdrop-blur-md p-4 rounded-lg border border-outline-variant/30 hover:border-secondary-fixed-dim/50 transition-all cursor-pointer">
+<div class="w-6 h-6 border-2 border-outline-variant flex items-center justify-center rounded"></div>
+<div class="flex-1">
+<div class="font-data-sm text-data-sm text-on-surface">EXTRACT_BIO_DEVICES_7-9</div>
+<div class="text-[10px] text-on-surface-variant">PRIORITY: BETA</div>
+</div>
+<div class="text-[10px] font-bold text-primary">REQUIRED</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low/80 backdrop-blur-md p-4 rounded-lg border border-outline-variant/30 hover:border-secondary-fixed-dim/50 transition-all cursor-pointer">
+<div class="w-6 h-6 border-2 border-outline-variant flex items-center justify-center rounded"></div>
+<div class="flex-1">
+<div class="font-data-sm text-data-sm text-on-surface">ELIMINATE_WING_COMMANDER_VOSS</div>
+<div class="text-[10px] text-on-surface-variant">PRIORITY: OMEGA</div>
+</div>
+<div class="text-[10px] font-bold text-primary">PENDING</div>
+</div>
+</div>
+</section>
+<!-- Sector Intel / Bento Style -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-highest/40 border border-outline-variant/30 p-4 rounded-xl flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">radar</span>
+<span class="font-label-caps text-label-caps">SECTOR_INTEL</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-lg text-data-lg text-secondary-fixed-dim">08</span>
+<span class="text-[10px] text-on-surface-variant">BOGEYS_DETECTED</span>
+</div>
+<div class="mt-auto pt-2 flex gap-0.5">
+<div class="status-segment"></div>
+<div class="status-segment"></div>
+<div class="status-segment"></div>
+<div class="status-segment empty"></div>
+<div class="status-segment empty"></div>
+</div>
+</div>
+<div class="bg-surface-container-highest/40 border border-primary/30 p-4 rounded-xl flex flex-col gap-2 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-6xl">warning</span>
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">bolt</span>
+<span class="font-label-caps text-label-caps uppercase">THREAT_LEVEL</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-lg text-data-lg text-primary chromatic-aberration">CRITICAL</span>
+<span class="text-[10px] text-on-surface-variant">LEVEL_09_WARNING</span>
+</div>
+<div class="mt-auto h-2 bg-surface-dim rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[85%] animate-pulse"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[340px] flex justify-around items-center h-14 z-50 bg-surface-container-high/40 backdrop-blur-lg rounded-xl border border-primary/30 drop-shadow-[0_0_15px_rgba(0,221,221,0.3)]">
+<button class="text-outline hover:text-secondary-container transition-colors p-2">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-secondary-fixed-dim drop-shadow-[0_0_5px_#00dddd] scale-110 active:animate-pulse p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">radar</span>
+</button>
+<button class="text-outline hover:text-secondary-container transition-colors p-2">
+<span class="material-symbols-outlined">equalizer</span>
+</button>
+<button class="text-outline hover:text-secondary-container transition-colors p-2">
+<span class="material-symbols-outlined">bolt</span>
+</button>
+</nav>
+<!-- Prominent Deploy Button -->
+<div class="fixed bottom-24 left-0 right-0 px-8 flex justify-center pointer-events-none">
+<button class="pointer-events-auto group relative clipped-btn bg-primary-container/90 hover:bg-primary-container transition-all w-full max-w-sm h-16 flex items-center justify-center gap-4 border-2 border-primary/50 overflow-hidden">
+<!-- Animated fill effect -->
+<div class="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-out"></div>
+<span class="material-symbols-outlined text-white text-2xl animate-pulse">flight_takeoff</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-white tracking-widest">DEPLOY_TO_SECTOR</span>
+<!-- Tactical Corner Bracket in Button -->
+<div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-white/50"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-white/50"></div>
+</button>
+</div>
+<!-- Decorative HUD elements -->
+<div class="fixed top-0 left-0 h-full w-4 flex flex-col justify-between py-24 opacity-30 pointer-events-none">
+<div class="flex flex-col gap-1 items-center">
+<div class="w-1 h-8 bg-primary"></div>
+<div class="w-1 h-2 bg-primary/40"></div>
+<div class="w-1 h-2 bg-primary/40"></div>
+</div>
+<div class="font-data-sm text-[8px] -rotate-90 origin-center whitespace-nowrap text-on-surface-variant">KAMIKAZZI_OS_ACTIVE</div>
+</div>
+<div class="fixed top-0 right-0 h-full w-4 flex flex-col justify-center gap-4 py-24 opacity-30 pointer-events-none items-center">
+<div class="w-1 h-1 bg-secondary-fixed-dim"></div>
+<div class="w-1 h-1 bg-secondary-fixed-dim"></div>
+<div class="w-1 h-32 bg-gradient-to-b from-transparent via-secondary-fixed-dim to-transparent"></div>
+<div class="w-1 h-1 bg-secondary-fixed-dim"></div>
+</div>
+<script>
+        // Micro-interaction for Mission Objectives
+        document.querySelectorAll('section.space-y-4 > div.grid > div').forEach(item => {
+            item.addEventListener('click', function() {
+                const check = this.querySelector('.material-symbols-outlined');
+                const status = this.querySelector('.text-\\[10px\\].font-bold');
+                
+                if (status.innerText === 'PENDING' || status.innerText === 'REQUIRED') {
+                    // Visual confirmation
+                    this.classList.add('scale-95');
+                    setTimeout(() => {
+                        this.classList.remove('scale-95');
+                        if (!check) {
+                           const newCheck = document.createElement('span');
+                           newCheck.className = 'material-symbols-outlined text-secondary-fixed-dim text-sm';
+                           newCheck.style.fontVariationSettings = "'FILL' 1";
+                           newCheck.innerText = 'check';
+                           this.querySelector('.w-6.h-6').appendChild(newCheck);
+                        }
+                        this.querySelector('.w-6.h-6').classList.add('border-secondary-fixed-dim');
+                        status.innerText = 'COMPLETED';
+                        status.classList.remove('text-primary');
+                        status.classList.add('text-secondary-fixed-dim');
+                    }, 150);
+                }
+            });
+        });
+
+        // Atmospheric Flickering on Threat Level
+        setInterval(() => {
+            const criticalTxt = document.querySelector('.chromatic-aberration');
+            if (criticalTxt) {
+                criticalTxt.classList.toggle('opacity-80');
+            }
+        }, 300);
+    </script>
+</body></html>

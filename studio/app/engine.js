@@ -438,13 +438,9 @@ class ProModelerStudio {
     /** Import a multi-file glTF package (.gltf + .bin + textures) via URLModifier mapping */
     importGLTFMulti(pkg) {
         return new Promise((resolve, reject) => {
-            const loader = new GLTFLoader();
-            const draco = new DRACOLoader();
-            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-            loader.setDRACOLoader(draco);
-
-            // Map resource filenames to uploaded object URLs
-            loader.setURLModifier((url) => {
+            // Isolated manager so URLModifier doesn't leak to DefaultLoadingManager
+            const manager = new THREE.LoadingManager();
+            manager.setURLModifier((url) => {
                 const filename = url.split('/').pop().split('?')[0];
                 if (pkg.files[filename]) return pkg.files[filename];
                 if (url.startsWith('data:')) return url;
@@ -453,10 +449,16 @@ class ProModelerStudio {
                 return url;
             });
 
+            const loader = new GLTFLoader(manager);
+            const draco = new DRACOLoader();
+            draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            loader.setDRACOLoader(draco);
+
             const nameHint = pkg.name || 'Imported';
             const revokeAll = () => {
                 Object.values(pkg.files).forEach(u => URL.revokeObjectURL(u));
             };
+
             loader.load(pkg.url, (gltf) => {
                 const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
                 root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });

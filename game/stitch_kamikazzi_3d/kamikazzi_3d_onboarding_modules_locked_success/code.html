@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZZI_3D // SYNC_COMPLETE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..900&family=Noto+Sans+JP:wght@100..900&family=Stick+No+Bills:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 5px rgba(0, 251, 251, 0.4)); }
+            50% { opacity: 1; filter: drop-shadow(0 0 15px rgba(0, 251, 251, 0.8)); }
+        }
+        @keyframes sync-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        @keyframes button-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 180, 170, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(255, 180, 170, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 180, 170, 0); }
+        }
+        .scanline-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(0, 251, 251, 0.05) 50%, transparent);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
+            animation: scanline 8s linear infinite;
+        }
+        .clipped-corner {
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+        }
+        .bracket-tl { border-top: 2px solid currentColor; border-left: 2px solid currentColor; width: 20px; height: 20px; position: absolute; top: -2px; left: -2px; }
+        .bracket-tr { border-top: 2px solid currentColor; border-right: 2px solid currentColor; width: 20px; height: 20px; position: absolute; top: -2px; right: -2px; }
+        .bracket-bl { border-bottom: 2px solid currentColor; border-left: 2px solid currentColor; width: 20px; height: 20px; position: absolute; bottom: -2px; left: -2px; }
+        .bracket-br { border-bottom: 2px solid currentColor; border-right: 2px solid currentColor; width: 20px; height: 20px; position: absolute; bottom: -2px; right: -2px; }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#061423",
+                      "inverse-surface": "#d5e4f9",
+                      "error-container": "#93000a",
+                      "surface-container-lowest": "#020f1e",
+                      "tertiary-fixed-dim": "#e1c471",
+                      "surface-dim": "#061423",
+                      "on-secondary-container": "#007070",
+                      "primary-fixed": "#ffdad5",
+                      "on-secondary": "#003737",
+                      "outline-variant": "#5c403c",
+                      "on-primary-fixed-variant": "#930008",
+                      "secondary-fixed-dim": "#00dddd",
+                      "on-surface-variant": "#e5bdb8",
+                      "surface-container-high": "#1d2b3b",
+                      "on-background": "#d5e4f9",
+                      "secondary": "#ffffff",
+                      "on-secondary-fixed": "#002020",
+                      "primary-fixed-dim": "#ffb4aa",
+                      "on-error": "#690005",
+                      "surface-variant": "#283646",
+                      "surface-container": "#132030",
+                      "on-primary-fixed": "#410001",
+                      "tertiary-fixed": "#ffe08a",
+                      "error": "#ffb4ab",
+                      "on-primary": "#690004",
+                      "on-surface": "#d5e4f9",
+                      "inverse-primary": "#bc1416",
+                      "tertiary-container": "#c4a959",
+                      "primary-container": "#c01818",
+                      "outline": "#ac8884",
+                      "on-error-container": "#ffdad6",
+                      "surface-tint": "#ffb4aa",
+                      "surface-bright": "#2d3a4b",
+                      "on-secondary-fixed-variant": "#004f4f",
+                      "on-tertiary-fixed-variant": "#574400",
+                      "secondary-fixed": "#00fbfb",
+                      "surface-container-highest": "#283646",
+                      "primary": "#ffb4aa",
+                      "on-tertiary-fixed": "#241a00",
+                      "secondary-container": "#00fbfb",
+                      "tertiary": "#e1c471",
+                      "surface-container-low": "#0e1c2c",
+                      "inverse-on-surface": "#243142",
+                      "on-tertiary-container": "#4f3d00",
+                      "on-primary-container": "#ffd2cd",
+                      "on-tertiary": "#3d2f00",
+                      "background": "#061423"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "bracket-padding": "0.5rem",
+                      "stack-gap": "1.5rem",
+                      "hud-gutter": "1rem",
+                      "edge-margin": "2rem"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Stick No Bills"],
+                      "data-sm": ["JetBrains Mono"],
+                      "label-caps": ["JetBrains Mono"],
+                      "data-lg": ["JetBrains Mono"],
+                      "body-jp": ["Noto Sans JP"],
+                      "display-xl": ["Stick No Bills"],
+                      "headline-lg-mobile": ["Stick No Bills"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}],
+                      "data-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                      "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "data-lg": ["20px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                      "body-jp": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-jp overflow-hidden selection:bg-secondary-fixed selection:text-on-secondary-fixed min-h-screen flex flex-col">
+<!-- Atmospheric Layer -->
+<div class="scanline-overlay"></div>
+<div class="fixed inset-0 pointer-events-none opacity-20" style="background-image: radial-gradient(circle at center, transparent 0%, #000 100%), repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,251,251,0.1) 1px, rgba(0,251,251,0.1) 2px); background-size: 100% 100%, 100% 3px;"></div>
+<!-- Navigation Shell (Success State Suppression Check: This is a task-focused confirmation, so Shell is hidden) -->
+<!-- Top HUD Telemetry -->
+<header class="fixed top-0 left-0 w-full z-50 p-hud-gutter flex justify-between items-start pointer-events-none">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-primary font-label-caps text-label-caps tracking-widest">
+<span class="material-symbols-outlined text-[14px]">speed</span>
+<span>KAMIKAZZI_3D // OS_V.2.04</span>
+</div>
+<div class="font-display-xl text-headline-lg-mobile md:text-headline-lg tracking-tighter text-primary drop-shadow-[0_0_8px_rgba(255,180,170,0.8)]">
+                PILOT_ALPHA_01
+            </div>
+</div>
+<div class="text-right">
+<div class="text-secondary font-label-caps text-label-caps">SECTOR_7_STATUS</div>
+<div class="text-secondary-fixed font-data-lg text-data-lg uppercase">SECURED</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center p-edge-margin relative">
+<!-- Crosshair Center Clearance (20% Radial) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-[40vw] h-[40vw] border border-outline/10 rounded-full flex items-center justify-center">
+<div class="w-4 h-4 border border-secondary-fixed/40 rotate-45"></div>
+</div>
+</div>
+<!-- SYNC COMPLETE NOTIFICATION -->
+<div class="relative z-20 w-full max-w-2xl mb-12 transform -translate-y-8">
+<div class="bg-surface-container-low/80 backdrop-blur-xl p-8 border border-secondary-fixed/30 relative">
+<div class="bracket-tl text-secondary-fixed"></div>
+<div class="bracket-tr text-secondary-fixed"></div>
+<div class="bracket-bl text-secondary-fixed"></div>
+<div class="bracket-br text-secondary-fixed"></div>
+<div class="flex flex-col items-center gap-6">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-caps text-label-caps text-secondary-fixed/60">MODULE_CALIBRATION</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed animate-pulse">SYNC_STABLE</span>
+</div>
+<div class="w-full flex flex-col gap-2">
+<div class="flex justify-between items-end mb-1">
+<h1 class="font-headline-lg text-headline-lg text-secondary-fixed drop-shadow-[0_0_10px_rgba(0,251,251,0.6)]">SYNC_COMPLETE</h1>
+<span class="font-data-lg text-data-lg text-secondary-fixed">100%</span>
+</div>
+<!-- Segmented Progress Bar -->
+<div class="h-4 w-full flex gap-1">
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+<div class="flex-1 bg-secondary-fixed shadow-[0_0_8px_rgba(0,251,251,0.5)]"></div>
+</div>
+</div>
+<div class="w-full border-t border-outline/20 pt-4 flex justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-[8px] text-on-surface-variant">KERNEL_HASH</span>
+<span class="font-data-sm text-data-sm text-on-surface">0x88A2_TACTICAL_SUITE</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-caps text-[8px] text-on-surface-variant">POWER_LOAD</span>
+<span class="font-data-sm text-data-sm text-on-surface">94.2 GW</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Powerup Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-gap w-full max-w-5xl">
+<!-- Card 1: Overclock -->
+<div class="group relative overflow-hidden bg-surface-container-high/40 backdrop-blur-md border border-outline/20 p-bracket-padding h-64 flex flex-col justify-between">
+<div class="bracket-tl text-outline/30"></div>
+<div class="bracket-br text-outline/30"></div>
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary-fixed/40" style="font-variation-settings: 'FILL' 1">bolt</span>
+<span class="font-label-caps text-[10px] text-secondary-fixed/40">LVL_MAX</span>
+</div>
+<div class="mt-4">
+<div class="font-headline-lg text-headline-lg-mobile text-on-surface-variant/50">OVERCLOCK</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant/40 mt-1">Force engine injection to 140% capacity. Risk of core meltdown.</div>
+</div>
+<!-- Equipped Overlay -->
+<div class="absolute inset-0 bg-secondary-fixed/10 backdrop-blur-[2px] flex items-center justify-center z-10 border-2 border-secondary-fixed/50 animate-[pulse-glow_2s_infinite]">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-4 py-2 font-headline-lg text-headline-lg-mobile skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(0,251,251,0.6)]">
+                        EQUIPPED
+                    </div>
+</div>
+</div>
+<!-- Card 2: Kinetic Shield -->
+<div class="group relative overflow-hidden bg-surface-container-high/40 backdrop-blur-md border border-outline/20 p-bracket-padding h-64 flex flex-col justify-between">
+<div class="bracket-tl text-outline/30"></div>
+<div class="bracket-br text-outline/30"></div>
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary-fixed/40" style="font-variation-settings: 'FILL' 1">shield</span>
+<span class="font-label-caps text-[10px] text-secondary-fixed/40">LVL_MAX</span>
+</div>
+<div class="mt-4">
+<div class="font-headline-lg text-headline-lg-mobile text-on-surface-variant/50">AEGIS_MK4</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant/40 mt-1">Reactive armor plating with phase-shift capability for ballistic negation.</div>
+</div>
+<!-- Equipped Overlay -->
+<div class="absolute inset-0 bg-secondary-fixed/10 backdrop-blur-[2px] flex items-center justify-center z-10 border-2 border-secondary-fixed/50 animate-[pulse-glow_2.5s_infinite]">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-4 py-2 font-headline-lg text-headline-lg-mobile skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(0,251,251,0.6)]">
+                        EQUIPPED
+                    </div>
+</div>
+</div>
+<!-- Card 3: Neural Link -->
+<div class="group relative overflow-hidden bg-surface-container-high/40 backdrop-blur-md border border-outline/20 p-bracket-padding h-64 flex flex-col justify-between">
+<div class="bracket-tl text-outline/30"></div>
+<div class="bracket-br text-outline/30"></div>
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary-fixed/40" style="font-variation-settings: 'FILL' 1">psychology</span>
+<span class="font-label-caps text-[10px] text-secondary-fixed/40">LVL_MAX</span>
+</div>
+<div class="mt-4">
+<div class="font-headline-lg text-headline-lg-mobile text-on-surface-variant/50">NEURAL_SYNC</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant/40 mt-1">Reduces reaction latency to < 1ms by bypassing optic nerve.</div>
+</div>
+<!-- Equipped Overlay -->
+<div class="absolute inset-0 bg-secondary-fixed/10 backdrop-blur-[2px] flex items-center justify-center z-10 border-2 border-secondary-fixed/50 animate-[pulse-glow_1.8s_infinite]">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-4 py-2 font-headline-lg text-headline-lg-mobile skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(0,251,251,0.6)]">
+                        EQUIPPED
+                    </div>
+</div>
+</div>
+</div>
+<!-- CTA Action -->
+<div class="mt-16 relative group">
+<button class="clipped-corner bg-primary text-on-primary font-display-xl text-headline-lg-mobile md:text-headline-lg px-12 py-4 tracking-widest hover:brightness-110 active:scale-95 transition-all animate-[button-pulse_2s_infinite] relative z-10">
+                PROCEED_TO_COCKPIT
+            </button>
+<!-- Decorative shadow element -->
+<div class="absolute -inset-2 bg-primary/20 blur-xl group-hover:bg-primary/40 transition-colors pointer-events-none"></div>
+</div>
+</main>
+<!-- Bottom HUD Data -->
+<footer class="fixed bottom-0 left-0 w-full p-hud-gutter z-50 flex justify-between items-end pointer-events-none">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant/60">LATENCY</span>
+<span class="font-data-sm text-data-sm text-secondary-fixed">0.02ms</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant/60">HEART_RATE</span>
+<span class="font-data-sm text-data-sm text-primary">142 BPM</span>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="w-16 h-16 border border-outline/30 flex items-center justify-center relative">
+<div class="bracket-tl"></div>
+<div class="bracket-br"></div>
+<span class="material-symbols-outlined text-secondary-fixed text-[32px] animate-[sync-blink_1s_infinite]">radar</span>
+</div>
+<div class="text-right flex flex-col justify-end">
+<div class="text-primary font-label-caps text-[10px]">READY_FOR_ENGAGEMENT</div>
+<div class="text-on-surface-variant font-data-sm text-[10px]">AUTH_TOKEN: 099-VX-TAC</div>
+</div>
+</div>
+</footer>
+<!-- Background Elements -->
+<div class="fixed top-1/4 -left-12 w-64 h-64 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-1/4 -right-12 w-64 h-64 bg-secondary-fixed/5 rounded-full blur-[120px] pointer-events-none"></div>
+<script>
+        // Micro-interaction for the central sync bar pulse
+        setInterval(() => {
+            const segments = document.querySelectorAll('.flex-1.bg-secondary-fixed');
+            segments.forEach((seg, i) => {
+                setTimeout(() => {
+                    seg.classList.add('brightness-150', 'scale-y-110');
+                    setTimeout(() => {
+                        seg.classList.remove('brightness-150', 'scale-y-110');
+                    }, 150);
+                }, i * 50);
+            });
+        }, 3000);
+
+        // Random cursor flicker on titles
+        const flickerElements = document.querySelectorAll('.font-headline-lg');
+        setInterval(() => {
+            const el = flickerElements[Math.floor(Math.random() * flickerElements.length)];
+            el.style.opacity = Math.random() > 0.95 ? '0.5' : '1';
+        }, 100);
+    </script>
+</body></html>
