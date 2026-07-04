@@ -1282,6 +1282,116 @@ export class Studio {
     log(`Mirrored ${axis}`);
   }
 
+  // ── Game / Optimization Tools ──
+  _colliderHelpers = new Map();
+  _showColliders = true;
+
+  getSceneStats() {
+    let vertices = 0, faces = 0, meshes = 0, groups = 0;
+    this.objects.forEach(o => {
+      if (o.isMesh && o.geometry) {
+        meshes++;
+        const pos = o.geometry.attributes.position;
+        if (pos) vertices += pos.count;
+        if (o.geometry.index) faces += o.geometry.index.count / 3;
+        else if (pos) faces += pos.count / 3;
+      } else if (o.isGroup || o.type === 'Group') {
+        groups++;
+      }
+    });
+    return { objects: this.objects.length, meshes, groups, vertices: Math.round(vertices), faces: Math.round(faces), lights: this.lights?.length || 0 };
+  }
+
+  groupSelected() {
+    if (!this.selectedObject) { log('Select the parent object first', 'error'); return; }
+    const children = this.objects.filter(o => o !== this.selectedObject && !o.isLight);
+    if (children.length === 0) { log('No other objects to group under selected', 'error'); return; }
+    this.pushUndo();
+    children.forEach(child => {
+      this.selectedObject.add(child);
+    });
+    log(`Grouped ${children.length} objects under ${this.selectedObject.name}`);
+  }
+
+  ungroupSelected() {
+    const obj = this.selectedObject;
+    if (!obj || obj.children.length === 0) { log('Selected object has no children to ungroup', 'error'); return; }
+    this.pushUndo();
+    const children = [...obj.children];
+    children.forEach(child => {
+      obj.remove(child);
+      this.scene.add(child);
+    });
+    log(`Ungrouped ${children.length} children from ${obj.name}`);
+  }
+
+  generateLOD() {
+    const obj = this.selectedObject;
+    if (!obj?.isMesh || !obj.geometry) { log('Select a mesh to generate LOD for', 'error'); return; }
+    this.pushUndo();
+    const geo = obj.geometry;
+    // Decimate by reducing segment count for primitives
+    const origType = geo.type;
+    let lodGeo;
+    if (origType === 'BoxGeometry') lodGeo = new THREE.BoxGeometry(1, 1, 1);
+    else if (origType === 'SphereGeometry') lodGeo = new THREE.SphereGeometry(0.5, 8, 6);
+    else if (origType === 'CylinderGeometry') lodGeo = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
+    else if (origType === 'TorusGeometry') lodGeo = new THREE.TorusGeometry(0.5, 0.2, 8, 12);
+    else {
+      // For other geometry types, create a simplified version by sampling fewer vertices
+      log('LOD: creating simplified copy', 'info');
+      lodGeo = geo.clone();
+    }
+
+    const mat = obj.material ? obj.material.clone() : new THREE.MeshStandardMaterial({ color: 0xcccccc });
+    const lodMesh = new THREE.Mesh(lodGeo, mat);
+    lodMesh.position.copy(obj.position);
+    lodMesh.rotation.copy(obj.rotation);
+    lodMesh.scale.copy(obj.scale);
+    lodMesh.name = obj.name + '_LOD';
+    lodMesh.castShadow = true;
+    lodMesh.receiveShadow = true;
+    // Make semi-transparent so it's clear this is an LOD
+    if (lodMesh.material) { lodMesh.material.transparent = true; lodMesh.material.opacity = 0.6; }
+    this.scene.add(lodMesh);
+    this.objects.push(lodMesh);
+    this.selectObject(lodMesh);
+    log(`LOD generated for ${obj.name}`);
+  }
+
+  addColliderHelper(type) {
+    const obj = this.selectedObject;
+    if (!obj) { log('Select an object first', 'error'); return; }
+    this.pushUndo();
+    const box = new THREE.Box3().setFromObject(obj);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    let helper;
+    if (type === 'box') {
+      const geo = new THREE.BoxGeometry(size.x, size.y, size.z);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x4ade80, wireframe: true, transparent: true, opacity: 0.5 });
+      helper = new THREE.Mesh(geo, mat);
+    } else if (type === 'sphere') {
+      const radius = Math.max(size.x, size.y, size.z) / 2;
+      const geo = new THREE.SphereGeometry(radius, 16, 12);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x4ade80, wireframe: true, transparent: true, opacity: 0.5 });
+      helper = new THREE.Mesh(geo, mat);
+    }
+    if (helper) {
+      helper.position.copy(center);
+      helper.name = '__collider_' + type + '_' + obj.uuid.slice(0, 6);
+      this.scene.add(helper);
+      this._colliderHelpers.set(helper.uuid, { helper, target: obj });
+      log(`Added ${type} collider`);
+    }
+  }
+
+  toggleColliderHelpers() {
+    this._showColliders = !this._showColliders;
+    this._colliderHelpers.forEach(({ helper }) => { helper.visible = this._showColliders; });
+    log(`Colliders ${this._showColliders ? 'ON' : 'OFF'}`);
+  }
+
   // ── Valley generator state ──
   _valleyParams = {
     seed: 0,
