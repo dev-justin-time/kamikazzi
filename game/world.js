@@ -20,6 +20,7 @@ import {
   IMPACT_SOUND_URL, POWERUP_SFX_URLS, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
   EXPLOSION_PALETTES,
   FLOOR_ASSETS,
+  preloadExplodeGif,
 } from './world/shared.js';
 
 import {
@@ -922,6 +923,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     buildings.clear();
     explosion.clear();
     powerups.clear();
+    preloadExplodeGif();                 // ensure explosion GIF is cached before first crash
 
     // Reshuffle the 7 level images every run so the progression order varies.
     state.levelOrder = shuffle(Array.from({ length: NUM_LEVELS }, (_, i) => i));

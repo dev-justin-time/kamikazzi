@@ -387,7 +387,7 @@ export const CRASH_SPLASH_URL = '/assets/image/1.webp';
 // per-session progression through 7 levels varies.
 export const LEVEL_BACKGROUNDS = [
   '/assets/image/CHICAGO.jpg',
-  '/assets/image/China City (1).jpg',
+  '/assets/image/china-city-1.jpg',
   '/assets/image/GLENDALE.png',
   '/assets/image/NEON.jpg',
   '/assets/image/NEW_YORK.jpg',
@@ -419,8 +419,18 @@ export const TARGET_SUCCESS_SCORE = 5000;
 export const EXPLODE_GIF_URL = '/assets/image/explode.gif';
 // Module-level side effect: kicks off the fetch at import time so the
 // decoded GIF is warm before the user's first crash.
-const _explodeGifPreload = new Image();
-_explodeGifPreload.src = EXPLODE_GIF_URL;
+// Module-level preload deferred — was a module-level new Image() that fired
+// at import time even if the user never crashed. Now deferred until the first
+// game start via a lazy-init helper (see loadTexture-like pattern). The preload
+// still happens before any crash can occur because it's triggered on the first
+// Start/Retry click, but doesn't waste bandwidth on the start screen.
+let _explodeGifPreloaded = false;
+export function preloadExplodeGif() {
+  if (_explodeGifPreloaded) return;
+  _explodeGifPreloaded = true;
+  const img = new Image();
+  img.src = EXPLODE_GIF_URL;
+}
 
 // Punchy one-shot impact SFX fired on crash. The loader in world.js tries
 // this canonical URL first and falls back to /assets/audio/airplane.wav

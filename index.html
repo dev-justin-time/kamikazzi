@@ -1024,8 +1024,15 @@
     position: fixed; top: 16px; right: 18px; z-index: 15;
     font-size: 44px; line-height: 1;
     filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
-    cursor: default; user-select: none; pointer-events: none;
+    cursor: pointer; user-select: none;
     animation: burgerBob 2.2s ease-in-out infinite;
+  #burger:hover { transform: scale(1.15); filter: drop-shadow(0 4px 10px rgba(255,200,50,0.5)); }
+  #burger:active { transform: scale(0.92); }
+  #burger.burger-flash { animation: burgerFlash 0.4s ease-out; }
+  @keyframes burgerFlash {
+    0% { transform: scale(1) rotate(-4deg); filter: drop-shadow(0 0 20px rgba(255,200,50,0.9)); }
+    100% { transform: scale(1) rotate(4deg); filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); }
+  }
   }
   @keyframes burgerBob {
     0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -1214,7 +1221,7 @@
 <body>
 <div id="game" role="application" aria-label="Kamikazzi 3D game world"></div>
 <div id="hud" role="status" aria-live="polite" aria-atomic="true"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Level <span id="levelVal">1</span> · Speed <span id="speedVal">1.0x</span></span></div></div>
-<div id="burger" title="Burger!" aria-hidden="true">🍔</div>
+<div id="burger" title="Burger! Click me!" role="button" tabindex="0" aria-label="Burger easter egg">🍔</div>
 <div id="userBadge" class="hidden" aria-live="polite"></div>
 
 <!-- Final Sector announcement overlay -->
@@ -1511,7 +1518,7 @@
       <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No briefings yet. Submit ideas and they appear here.</div>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;" role="form" aria-label="Submit a briefing">
-      <input id="briefingInput" type="text" placeholder="Enter briefing..." style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="New briefing text" />
+      <input id="briefingInput" type="text" placeholder="Enter briefing..." maxlength="200" style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(152,203,255,0.25);color:#98cbff;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;border-radius:3px;" aria-label="New briefing text" />
       <button class="lb-close" id="briefingSend" style="margin:0;" aria-label="Send briefing">Send</button>
       <button class="lb-close" id="briefingFetch" style="margin:0;" aria-label="Fetch latest briefings">Fetch</button>
     </div>
