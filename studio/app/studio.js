@@ -988,6 +988,45 @@ export class Studio {
     log(`Gizmo size: ${this._gizmoSize.toFixed(1)}`);
   }
 
+  // ── Rigging & Animation Detection ──
+  /** Inspect an imported GLTF scene for bones, skinned meshes, and animation clips */
+  _detectRiggingAndAnimations(root, gltf) {
+    const bones = [];
+    const skinnedMeshes = [];
+
+    root.traverse((c) => {
+      if (c.isBone) bones.push(c);
+      if (c.isSkinnedMesh) skinnedMeshes.push(c);
+    });
+
+    // Report rigging
+    if (bones.length > 0) {
+      const boneNames = bones.slice(0, 5).map(b => b.name).join(', ');
+      log(`🦴 Rig detected: ${bones.length} bone(s) (${boneNames}${bones.length > 5 ? ', …' : ''})`, 'info');
+    }
+    if (skinnedMeshes.length > 0) {
+      log(`🎭 ${skinnedMeshes.length} skinned mesh(es) found (weighted to skeleton)`, 'info');
+    }
+
+    // Report animation clips
+    const clips = gltf.animations || [];
+    if (clips.length > 0) {
+      clips.forEach((clip, i) => {
+        const dur = (clip.duration || 0).toFixed(2);
+        const tracks = clip.tracks?.length || 0;
+        log(`🎬 Anim [${i}]: "${clip.name}" — ${dur}s, ${tracks} track(s)`, 'info');
+      });
+      // Store clips on the root so they can be referenced later
+      root.userData.animationClips = clips;
+    }
+
+    if (bones.length === 0 && clips.length === 0) {
+      log('ℹ️  No rigging or animations found in imported model', 'info');
+    }
+
+    return { bones, skinnedMeshes, clips };
+  }
+
   // ── Import/Export ──
   async importModel(source) {
     // Support multi-file packages: { url, files: { filename -> objectURL }, name }
@@ -1036,6 +1075,7 @@ export class Studio {
         const root = gltf.scene || gltf.scenes?.[0] || new THREE.Group();
         root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
         root.name = nameHint.replace(/\.[^/.]+$/, '');
+        this._detectRiggingAndAnimations(root, gltf);
         this.scene.add(root);
         this.objects.push(root);
         this.selectObject(root);
@@ -1065,6 +1105,7 @@ export class Studio {
           const root = gltf.scene || gltf.scenes[0];
           root.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
           root.name = file.name.replace(/\.[^/.]+$/, '');
+          this._detectRiggingAndAnimations(root, gltf);
           this.scene.add(root);
           this.objects.push(root);
           this.selectObject(root);
