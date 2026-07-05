@@ -1,0 +1,6 @@
+[submodule "kamasazii_vecter_omega3d"]
+	path = kamasazii_vecter_omega3d
+	url = https://github.com/dev-justin-time/kamasazii-vecter-omega3d.git
+[submodule "kamakazii_studio3D"]
+	path = kamakazii_studio3D
+	url = https://github.com/dev-justin-time/kamakazii-studio3d.git

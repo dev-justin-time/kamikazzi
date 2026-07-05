@@ -1,0 +1,49 @@
+{
+  "name": "KAMIKAZZI 3D",
+  "short_name": "KAMIKAZZI",
+  "description": "High-octane technical flight simulation through procedural neon valleys. Dodge towers, collect powerups, and chase the high score.",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "window-controls-overlay"],
+  "background_color": "#001525",
+  "theme_color": "#00a3ff",
+  "categories": ["games", "entertainment", "action"],
+  "orientation": "landscape",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Flying",
+      "short_name": "Fly",
+      "description": "Jump straight into a new mission",
+      "url": "/?start=1",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Leaderboard",
+      "short_name": "Scores",
+      "description": "View global mission records",
+      "url": "/?leaderboard=1",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

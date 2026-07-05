@@ -37,10 +37,6 @@ ehthumbs.db
 .env.local
 .env.*.local
 
-# Standalone repos — each has its own git history
-kamakazii_studio3D/
-kamasazii_vecter_omega3d/
-
 # Temp screenshots / images
 screen.jpg
 screen.png
