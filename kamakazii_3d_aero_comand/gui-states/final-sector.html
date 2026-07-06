@@ -1,43 +1,335 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — Final Sector</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-  .page-content { background: #000; justify-content: center; padding: 0; }
-  .game-frame { max-width: 800px; padding-bottom: 56.25%; border: none; background: radial-gradient(ellipse at center, rgba(80,0,0,0.35), rgba(20,0,0,0.65)); }
-  .announce-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-  .nav-overlay { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
-  .nav-overlay a { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(152,203,255,0.2); background: rgba(0,0,0,0.6); color: rgba(152,203,255,0.6); text-decoration: none; border-radius: 3px; transition: all 0.15s ease; }
-  .nav-overlay a:hover { background: rgba(255,50,50,0.15); border-color: #ff3a3a; color: #ffb4ab; }
-</style>
-</head>
-<body>
-<div class="nav-bar">
-  <a href="hud.html" class="nav-back">← HUD</a>
-  <span class="nav-title">⚠️ Final Sector Announcement</span>
-  <a href="start.html" class="nav-close" title="Close">✕</a>
-</div>
 
-<div class="page-content">
-  <div class="game-frame">
-    <div class="announce-wrapper">
-      <div class="fs-text">
-        <div class="fs-title">FINAL SECTOR</div>
-        <div class="fs-sub">BOSS APPROACHING</div>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FINAL SECTOR | KAMIKAZE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Geist:wght@400;600&amp;family=Space+Mono&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#fff8f8",
+                    "primary-fixed": "#ffd9de",
+                    "on-secondary": "#003737",
+                    "secondary-container": "#00dddd",
+                    "surface-tint": "#ffb2be",
+                    "on-primary-fixed": "#3f0015",
+                    "tertiary-container": "#727373",
+                    "primary": "#ffb2be",
+                    "surface-container-lowest": "#0e0e0e",
+                    "primary-fixed-dim": "#ffb2be",
+                    "tertiary": "#c6c6c7",
+                    "on-primary-fixed-variant": "#900039",
+                    "surface-dim": "#131313",
+                    "on-tertiary-container": "#fafafa",
+                    "secondary": "#49f9f9",
+                    "on-background": "#e5e2e1",
+                    "secondary-fixed-dim": "#00dddd",
+                    "outline": "#ab888d",
+                    "background": "#131313",
+                    "inverse-on-surface": "#313030",
+                    "inverse-primary": "#bc004d",
+                    "on-secondary-fixed": "#002020",
+                    "primary-container": "#e0115f",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "secondary-fixed": "#49f9f9",
+                    "surface-container-high": "#2a2a2a",
+                    "surface-variant": "#353534",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#353534",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "tertiary-fixed": "#e2e2e2",
+                    "outline-variant": "#5b3f44",
+                    "surface": "#131313",
+                    "surface-container": "#201f1f",
+                    "on-tertiary": "#2f3131",
+                    "on-surface-variant": "#e4bdc2",
+                    "on-error": "#690005",
+                    "on-surface": "#e5e2e1",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-bright": "#3a3939",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "inverse-surface": "#e5e2e1",
+                    "on-primary": "#660026",
+                    "on-secondary-container": "#005c5c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "grid-margin": "40px",
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Anton"],
+                    "subheading": ["Geist"],
+                    "mono-label": ["Space Mono"],
+                    "display-xl-mobile": ["Anton"],
+                    "kanji-decorative": ["Epilogue"],
+                    "display-xl": ["Anton"],
+                    "body-rt": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                    "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .tactical-grid {
+            background-image: linear-gradient(rgba(73, 249, 249, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(73, 249, 249, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .radial-crimson {
+            background: radial-gradient(circle, rgba(224, 17, 95, 0.2) 0%, rgba(19, 19, 19, 1) 70%);
+        }
+
+        .glitch-border {
+            position: relative;
+        }
+        .glitch-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid #e0115f;
+            box-shadow: 0 0 15px #e0115f;
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip-path: inset(0 0 95% 0); transform: translate(-2px); }
+            20% { clip-path: inset(0 90% 0 0); transform: translate(2px); }
+            40% { clip-path: inset(80% 0 0 0); transform: translate(-1px); }
+            60% { clip-path: inset(0 0 0 70%); transform: translate(1px); }
+            80% { clip-path: inset(20% 0 50% 0); transform: translate(-2px); }
+            100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+        }
+
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: absolute;
+            top: -100%;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        .kanji-watermark {
+            opacity: 0.03;
+            pointer-events: none;
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            line-height: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="pt-10 pt-10 bg-background text-on-background min-h-screen overflow-hidden selection:bg-primary-container selection:text-white">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
       </div>
     </div>
-    <div class="nav-overlay">
-      <a href="model-upgrade.html">✈️ Model Upgrade</a>
-      <a href="mission-success.html">✅ Mission Success</a>
-      <a href="mission-terminated.html">❌ Terminated</a>
-      <a href="crash.html">💥 Crash</a>
-    </div>
   </div>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
+  </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<!-- Background Layers -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 tactical-grid"></div>
+<div class="absolute inset-0 radial-crimson"></div>
+<div class="scan-line"></div>
 </div>
-
-<div class="state-badge">STATE: final-sector</div>
-</body>
-</html>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl text-primary dark:text-primary border-b border-secondary/30 dark:border-secondary/30 shadow-[0_0_20px_rgba(73,249,249,0.1)] flex justify-between items-center px-gutter h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary cursor-pointer active:scale-95 transition-transform" data-icon="menu">menu</span>
+<h1 class="font-display-xl-mobile text-display-xl-mobile tracking-tighter italic uppercase">神風 KAMIKAZE</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="font-mono-label text-mono-label text-primary dark:text-primary font-bold uppercase transition-all duration-300" href="#">Final Sector Announcement</a>
+<a class="font-mono-label text-mono-label text-on-surface-variant dark:text-on-surface-variant hover:text-secondary transition-all duration-300 uppercase" href="#">Archive</a>
+</nav>
+<span class="material-symbols-outlined text-primary cursor-pointer" data-icon="sensors">sensors</span>
+</div>
+<div class="md:hidden">
+<span class="material-symbols-outlined text-primary" data-icon="sensors">sensors</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex flex-col items-center justify-center min-h-screen p-grid-margin">
+<!-- Center Warning Section -->
+<div class="text-center space-y-4 max-w-4xl px-4">
+<div class="inline-block py-1 px-4 border border-primary-container bg-primary-container/10 text-primary-container font-mono-label text-mono-label uppercase tracking-widest mb-4 animate-pulse">
+                System Alert: Proximity Critical
+            </div>
+<h2 class="font-display-xl text-display-xl text-on-background tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(224,17,95,0.6)] leading-none mb-2">
+                Final Sector
+            </h2>
+<div class="flex items-center justify-center gap-4">
+<div class="h-[1px] w-12 md:w-24 bg-primary-container"></div>
+<h3 class="font-subheading text-subheading text-primary-container uppercase tracking-[0.3em] font-black italic">
+                    Boss Approaching
+                </h3>
+<div class="h-[1px] w-12 md:w-24 bg-primary-container"></div>
+</div>
+<!-- Visual Divider -->
+<div class="flex justify-center mt-12 mb-8">
+<div class="relative w-64 h-64 border-2 border-secondary/20 rounded-full flex items-center justify-center">
+<div class="absolute inset-0 border-4 border-dashed border-primary-container/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+<div class="absolute inset-4 border border-secondary/40 rounded-full"></div>
+<div class="text-secondary opacity-80 scale-150">
+<span class="material-symbols-outlined text-[64px]" data-icon="radar" style="font-variation-settings: 'FILL' 1;">radar</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tactical Quick-Links Overlay -->
+<div class="w-full max-w-6xl mt-12 grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+<!-- Link: Model Upgrade -->
+<button class="group relative overflow-hidden bg-surface-container border border-secondary/30 p-6 flex flex-col items-start transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_rgba(73,249,249,0.2)] active:scale-95">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<span class="material-symbols-outlined text-secondary mb-4" data-icon="upgrade">upgrade</span>
+<span class="font-mono-label text-mono-label text-secondary uppercase tracking-widest">Model Upgrade</span>
+<div class="kanji-watermark font-kanji-decorative text-on-surface">改</div>
+</button>
+<!-- Link: Mission Success -->
+<button class="group relative overflow-hidden bg-surface-container border border-primary-container/30 p-6 flex flex-col items-start transition-all duration-300 hover:border-primary-container hover:shadow-[0_0_20px_rgba(224,17,95,0.2)] active:scale-95">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary-container"></div>
+<span class="material-symbols-outlined text-primary-container mb-4" data-icon="verified">verified</span>
+<span class="font-mono-label text-mono-label text-primary-container uppercase tracking-widest">Mission Success</span>
+<div class="kanji-watermark font-kanji-decorative text-on-surface">勝</div>
+</button>
+<!-- Link: Terminated -->
+<button class="group relative overflow-hidden bg-surface-container border border-outline-variant/30 p-6 flex flex-col items-start transition-all duration-300 hover:bg-on-error/10 hover:border-error active:scale-95">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<span class="material-symbols-outlined text-error mb-4" data-icon="dangerous">dangerous</span>
+<span class="font-mono-label text-mono-label text-error uppercase tracking-widest">Terminated</span>
+<div class="kanji-watermark font-kanji-decorative text-on-surface">死</div>
+</button>
+<!-- Link: Crash -->
+<button class="group relative overflow-hidden bg-surface-container border border-outline-variant/30 p-6 flex flex-col items-start transition-all duration-300 hover:bg-surface-variant active:scale-95">
+<div class="absolute top-0 left-0 w-1 h-full bg-outline"></div>
+<span class="material-symbols-outlined text-outline mb-4" data-icon="collision">cognition</span>
+<span class="font-mono-label text-mono-label text-outline uppercase tracking-widest">Crash Log</span>
+<div class="kanji-watermark font-kanji-decorative text-on-surface">破</div>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest/90 backdrop-blur-lg border-t-2 border-primary shadow-[0_-4px_30px_rgba(224,17,95,0.2)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+<span class="font-mono-label text-mono-label uppercase">HANGAR</span>
+</div>
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-mono-label text-mono-label uppercase">MISSIONS</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 scale-110 shadow-[0_0_15px_#e0115f]">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-mono-label text-mono-label uppercase">RANK</span>
+</div>
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-mono-label text-mono-label uppercase">DEPLOY</span>
+</div>
+</nav>
+<!-- Footer -->
+<footer class="relative z-10 w-full mt-section-gap border-t-[1px] border-dashed border-secondary/50 py-12 px-grid-margin flex flex-col items-center gap-6 bg-surface-container-high">
+<div class="font-kanji-decorative text-headline-lg text-primary">神風</div>
+<div class="flex gap-8">
+<a class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary transition-all uppercase" href="#">Protocol</a>
+<a class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary transition-all uppercase" href="#">Intel</a>
+<a class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary transition-all uppercase" href="#">Support</a>
+</div>
+<p class="font-mono-label text-mono-label text-outline opacity-60">© 2124 NEO-TOKYO AEROSPACE. ALL RIGHTS RESERVED.</p>
+</footer>
+<script>
+        // Micro-interaction for HUD pulse effect
+        document.addEventListener('mousemove', (e) => {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const moveX = (e.clientX - centerX) / 50;
+            const moveY = (e.clientY - centerY) / 50;
+            
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    </script>
+</body></html>

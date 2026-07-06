@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE | DEPLOYMENT SEQUENCE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Epilogue:wght@900&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); text-shadow: -2px 0 #49f9f9, 2px 0 #ffb2be; }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); text-shadow: 2px 0 #49f9f9, -2px 0 #ffb2be; }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .glitch-text {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+            animation-play-state: paused;
+        }
+        .glitch-active .glitch-text {
+            animation-play-state: running;
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: absolute;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        .asanoha-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20 0l20 10v20L20 40 0 30V10L20 0zM0 10l20 10 20-10M20 40V20M0 30l20-10 20 10' fill='none' stroke='%2349f9f9' stroke-width='0.5' stroke-opacity='0.1'/%3E%3C/svg%3E");
+        }
+        .segmented-progress {
+            display: flex;
+            gap: 2px;
+        }
+        .segment {
+            height: 8px;
+            flex: 1;
+            background: #2a2a2a;
+        }
+        .segment.active {
+            background: #e0115f;
+            box-shadow: 0 0 8px #e0115f;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-tertiary": "#2f3131",
+                        "inverse-on-surface": "#313030",
+                        "surface-container-low": "#1c1b1b",
+                        "surface": "#131313",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-primary-fixed-variant": "#900039",
+                        "surface-container-lowest": "#0e0e0e",
+                        "secondary": "#49f9f9",
+                        "on-primary-fixed": "#3f0015",
+                        "background": "#131313",
+                        "on-secondary-fixed": "#002020",
+                        "primary-fixed": "#ffd9de",
+                        "on-secondary-container": "#005c5c",
+                        "tertiary": "#c6c6c7",
+                        "primary-fixed-dim": "#ffb2be",
+                        "error-container": "#93000a",
+                        "outline": "#ab888d",
+                        "on-secondary": "#003737",
+                        "surface-tint": "#ffb2be",
+                        "surface-container-highest": "#353534",
+                        "inverse-primary": "#bc004d",
+                        "secondary-fixed-dim": "#00dddd",
+                        "secondary-container": "#00dddd",
+                        "on-primary-container": "#fff8f8",
+                        "secondary-fixed": "#49f9f9",
+                        "on-surface": "#e5e2e1",
+                        "on-background": "#e5e2e1",
+                        "surface-dim": "#131313",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#fafafa",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "on-primary": "#660026",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#e4bdc2",
+                        "outline-variant": "#5b3f44",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-variant": "#353534",
+                        "primary-container": "#e0115f",
+                        "primary": "#ffb2be",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary-container": "#727373",
+                        "surface-bright": "#3a3939",
+                        "on-tertiary-fixed": "#1a1c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "grid-margin": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "mono-label": ["Space Mono"],
+                        "body-rt": ["Geist"],
+                        "subheading": ["Geist"],
+                        "kanji-decorative": ["Epilogue"],
+                        "headline-lg": ["Anton"],
+                        "display-xl-mobile": ["Anton"],
+                        "display-xl": ["Anton"]
+                    },
+                    "fontSize": {
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-rt overflow-hidden h-screen w-screen selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Anchor (Shared Component: TopAppBar) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-10 py-2 bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-primary dark:border-primary/50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary dark:text-secondary hover:bg-primary/10 transition-colors active:scale-95 duration-75 cursor-pointer">menu</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary tracking-tighter uppercase italic">KAMIKAZE</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary dark:text-secondary hover:bg-primary/10 transition-colors active:scale-95 duration-75 cursor-pointer">sensors</span>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="relative h-full pt-16 pb-24 overflow-hidden flex flex-col">
+<!-- Cinematic Background Hangar -->
+<div class="absolute inset-0 z-0 opacity-40">
+<div class="w-full h-full bg-cover bg-center grayscale contrast-125" data-alt="A highly detailed cinematic shot of a sleek, futuristic fighter jet inside a dimly lit cyberpunk hangar. The scene is illuminated by aggressive Electric Teal neon strips and Crimson Red hazard lights. Steam rises from the floor vents, creating a moody, high-pressure atmosphere. The lighting is high-contrast, emphasizing the metallic textures of the jet and the brutalist industrial architecture of the hangar, maintaining a dark-mode noir aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDnVWOXPWo44GTvKYRcLFOKOro0BBQdq0Cl-ZcRn3hIFAmUzGSoLVKxP0N7WD8IDd3aoxu7xWG7jpKQPs8u6GtciXIQ2xB9O8UZ1qt5WY0yw8ltilJc53fXrLxUatK5Ea4c--UD1oQIYtqO2XYAu5UZcWDYYOe-xLN9vbQDb4mL-sZdr-EBgZhrik5BU-2nT4321yXrWL-8zCxBw3_mMyR4Fx-PWxIkN5s8yYyJzRBBUrSPBrbeUx2dB2kpbl2zBZ5JkLqLaPyCNOTD')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background"></div>
+<div class="absolute inset-0 asanoha-pattern"></div>
+<div class="scanline"></div>
+</div>
+<!-- HUD: Flight Stats -->
+<div class="relative z-10 px-grid-margin py-4 grid grid-cols-2 gap-4">
+<div class="border-l-2 border-secondary p-2 bg-secondary/5 backdrop-blur-sm">
+<p class="font-mono-label text-mono-label text-secondary opacity-70">ALTITUDE</p>
+<p class="font-headline-lg text-headline-lg text-on-surface leading-none">0<span class="text-subheading ml-1">M</span></p>
+</div>
+<div class="border-l-2 border-primary p-2 bg-primary/5 backdrop-blur-sm text-right">
+<p class="font-mono-label text-mono-label text-primary opacity-70">VELOCITY</p>
+<p class="font-headline-lg text-headline-lg text-on-surface leading-none">0.0<span class="text-subheading ml-1">MACH</span></p>
+</div>
+</div>
+<!-- Central Countdown Container -->
+<div class="relative z-10 flex-grow flex flex-col items-center justify-center p-grid-margin" id="countdown-sequence">
+<div class="text-center mb-8 relative">
+<div class="font-mono-label text-mono-label text-secondary tracking-widest uppercase mb-2">SEQUENCE INITIATED</div>
+<div class="font-display-xl-mobile text-display-xl-mobile text-on-surface leading-none glitch-text tracking-tighter" id="main-timer">00:45</div>
+<div class="w-full h-px bg-secondary/30 mt-2"></div>
+</div>
+<!-- Bento Status Grid -->
+<div class="w-full max-w-sm grid grid-cols-1 gap-3">
+<!-- System Check Card -->
+<div class="bg-surface-container/40 border border-secondary/20 backdrop-blur-md p-4 relative overflow-hidden">
+<div class="font-mono-label text-mono-label text-secondary mb-4 flex justify-between">
+<span>SYSTEM CHECK</span>
+<span class="material-symbols-outlined text-[14px]">memory</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between group">
+<span class="font-mono-label text-on-surface-variant group-hover:text-on-surface transition-colors">ENGINE UNIT</span>
+<span class="text-[10px] bg-secondary/20 text-secondary border border-secondary px-2 py-0.5 font-bold">NOMINAL</span>
+</div>
+<div class="flex items-center justify-between group">
+<span class="font-mono-label text-on-surface-variant group-hover:text-on-surface transition-colors">SHIELD CORE</span>
+<span class="text-[10px] bg-secondary/20 text-secondary border border-secondary px-2 py-0.5 font-bold">NOMINAL</span>
+</div>
+<div class="flex items-center justify-between group">
+<span class="font-mono-label text-on-surface-variant group-hover:text-on-surface transition-colors">WEAPON ARRAY</span>
+<span class="text-[10px] bg-secondary/20 text-secondary border border-secondary px-2 py-0.5 font-bold">NOMINAL</span>
+</div>
+</div>
+<div class="absolute bottom-2 right-2 opacity-10 font-kanji-decorative text-[40px] pointer-events-none select-none">
+                        戦
+                    </div>
+</div>
+<!-- Launch Progress -->
+<div class="bg-surface-container/40 border border-primary/20 backdrop-blur-md p-4">
+<div class="font-mono-label text-mono-label text-primary mb-2">CATAPULT PRESSURE</div>
+<div class="segmented-progress mb-2" id="pressure-bar">
+<div class="segment active"></div>
+<div class="segment active"></div>
+<div class="segment active"></div>
+<div class="segment active"></div>
+<div class="segment active"></div>
+<div class="segment"></div>
+<div class="segment"></div>
+<div class="segment"></div>
+<div class="segment"></div>
+<div class="segment"></div>
+</div>
+<div class="flex justify-between font-mono-label text-[10px] text-on-surface-variant">
+<span>MIN PRESSURE</span>
+<span>MAX THRUST</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action CTA -->
+<div class="relative z-10 px-grid-margin pb-12 mt-auto">
+<button class="w-full bg-primary-container text-on-primary-container py-6 font-headline-lg text-subheading uppercase tracking-widest relative overflow-hidden group active:scale-95 transition-transform duration-75" id="launch-btn">
+<span class="relative z-10">INITIATE LAUNCH</span>
+<div class="absolute inset-0 bg-secondary translate-x-full group-hover:translate-x-0 transition-transform duration-300 opacity-20"></div>
+<!-- Decorative Glitch Elements -->
+<div class="absolute top-0 left-0 w-2 h-full bg-secondary/30 -translate-x-full group-hover:translate-x-0 transition-all"></div>
+<div class="absolute bottom-0 right-0 w-2 h-full bg-secondary/30 translate-x-full group-hover:-translate-x-0 transition-all"></div>
+</button>
+<div class="mt-4 flex justify-center gap-8 font-mono-label text-[10px] text-secondary opacity-50">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">lock_open</span> AUTHENTICATED</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">radar</span> HANGAR 04 READY</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Shared Component: BottomNavBar) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-background/90 dark:bg-background/90 backdrop-blur-md border-t border-secondary/30">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 pt-2 hover:text-secondary dark:hover:text-secondary transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-mono-label text-mono-label">HANGAR</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 pt-2 hover:text-secondary dark:hover:text-secondary transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-mono-label text-mono-label">MISSIONS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 pt-2 hover:text-secondary dark:hover:text-secondary transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-mono-label text-mono-label">RANK</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary dark:text-primary border-t-2 border-primary pt-2 scale-110 active:animate-pulse duration-500 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="speed" style="font-variation-settings: 'FILL' 1;">speed</span>
+<span class="font-mono-label text-mono-label">DEPLOY</span>
+</div>
+</nav>
+<script>
+        // Interactive Logic for the Deployment Sequence
+        document.addEventListener('DOMContentLoaded', () => {
+            const timerEl = document.getElementById('main-timer');
+            const launchBtn = document.getElementById('launch-btn');
+            const countdownContainer = document.getElementById('countdown-sequence');
+            const pressureBar = document.getElementById('pressure-bar');
+            
+            let seconds = 45;
+            
+            // Timer Countdown
+            const timerInterval = setInterval(() => {
+                seconds--;
+                if (seconds < 0) {
+                    clearInterval(timerInterval);
+                    timerEl.innerText = "00:00";
+                    return;
+                }
+                const formatted = seconds < 10 ? `00:0${seconds}` : `00:${seconds}`;
+                timerEl.innerText = formatted;
+                
+                // Random Glitch Effect
+                if (Math.random() > 0.8) {
+                    countdownContainer.classList.add('glitch-active');
+                    setTimeout(() => countdownContainer.classList.remove('glitch-active'), 150);
+                }
+            }, 1000);
+
+            // Pressure Bar Animation
+            const segments = pressureBar.querySelectorAll('.segment');
+            setInterval(() => {
+                const activeCount = Math.floor(Math.random() * 4) + 6; // Randomly 6-10 active
+                segments.forEach((s, idx) => {
+                    if (idx < activeCount) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            }, 800);
+
+            // Launch Button Interaction
+            launchBtn.addEventListener('click', () => {
+                launchBtn.innerHTML = "LAUNCHING...";
+                launchBtn.classList.add('bg-secondary', 'text-black');
+                countdownContainer.classList.add('glitch-active');
+                
+                // Add camera shake effect
+                document.body.style.animation = "shake 0.5s infinite";
+                
+                setTimeout(() => {
+                    alert('IGNITION CONFIRMED. GOOD LUCK, PILOT.');
+                    location.reload();
+                }, 1000);
+            });
+        });
+
+        // Camera Shake Keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0% { transform: translate(1px, 1px) rotate(0deg); }
+                10% { transform: translate(-1px, -2px) rotate(-1deg); }
+                20% { transform: translate(-3px, 0px) rotate(1deg); }
+                30% { transform: translate(3px, 2px) rotate(0deg); }
+                40% { transform: translate(1px, -1px) rotate(1deg); }
+                50% { transform: translate(-1px, 2px) rotate(-1deg); }
+                60% { transform: translate(-3px, 1px) rotate(0deg); }
+                70% { transform: translate(3px, 1px) rotate(-1deg); }
+                80% { transform: translate(-1px, -1px) rotate(1deg); }
+                90% { transform: translate(1px, 2px) rotate(0deg); }
+                100% { transform: translate(1px, -2px) rotate(-1deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body></html>

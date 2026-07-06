@@ -1055,7 +1055,7 @@ export function setupUI({ world, rendererObj }) {
       let html = '';
       board.forEach((entry, idx) => {
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span style="display:inline-block;width:22px;text-align:center;">${idx + 1}</span>`;
-        html += `<div role="listitem" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;">
+        html += `<div role="listitem" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;font-family:'JetBrains Mono','Space Mono',monospace;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:14px;" aria-hidden="true">${medal}</span>
             <span style="font-weight:600;color:#98cbff;">${escapeHtml(entry.username || 'Pilot')}</span>
@@ -1480,7 +1480,7 @@ export function setupUI({ world, rendererObj }) {
       history.forEach((run, idx) => {
         const date = new Date(run.timestamp || Date.now()).toLocaleString();
         const wonBadge = run.won ? '<span style="color:#00dddd;font-weight:700;">✅ SUCCESS</span>' : '<span style="color:#ffb4ab;font-weight:700;">💥 CRASH</span>';
-        html += `<div role="listitem" style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;">
+        html += `<div role="listitem" style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;font-family:'JetBrains Mono','Space Mono',monospace;">
           <div style="text-align:left;">
             <div style="font-weight:700;color:#98cbff;">${Number(run.score).toLocaleString()} pts · Level ${run.level || 1}</div>
             <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">${date}</div>
@@ -1512,7 +1512,7 @@ export function setupUI({ world, rendererObj }) {
         const from = escapeHtml(b.from || 'Pilot');
         const idea = escapeHtml(b.idea || b.text || '');
         const date = b.ts ? new Date(b.ts).toLocaleString() : '';
-        html += `<div role="article" aria-label="Briefing by ${from}" style="padding:10px 12px;border:1px solid rgba(152,203,255,0.12);border-radius:3px;text-align:left;">
+        html += `<div role="article" aria-label="Briefing by ${from}" style="padding:10px 12px;border:1px solid rgba(152,203,255,0.12);border-radius:3px;text-align:left;font-family:'JetBrains Mono','Space Mono',monospace;">
           <div style="font-size:10px;font-weight:700;color:#00dddd;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${from}</div>
           <div style="font-size:12px;color:#98cbff;line-height:1.45;">${idea}</div>
           <div style="font-size:10px;color:rgba(152,203,255,0.45);margin-top:4px;">${date}</div>
@@ -1753,7 +1753,7 @@ export function setupUI({ world, rendererObj }) {
         const thumb = r._screenshotDataUrl
           ? `background-image:url(${r._screenshotDataUrl});`
           : 'background:rgba(0,0,0,0.3);';
-        html += `<div class="replay-card" data-id="${r.id}" role="button" tabindex="0" aria-label="Replay: ${Number(r.score).toLocaleString()} pts, Grade ${r.grade || '?'}" style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid rgba(152,203,255,0.12);border-radius:4px;cursor:pointer;transition:background 0.15s;">
+        html += `<div class="replay-card" data-id="${r.id}" role="button" tabindex="0" aria-label="Replay: ${Number(r.score).toLocaleString()} pts, Grade ${r.grade || '?'}" style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid rgba(152,203,255,0.12);border-radius:4px;cursor:pointer;transition:background 0.15s;font-family:'JetBrains Mono','Space Mono',monospace;">
           <div style="width:64px;height:40px;border-radius:3px;${thumb}background-size:cover;background-position:center;flex-shrink:0;border:1px solid rgba(152,203,255,0.15);" aria-hidden="true"></div>
           <div style="flex:1;text-align:left;min-width:0;">
             <div style="font-size:13px;font-weight:700;color:#98cbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${Number(r.score).toLocaleString()} pts · Grade ${r.grade || '?'}</div>
@@ -2016,7 +2016,7 @@ export function setupUI({ world, rendererObj }) {
     // strings wrap to two lines), so 72px is the safe minimum.
     'position:fixed;top:72px;left:0;right:0;z-index:11;pointer-events:none;' +
     'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;' +
-    'font-family:"Stick No Bills",sans-serif;';
+    'font-family:"Stick No Bills","Anton",sans-serif;';
   document.body.appendChild(chipStrip);
   const chipEls = new Map();
 
@@ -2224,7 +2224,7 @@ export function setupUI({ world, rendererObj }) {
               chip.style.cssText = 'background:rgba(0,0,0,0.45);color:#fff;padding:4px 12px;' +
                 'border-radius:999px;font-size:13px;font-weight:600;letter-spacing:1px;' +
                 'border:1px solid ' + def.cssVar + ';box-shadow:0 0 10px ' + def.cssVar + '66;' +
-                'backdrop-filter:blur(4px);font-family:"Stick No Bills",sans-serif;' +
+                'backdrop-filter:blur(4px);font-family:"Stick No Bills","Anton",sans-serif;' +
                 'white-space:nowrap;';
               const span = document.createElement('span');
               span.style.cssText = 'opacity:0.85;margin-left:6px;font-weight:400;';

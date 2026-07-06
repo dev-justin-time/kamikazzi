@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_4 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_4" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_4');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(window.devicePixelRatio);
+container.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xe0115f, 2, 100);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
+
+// Aircraft Group
+const aircraft = new THREE.Group();
+
+// Fuselage
+const fuselageGeom = new THREE.BoxGeometry(0.5, 0.2, 2);
+const material = new THREE.MeshPhongMaterial({ color: 0x1c1b1b, shininess: 100 });
+const fuselage = new THREE.Mesh(fuselageGeom, material);
+aircraft.add(fuselage);
+
+// Wings (Katana blade style)
+const wingGeom = new THREE.BoxGeometry(2.5, 0.05, 0.8);
+const wing = new THREE.Mesh(wingGeom, material);
+wing.position.z = -0.2;
+aircraft.add(wing);
+
+// Cockpit
+const cockpitGeom = new THREE.SphereGeometry(0.2, 16, 16);
+const cockpitMat = new THREE.MeshPhongMaterial({ color: 0x00dddd, transparent: true, opacity: 0.7 });
+const cockpit = new THREE.Mesh(cockpitGeom, cockpitMat);
+cockpit.position.y = 0.15;
+cockpit.position.z = 0.5;
+aircraft.add(cockpit);
+
+scene.add(aircraft);
+camera.position.z = 4;
+camera.position.y = 1;
+
+// Animation Loop
+const animate = () => {
+  requestAnimationFrame(animate);
+  aircraft.rotation.y += 0.01;
+  aircraft.position.y = Math.sin(Date.now() * 0.002) * 0.2;
+  renderer.render(scene, camera);
+};
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+animate();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_4 -->
+</body>
+</html>

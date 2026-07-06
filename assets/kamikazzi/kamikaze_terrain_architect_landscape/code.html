@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROJECT_BUSHI_OS // TERRAIN_ARCHITECT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@100..900&amp;family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#660026",
+                        "primary-fixed-dim": "#ffb2be",
+                        "surface-container": "#201f1f",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "surface-container-high": "#2a2a2a",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-surface-variant": "#e4bdc2",
+                        "surface-variant": "#353534",
+                        "primary-container": "#e0115f",
+                        "on-primary-fixed-variant": "#900039",
+                        "on-primary-container": "#fff8f8",
+                        "surface": "#131313",
+                        "secondary": "#49f9f9",
+                        "surface-container-low": "#1c1b1b",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary-container": "#005c5c",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "secondary-container": "#00dddd",
+                        "on-background": "#e5e2e1",
+                        "inverse-primary": "#bc004d",
+                        "surface-tint": "#ffb2be",
+                        "on-tertiary-container": "#fafafa",
+                        "surface-bright": "#3a3939",
+                        "on-secondary-fixed": "#002020",
+                        "on-tertiary": "#2f3131",
+                        "primary-fixed": "#ffd9de",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#727373",
+                        "on-secondary": "#003737",
+                        "background": "#131313",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#131313",
+                        "tertiary": "#c6c6c7",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#00dddd",
+                        "outline": "#ab888d",
+                        "primary": "#ffb2be",
+                        "error": "#ffb4ab",
+                        "secondary": "#49f9f9",
+                        "outline-variant": "#5b3f44",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3f0015",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-surface": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "grid-margin": "40px",
+                        "section-gap": "120px"
+                    },
+                    "fontFamily": {
+                        "mono-label": ["Space Mono"],
+                        "display-xl": ["Anton"],
+                        "body-rt": ["Geist"],
+                        "kanji-decorative": ["Epilogue"],
+                        "subheading": ["Geist"],
+                        "headline-lg": ["Anton"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            overflow: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(73, 249, 249, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(73, 249, 249, 0.05) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch-anim 0.2s infinite;
+        }
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .segment-bar span {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: #e0115f;
+            margin-right: 2px;
+        }
+        .vertical-divider {
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, #e0115f, transparent);
+        }
+        .kanji-bg {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.1;
+            font-family: 'Epilogue', sans-serif;
+            font-weight: 900;
+            font-size: 80px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="font-body-rt selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-grid-margin py-unit bg-surface/90 backdrop-blur-xl border-b-2 border-secondary/50 shadow-[0_0_15px_rgba(73,249,249,0.3)]">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg text-primary-container italic uppercase">PROJECT_BUSHI_OS</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-secondary border-b-2 border-secondary pb-1" href="#">HUD_CALIBRATION</a>
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface-variant hover:text-secondary-container transition-colors" href="#">MISSION_CTRL</a>
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface-variant hover:text-secondary-container transition-colors" href="#">FLEET_SYNC</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-primary hover:bg-secondary/10 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+</button>
+<button class="p-2 text-primary hover:bg-secondary/10 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="p-2 text-primary hover:bg-secondary/10 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-secondary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-fidelity digital illustration of a futuristic pilot avatar wearing a sleek obsidian chrome helmet with an illuminated red visor. The aesthetic is dark and gritty cyber-noir with sharp cinematic lighting and a background of neon-lit circuit patterns in crimson and electric teal. The portrait is centered and highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWuz1Y7Tp_dN-jHD8CXk1g3ikjldG54uxI56Pc9_RsJLrmICrt6GAcQr3m7_kpLWRb5Gvj2g4kRwtHDcwPeu8LGgct6wM7TibPGbo2GNLBabrQnLc7eExfMUkucrXmAUG8fH6J8ewx1zdNgsFrERHKidAdPJAEOlT1evqFHAZHwlHotiVgwIfpJJ1ZPWYz6NaFpTjXBLblBqPy1mZ-stTnfLCclHzHQPNSy6RKp13wPwuSh_ei6VCQsOHhKeIz54M4q2OAx1RYtR6T"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low/80 backdrop-blur-md flex flex-col z-40 border-r-2 border-primary-container pt-24 pb-8">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-primary-container flex items-center justify-center border border-secondary">
+<span class="material-symbols-outlined text-white" data-icon="account_circle">account_circle</span>
+</div>
+<div>
+<p class="font-mono-label text-primary font-bold">SIGMA-77</p>
+<p class="text-[10px] text-secondary font-mono-label">STATUS: COMBAT_READY</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col font-mono-label">
+<a class="flex items-center gap-4 bg-primary-container text-on-primary-container border-l-4 border-secondary p-4 transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>TACTICAL_LOG</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-l-4 border-transparent hover:bg-surface-container-high hover:border-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span>ARMORY</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-l-4 border-transparent hover:bg-surface-container-high hover:border-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+<span>CORE_SYS</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-l-4 border-transparent hover:bg-surface-container-high hover:border-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span>SQUAD_COMMS</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-l-4 border-transparent hover:bg-surface-container-high hover:border-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span>MAP_GEN</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-white py-3 font-mono-label font-bold uppercase border-b-4 border-on-primary-fixed-variant hover:bg-on-primary transition-colors">DEPLOY_FLIGHT</button>
+<div class="flex justify-between px-2">
+<button class="text-tertiary-fixed-dim hover:text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="power_settings_new">power_settings_new</span>
+<span class="text-[10px] font-mono-label">LOGOUT</span>
+</button>
+<button class="text-tertiary-fixed-dim hover:text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="bug_report">bug_report</span>
+<span class="text-[10px] font-mono-label">DEBUG</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-20 h-screen flex relative overflow-hidden">
+<!-- Left: Control Panel -->
+<section class="w-80 h-full border-r border-primary-container/30 glass-panel p-6 flex flex-col gap-6 z-10">
+<div class="border-l-4 border-primary pl-4">
+<h2 class="font-headline-lg text-xl uppercase text-primary">Terrain_Arch</h2>
+<p class="font-mono-label text-[10px] text-secondary opacity-70">PROCEDURAL_ENGINE_V4.2</p>
+</div>
+<div class="space-y-6 flex-1 overflow-y-auto pr-2">
+<!-- Size Control -->
+<div class="space-y-2">
+<div class="flex justify-between items-center font-mono-label text-[12px]">
+<span class="text-on-surface-variant">GRID_SIZE</span>
+<span class="text-secondary">512px</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full relative">
+<div class="absolute top-0 left-0 h-full bg-secondary" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Height Scale -->
+<div class="space-y-2">
+<div class="flex justify-between items-center font-mono-label text-[12px]">
+<span class="text-on-surface-variant">HEIGHT_SCALE</span>
+<span class="text-secondary">2.44x</span>
+</div>
+<input class="w-full h-1 bg-surface-variant appearance-none accent-primary cursor-pointer" type="range"/>
+</div>
+<!-- Octaves Control -->
+<div class="space-y-3">
+<span class="font-mono-label text-[10px] uppercase text-on-surface-variant">NOISE_OCTAVES</span>
+<div class="grid grid-cols-4 gap-2">
+<button class="aspect-square border border-secondary text-secondary font-mono-label text-xs hover:bg-secondary/20">01</button>
+<button class="aspect-square border border-secondary text-secondary font-mono-label text-xs hover:bg-secondary/20">02</button>
+<button class="aspect-square bg-secondary text-on-secondary font-mono-label text-xs">03</button>
+<button class="aspect-square border border-secondary/30 text-on-surface-variant/30 font-mono-label text-xs">04</button>
+</div>
+</div>
+<!-- Presets -->
+<div class="space-y-2">
+<span class="font-mono-label text-[10px] uppercase text-on-surface-variant">ENVIRONMENT_PRESETS</span>
+<div class="space-y-1">
+<button class="w-full text-left p-3 glass-panel border-l-2 border-secondary font-mono-label text-xs flex justify-between group">
+<span>MT_FUJI_CALIBRATION</span>
+<span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="w-full text-left p-3 hover:bg-surface-container-high transition-colors font-mono-label text-xs border-l-2 border-transparent text-on-surface-variant">
+                            KANTO_PLAINS_VOID
+                        </button>
+<button class="w-full text-left p-3 hover:bg-surface-container-high transition-colors font-mono-label text-xs border-l-2 border-transparent text-on-surface-variant">
+                            KYOTO_BASIN_SIM
+                        </button>
+</div>
+</div>
+</div>
+<!-- Footer Stats in Panel -->
+<div class="pt-4 border-t border-secondary/20 space-y-2">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-mono-label text-on-surface-variant uppercase">Render_Load</span>
+<div class="segment-bar flex">
+<span></span><span></span><span></span><span></span><span class="opacity-30"></span><span class="opacity-30"></span>
+</div>
+</div>
+</div>
+</section>
+<!-- Center: 3D Viewport -->
+<section class="flex-1 relative bg-surface overflow-hidden cursor-crosshair">
+<!-- Animation Shader Background -->
+
+<!-- Scanlines Layer -->
+<div class="absolute inset-0 scanline z-0"></div>
+<!-- UI Overlays -->
+<div class="absolute top-8 left-8 z-10">
+<div class="font-mono-label text-secondary flex items-center gap-4">
+<div class="px-2 py-1 border border-secondary bg-surface/80">LIVE_VIEW</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="text-[10px]">RECON_SATELLITE_09</span>
+</div>
+</div>
+</div>
+<!-- Crosshair -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-32 h-32 border border-secondary/20 rounded-full flex items-center justify-center">
+<div class="w-4 h-4 border-t border-l border-primary"></div>
+<div class="w-4 h-4 border-t border-r border-primary absolute top-0 right-0"></div>
+<div class="w-4 h-4 border-b border-l border-primary absolute bottom-0 left-0"></div>
+<div class="w-4 h-4 border-b border-r border-primary absolute bottom-0 right-0"></div>
+</div>
+</div>
+<!-- Bottom Action HUD -->
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-end gap-6 z-10">
+<div class="flex flex-col items-center gap-2">
+<span class="font-mono-label text-[10px] text-on-surface-variant">PITCH</span>
+<div class="w-1 h-32 bg-surface-container border border-secondary/20 relative">
+<div class="absolute bottom-1/4 left-0 w-full h-1 bg-primary"></div>
+</div>
+</div>
+<div class="flex gap-4 p-1 glass-panel border-2 border-secondary">
+<button class="bg-primary px-8 py-3 text-white font-headline-lg text-lg uppercase glitch-hover">REGENERATE_SEED</button>
+<button class="border border-secondary px-6 py-3 text-secondary font-mono-label hover:bg-secondary/10 uppercase">Export_OBJ</button>
+</div>
+<div class="flex flex-col items-center gap-2">
+<span class="font-mono-label text-[10px] text-on-surface-variant">YAW</span>
+<div class="w-1 h-32 bg-surface-container border border-secondary/20 relative">
+<div class="absolute bottom-2/3 left-0 w-full h-1 bg-primary"></div>
+</div>
+</div>
+</div>
+<div class="kanji-bg text-secondary">地形</div>
+</section>
+<!-- Right: Diagnostic Panel -->
+<section class="w-96 h-full border-l border-primary-container/30 glass-panel p-6 flex flex-col gap-8 z-10">
+<!-- Minimap -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-mono-label text-xs text-primary font-bold">TOPOGRAPHIC_ANALYSIS</span>
+<span class="material-symbols-outlined text-sm text-secondary" data-icon="fullscreen">fullscreen</span>
+</div>
+<div class="relative aspect-square w-full border border-secondary/50 overflow-hidden bg-black">
+<div class="absolute inset-0 opacity-60">
+<img class="w-full h-full object-cover grayscale brightness-75 contrast-125" data-alt="A detailed digital topographical map of a mountainous region in Kyoto. The map uses a high-contrast cybernetic color scheme of deep obsidian blacks and glowing electric teal wireframe lines. The visual style is that of a professional military or engineering interface, with sharp technical details, coordinates, and subtle scanline textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1GSRzViXpOwt9s3SDDUrrrhMaaAm4sURfVwhuvY9QkFyqRrHdAMIQy-DMaLEIqYpGOuUBTo3ZPd4RFZr_pyLkjkcxoAEMmi5CNedVzz6vb2_DkHIt7L3bGKlLw3YHiHhPpOdA34i9LEbVqmC40W1hboJimoZ0RQ0bEjOnCstkL7n0cSMxTuZhYXCRbKZPtiWQeNRDQSPvYQuUHw96C4fZSsJIDFVsUJTkNTUU1IL0Llu1eqSuHPd0BeAvWQaftXVF4FrYanlQaVM_"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<!-- Tracking Dot -->
+<div class="absolute top-1/4 left-1/3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+<div class="absolute top-1/4 left-1/3 w-1 h-1 bg-primary rounded-full"></div>
+</div>
+</div>
+<!-- Telemetry Data -->
+<div class="flex-1 space-y-4 font-mono-label">
+<span class="text-[10px] uppercase text-on-surface-variant tracking-[0.2em]">Live_Telemetry</span>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-3 border-l-2 border-primary bg-surface-container-low">
+<p class="text-[10px] text-tertiary-fixed-dim">ALTITUDE</p>
+<p class="text-xl text-secondary">14,204 <span class="text-xs">m</span></p>
+</div>
+<div class="p-3 border-l-2 border-secondary bg-surface-container-low">
+<p class="text-[10px] text-tertiary-fixed-dim">VELOCITY</p>
+<p class="text-xl text-secondary">M 1.8</p>
+</div>
+<div class="p-3 border-l-2 border-tertiary bg-surface-container-low">
+<p class="text-[10px] text-tertiary-fixed-dim">CORE_TEMP</p>
+<p class="text-xl text-error">1,244 <span class="text-xs">K</span></p>
+</div>
+<div class="p-3 border-l-2 border-primary bg-surface-container-low">
+<p class="text-[10px] text-tertiary-fixed-dim">SIGNAL_LUX</p>
+<p class="text-xl text-secondary">0.992</p>
+</div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex justify-between items-center border-b border-secondary/10 pb-2">
+<span class="text-[10px] text-on-surface-variant uppercase">System_FPS</span>
+<span class="text-secondary text-sm">144.00</span>
+</div>
+<div class="flex justify-between items-center border-b border-secondary/10 pb-2">
+<span class="text-[10px] text-on-surface-variant uppercase">LATENCY</span>
+<span class="text-secondary text-sm">12ms</span>
+</div>
+<div class="flex justify-between items-center border-b border-secondary/10 pb-2">
+<span class="text-[10px] text-on-surface-variant uppercase">BUFFER</span>
+<span class="text-primary text-sm">OPTIMIZED</span>
+</div>
+</div>
+</div>
+<!-- Fuel / Energy Segment -->
+<div class="pt-4 border-t border-primary-container/30">
+<div class="flex justify-between mb-2">
+<span class="font-mono-label text-[10px] text-on-surface-variant">REACTOR_FUEL_LVL</span>
+<span class="font-mono-label text-[10px] text-primary">82%</span>
+</div>
+<div class="flex gap-1 h-3">
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary-container/30"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-grid-margin py-2 text-[10px] bg-surface-container-lowest border-t border-secondary/20">
+<div class="font-mono-label text-primary">PROJECT_BUSHI_OS // ENGINE_ACTIVE</div>
+<div class="flex gap-6 font-mono-label text-tertiary-fixed-dim opacity-60">
+<a class="hover:text-secondary transition-colors" href="#">ENCRYPTED_PROTOCOLS</a>
+<a class="hover:text-secondary transition-colors" href="#">VOIGHT_KAMPFF_AUTH</a>
+<a class="hover:text-secondary transition-colors" href="#">TERM_STDS</a>
+</div>
+<div class="font-mono-label text-tertiary opacity-60">©2024 NEOTOKYO_DEFENSE_CORP. ALL_RIGHTS_RESERVED.</div>
+</footer>
+<script>
+        // Simple micro-interaction for sliders and real-time feel
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                // Add reactive logic here if needed for canvas updates
+            });
+        });
+
+        // Periodic update for telemetry values
+        setInterval(() => {
+            const telemetryValues = document.querySelectorAll('.text-xl.text-secondary');
+            if(telemetryValues.length > 0) {
+                const alt = 14204 + (Math.random() * 10 - 5);
+                telemetryValues[0].innerHTML = `${Math.floor(alt).toLocaleString()} <span class="text-xs">m</span>`;
+            }
+        }, 2000);
+    </script>
+</body></html>

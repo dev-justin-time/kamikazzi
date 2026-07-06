@@ -1,76 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — In-Game HUD</title>
-<link rel="stylesheet" href="styles.css">
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE // IN-GAME HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-secondary-container": "#005c5c",
+                    "inverse-on-surface": "#313030",
+                    "on-surface": "#e5e2e1",
+                    "surface-tint": "#ffb2be",
+                    "on-primary-container": "#fff8f8",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-secondary": "#003737",
+                    "secondary-fixed": "#49f9f9",
+                    "surface-dim": "#131313",
+                    "on-tertiary": "#2f3131",
+                    "on-secondary-fixed": "#002020",
+                    "outline": "#ab888d",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#00dddd",
+                    "on-primary-fixed": "#3f0015",
+                    "on-background": "#e5e2e1",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "inverse-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "tertiary-container": "#727373",
+                    "secondary": "#49f9f9",
+                    "outline-variant": "#5b3f44",
+                    "on-primary-fixed-variant": "#900039",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary-container": "#00dddd",
+                    "surface-container-highest": "#353534",
+                    "primary-fixed": "#ffd9de",
+                    "tertiary": "#c6c6c7",
+                    "primary-fixed-dim": "#ffb2be",
+                    "surface-container-high": "#2a2a2a",
+                    "surface-container": "#201f1f",
+                    "primary-container": "#e0115f",
+                    "inverse-primary": "#bc004d",
+                    "surface-container-low": "#1c1b1b",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#e4bdc2",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-bright": "#3a3939",
+                    "on-primary": "#660026",
+                    "background": "#131313",
+                    "primary": "#ffb2be",
+                    "on-tertiary-container": "#fafafa",
+                    "surface-variant": "#353534"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "section-gap": "120px",
+                    "grid-margin": "40px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "subheading": ["Geist"],
+                    "display-xl": ["Anton"],
+                    "headline-lg": ["Anton"],
+                    "body-rt": ["Geist"],
+                    "kanji-decorative": ["Epilogue"],
+                    "mono-label": ["Space Mono"],
+                    "display-xl-mobile": ["Anton"],
+                    "headline-lg-mobile": ["Anton"]
+            },
+            "fontSize": {
+                    "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "400"}],
+                    "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                    "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
 <style>
-  .page-content { background: #050a14; justify-content: center; padding: 0; }
-  .game-frame { max-width: 900px; padding-bottom: 56.25%; border: none; background: radial-gradient(ellipse at 50% 70%, #0d1b2a, #030712); }
-  .hud-wrapper { position: absolute; inset: 0; display: flex; flex-direction: column; }
-  .hud-top { position: absolute; top: 16px; left: 0; right: 0; display: flex; justify-content: center; }
-  .hud-user { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 4px; background: rgba(0,11,26,0.55); backdrop-filter: blur(6px); border: 1px solid rgba(152,203,255,0.25); padding: 5px 12px; border-radius: 999px; font-size: 11px; color: #98cbff; letter-spacing: 0.06em; text-transform: uppercase; }
-  .hud-burger { position: absolute; top: 14px; right: 18px; }
-  .powerup-strip { position: absolute; top: 72px; left: 0; right: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: none; }
-  .pup-chip { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; font-family: 'Stick No Bills', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; backdrop-filter: blur(4px); }
-  .pup-chip.shield { background: rgba(102,255,255,0.2); color: #66ffff; border: 1px solid rgba(102,255,255,0.3); }
-  .pup-chip.boost { background: rgba(255,213,79,0.2); color: #ffd54f; border: 1px solid rgba(255,213,79,0.3); }
-  .pup-chip.magnet { background: rgba(255,138,217,0.2); color: #ff8ad9; border: 1px solid rgba(255,138,217,0.3); }
-  .pup-chip.score2x { background: rgba(142,255,154,0.2); color: #8eff9a; border: 1px solid rgba(142,255,154,0.3); }
-  .pup-chip.slowmo { background: rgba(168,150,255,0.2); color: #a896ff; border: 1px solid rgba(168,150,255,0.3); }
-  .overlay-controls { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
-  .overlay-controls a { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(152,203,255,0.2); background: rgba(0,11,26,0.6); color: rgba(152,203,255,0.6); text-decoration: none; border-radius: 3px; transition: all 0.15s ease; }
-  .overlay-controls a:hover { background: rgba(0,221,221,0.15); border-color: #00dddd; color: #fff; }
-  .scanline-overlay, .grid-overlay { position: absolute; }
-</style>
-</head>
-<body>
-<div class="nav-bar">
-  <a href="start.html" class="nav-back">← Start</a>
-  <span class="nav-title">📊 In-Game HUD</span>
-  <a href="pause.html" class="nav-close" title="Pause">⏸</a>
-</div>
-
-<div class="page-content">
-  <div class="game-frame">
-    <!-- Scanlines & Grid -->
-    <div class="scanline-overlay"></div>
-    <div class="grid-overlay"></div>
-
-    <div class="hud-wrapper">
-      <!-- HUD Score -->
-      <div class="hud-top">
-        <div id="score">Score: <span style="color:#ffe08a;">12,847</span><span class="speed">Level <span id="levelVal" style="font-weight:800;">4</span> · Speed <span id="speedVal">1.3x</span></span></div>
-      </div>
-
-      <!-- User Badge -->
-      <div class="hud-user">
-        <span style="font-size:14px;">👤</span>
-        <span style="font-weight:700;">PILOT_ACE</span>
-      </div>
-
-      <!-- Burger -->
-      <div class="hud-burger"><span id="burger">🍔</span></div>
-
-      <!-- Active Powerups -->
-      <div class="powerup-strip">
-        <span class="pup-chip shield">🛡 Shield 12s</span>
-        <span class="pup-chip boost">🔥 Boost 8s</span>
-        <span class="pup-chip score2x">✦ 2× Score 15s</span>
-      </div>
-
-      <!-- Nav controls -->
-      <div class="overlay-controls">
-        <a href="pause.html">⏸ Pause</a>
-        <a href="crash.html">💥 Crash</a>
-        <a href="final-sector.html">⚠️ Final Sector</a>
-        <a href="model-upgrade.html">✈️ Upgrade</a>
+        .glitch-effect:hover {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .tactical-grid {
+            background-image: linear-gradient(rgba(73, 249, 249, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(73, 249, 249, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .hud-border-l { border-left: 2px solid #e0115f; }
+        .hud-glass {
+            background: rgba(19, 19, 19, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
+        .crt-flicker {
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.95; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.99; }
+            100% { opacity: 1; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="pt-10 pt-10 bg-surface text-on-surface font-body-rt overflow-hidden h-screen select-none">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
       </div>
     </div>
   </div>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
+  </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<!-- Background Layer: Cockpit/In-Game Atmosphere -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen" data-alt="A first-person cinematic perspective from a high-tech fighter cockpit flying through a neon-drenched Neo-Tokyo cityscape at night. Heavy rain streaks across the cockpit glass, reflecting vibrant crimson and teal city lights. Blurred skyscraper silhouettes and massive holographic advertisements fill the background, creating a high-speed sense of motion and cyberpunk atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZHPx7WC_PflTrMalgGxWznhN10IrNHFK88EozZGYDYz50NzeNOHVc13LZqyAOh87SfDEWbSqC3zJEgeHqn1laamNzUOAKwwTXnnqvvLx_sD8Nc3xuLQJpHk19EJapyuI4HgX_lsYDtZnLSdFkyMGQECkUa-BmRkuT2qx3fDBco6ZuPMHJ9kNmIJuzKRBv0acPRtiC6eA7pfVrAWScclNuLHnrag3nPFLmwGXnKMYPXzCYSXqi3wH3lZre3q6Or7RXUvvRlUvau9jz')">
 </div>
+<div class="absolute inset-0 tactical-grid opacity-30"></div>
+<div class="absolute inset-0 scanlines opacity-50"></div>
+</div>
+<!-- Top App Bar (From Shared Components) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-primary/30 flex justify-between items-center px-gutter h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl transition-all duration-300 active:scale-95">terminal</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tighter uppercase">KAMIKAZE.CORP</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-mono-label text-[10px] text-secondary opacity-70">ENCRYPTED_LINK</span>
+<span class="font-mono-label text-on-surface-variant">SIGNAL_STABLE</span>
+</div>
+<span class="material-symbols-outlined text-primary text-2xl transition-all duration-300 active:scale-95 cursor-pointer">settings_input_component</span>
+</div>
+</header>
+<!-- Main HUD Overlay -->
+<main class="relative z-10 pt-20 pb-24 px-4 h-full flex flex-col justify-between">
+<!-- Top Telemetry & Score -->
+<section class="flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<!-- Pilot ID Badge -->
+<div class="hud-glass px-4 py-2 rounded-sm border-l-4 border-secondary flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary/40">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">person_pin</span>
+</div>
+<div>
+<p class="font-mono-label text-on-surface text-[10px] leading-tight">PILOT_ACE</p>
+<p class="font-mono-label text-secondary text-[8px] leading-tight tracking-widest">RANK: DAIMYO</p>
+</div>
+</div>
+<!-- Score Display -->
+<div class="text-right">
+<p class="font-mono-label text-secondary text-[10px] tracking-widest uppercase">Total Accumulation</p>
+<h2 class="font-display-xl-mobile text-display-xl-mobile text-primary-container drop-shadow-[0_0_15px_rgba(224,17,95,0.6)]">12,847</h2>
+</div>
+</div>
+<!-- Stats Bar -->
+<div class="grid grid-cols-3 gap-2">
+<div class="hud-glass p-2 flex flex-col items-center">
+<span class="font-mono-label text-[8px] text-on-surface-variant">LVL_IDENT</span>
+<span class="font-headline-lg-mobile text-on-surface">04</span>
+</div>
+<div class="hud-glass p-2 flex flex-col items-center border-b-2 border-secondary">
+<span class="font-mono-label text-[8px] text-secondary">VELOCITY_RATIO</span>
+<span class="font-headline-lg-mobile text-secondary">1.3X</span>
+</div>
+<div class="hud-glass p-2 flex flex-col items-center">
+<span class="font-mono-label text-[8px] text-on-surface-variant">SECTOR_DIST</span>
+<span class="font-headline-lg-mobile text-on-surface">8.2K</span>
+</div>
+</div>
+</section>
+<!-- Power-up Center Strip -->
+<section class="flex justify-center items-center gap-3 overflow-x-auto no-scrollbar py-4">
+<div class="flex-shrink-0 px-4 py-2 hud-glass border-l-2 border-secondary-fixed flex items-center gap-2 glitch-effect cursor-pointer">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">shield</span>
+<span class="font-mono-label text-secondary-fixed">SHIELD</span>
+<div class="w-1 h-4 bg-secondary-fixed animate-pulse"></div>
+</div>
+<div class="flex-shrink-0 px-4 py-2 hud-glass border-l-2 border-primary-container flex items-center gap-2 glitch-effect cursor-pointer">
+<span class="material-symbols-outlined text-primary-container text-sm">bolt</span>
+<span class="font-mono-label text-primary-container">BOOST</span>
+</div>
+<div class="flex-shrink-0 px-4 py-2 hud-glass border-l-2 border-tertiary flex items-center gap-2 glitch-effect cursor-pointer opacity-60">
+<span class="material-symbols-outlined text-tertiary text-sm">filter_2</span>
+<span class="font-mono-label text-tertiary">2X SCORE</span>
+</div>
+</section>
+<!-- Bottom Tactical Controls -->
+<section class="flex flex-col gap-6 mb-8">
+<!-- Alert Messenger -->
+<div class="flex items-center gap-4 bg-primary-container/10 border-y border-primary-container/30 py-2 px-4 overflow-hidden">
+<span class="font-mono-label text-primary-container animate-pulse shrink-0">CRITICAL_ALERT:</span>
+<marquee class="font-mono-label text-on-primary-container text-[10px] uppercase">Approaching Sector 7 boundary // Incoming drone swarm detected // Divert energy to forward shields</marquee>
+</div>
+<!-- Controls Grid -->
+<div class="grid grid-cols-4 gap-2">
+<button class="flex flex-col items-center justify-center gap-1 p-3 border border-outline-variant hover:bg-on-surface-variant/10 transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">pause</span>
+<span class="font-mono-label text-[8px] text-on-surface-variant">PAUSE</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 p-3 border border-primary-container/40 bg-primary-container/5 hover:bg-primary-container/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary-container">assistant_direction</span>
+<span class="font-mono-label text-[8px] text-primary-container">CRASH</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 p-3 border border-outline-variant hover:bg-on-surface-variant/10 transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">near_me</span>
+<span class="font-mono-label text-[8px] text-on-surface-variant">SECTOR</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 p-3 border border-secondary/40 bg-secondary/5 hover:bg-secondary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-secondary">upgrade</span>
+<span class="font-mono-label text-[8px] text-secondary">UPGRADE</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (From Shared Components) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 px-4 bg-surface/90 dark:bg-surface/90 backdrop-blur-lg border-t border-primary/20 z-50">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-sm px-4 py-1 border-l-2 border-primary transition-transform duration-200 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-mono-label text-mono-label uppercase">DASHBOARD</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 hover:opacity-100 hover:text-secondary transition-transform duration-200 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-mono-label text-mono-label uppercase">TACTICAL</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 hover:opacity-100 hover:text-secondary transition-transform duration-200 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-mono-label text-mono-label uppercase">PREQUEL</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 hover:opacity-100 hover:text-secondary transition-transform duration-200 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-mono-label text-mono-label uppercase">INTEL</span>
+</div>
+</nav>
+<!-- Decorative HUD Elements (Kanji/Watermarks) -->
+<div class="fixed bottom-24 right-4 z-0 opacity-10 pointer-events-none">
+<h3 class="font-kanji-decorative text-kanji-decorative text-primary">神風</h3>
+</div>
+<!-- UI Interaction Scripts -->
+<script>
+        // Micro-interaction for Score simulation
+        const scoreEl = document.querySelector('h2');
+        let currentScore = 12847;
+        
+        setInterval(() => {
+            currentScore += Math.floor(Math.random() * 10);
+            scoreEl.innerText = currentScore.toLocaleString();
+        }, 1000);
 
-<div class="state-badge">STATE: hud</div>
-</body>
-</html>
+        // Simple button active state feedback
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                btn.classList.add('scale-95', 'opacity-80');
+            });
+            btn.addEventListener('touchend', () => {
+                btn.classList.remove('scale-95', 'opacity-80');
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEO-BUSHIDO OS | ARMORY ARCHITECT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#353534",
+                    "surface-dim": "#131313",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-container": "#005c5c",
+                    "inverse-on-surface": "#313030",
+                    "tertiary": "#c6c6c7",
+                    "outline-variant": "#5b3f44",
+                    "outline": "#ab888d",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#ffb2be",
+                    "surface-bright": "#3a3939",
+                    "primary": "#ffb2be",
+                    "error-container": "#93000a",
+                    "on-primary-fixed": "#3f0015",
+                    "on-error": "#690005",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "inverse-primary": "#bc004d",
+                    "on-tertiary": "#2f3131",
+                    "inverse-surface": "#e5e2e1",
+                    "secondary-fixed": "#49f9f9",
+                    "on-background": "#e5e2e1",
+                    "on-primary": "#660026",
+                    "primary-fixed": "#ffd9de",
+                    "on-tertiary-container": "#fafafa",
+                    "on-surface": "#e5e2e1",
+                    "secondary-container": "#00dddd",
+                    "tertiary-container": "#727373",
+                    "surface-container-highest": "#353534",
+                    "secondary-fixed-dim": "#00dddd",
+                    "secondary": "#49f9f9",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface": "#131313",
+                    "primary-container": "#e0115f",
+                    "on-primary-fixed-variant": "#900039",
+                    "primary-fixed-dim": "#ffb2be",
+                    "surface-container-high": "#2a2a2a",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "on-surface-variant": "#e4bdc2",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container": "#201f1f",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-secondary-fixed": "#002020",
+                    "on-secondary": "#003737",
+                    "on-primary-container": "#fff8f8",
+                    "background": "#131313"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "grid-margin": "40px",
+                    "section-gap": "120px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-rt": ["Geist"],
+                    "mono-label": ["Space Mono"],
+                    "display-xl": ["Anton"],
+                    "headline-lg": ["Anton"],
+                    "subheading": ["Geist"],
+                    "display-xl-mobile": ["Anton"],
+                    "kanji-decorative": ["Epilogue"]
+            },
+            "fontSize": {
+                    "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .asanoha-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(73, 249, 249, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.2s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: absolute;
+            animation: scan 8s linear infinite;
+        }
+        @keyframes scan {
+            from { top: 0; }
+            to { top: 100%; }
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-rt overflow-hidden h-screen flex flex-col">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-[-1] asanoha-pattern"></div>
+
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-grid-margin py-2 z-50 bg-surface/80 backdrop-blur-xl border-b border-secondary/30 fixed top-0 left-0">
+<div class="font-display-xl-mobile text-display-xl-mobile text-primary uppercase tracking-tighter">NEO-BUSHIDO OS</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8 font-mono-label text-mono-label">
+<a class="text-on-surface-variant hover:text-secondary transition-colors" href="#">TACTICAL LOGS</a>
+<a class="text-primary border-b-2 border-primary" href="#">ARMORY</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors" href="#">MISSION CONTROL</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors" href="#">SYSTEMS</a>
+</div>
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined cursor-pointer hover:bg-secondary-container/10 p-2 transition-all">settings_input_component</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-secondary-container/10 p-2 transition-all">sensors</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-secondary-container/10 p-2 transition-all">power_settings_new</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-20">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full flex flex-col z-40 overflow-hidden bg-surface-container-lowest/90 backdrop-blur-md border-r border-secondary w-64 pt-20">
+<div class="p-6 border-b border-secondary/20">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-12 h-12 bg-primary/20 border border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+</div>
+<div>
+<div class="font-mono-label text-primary font-bold">STRIDER-01</div>
+<div class="text-[10px] text-secondary">STATUS: COMBAT READY</div>
+</div>
+</div>
+</div>
+<div class="flex-1 font-mono-label text-mono-label mt-4">
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-b border-secondary/10 hover:bg-primary-container/20 hover:text-secondary transition-all" href="#">
+<span class="material-symbols-outlined">terminal</span> TACTICAL LOGS
+                </a>
+<a class="flex items-center gap-4 bg-primary text-on-primary-fixed font-bold border-l-4 border-secondary p-4 translate-x-2 transition-transform duration-75" href="#">
+<span class="material-symbols-outlined">shield</span> ARMORY
+                </a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-b border-secondary/10 hover:bg-primary-container/20 hover:text-secondary transition-all" href="#">
+<span class="material-symbols-outlined">radar</span> MISSION CONTROL
+                </a>
+<a class="flex items-center gap-4 text-on-surface-variant p-4 border-b border-secondary/10 hover:bg-primary-container/20 hover:text-secondary transition-all" href="#">
+<span class="material-symbols-outlined">memory</span> SYSTEMS
+                </a>
+</div>
+<div class="p-6 mt-auto">
+<button class="w-full py-3 bg-primary-container text-on-primary-container font-mono-label text-xs font-bold hover:skew-x-12 transition-transform">
+                    ENGAGE THRUSTERS
+                </button>
+</div>
+<div class="p-4 border-t border-secondary/10 font-mono-label text-mono-label">
+<a class="flex items-center gap-4 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span> LOGOUT
+                </a>
+</div>
+<div class="font-kanji-decorative text-kanji-decorative text-primary opacity-20 absolute bottom-4 right-4 pointer-events-none">武</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 p-8 grid grid-cols-12 gap-gutter relative">
+<div class="scanline"></div>
+<!-- Left Sidebar: Weapon Stats -->
+<div class="col-span-3 space-y-gutter">
+<div class="glass-panel p-6 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<h2 class="font-headline-lg text-2xl text-primary mb-6 uppercase tracking-widest">Specifications</h2>
+<div class="space-y-6 font-mono-label">
+<div class="space-y-2">
+<div class="flex justify-between">
+<span>DAMAGE</span>
+<span class="text-secondary">88%</span>
+</div>
+<div class="h-3 bg-surface-container-highest w-full flex">
+<div class="h-full bg-primary-container" style="width: 88%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between">
+<span>RANGE</span>
+<span class="text-secondary">92%</span>
+</div>
+<div class="h-3 bg-surface-container-highest w-full flex">
+<div class="h-full bg-primary-container" style="width: 92%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between">
+<span>FIRE RATE</span>
+<span class="text-secondary">45%</span>
+</div>
+<div class="h-3 bg-surface-container-highest w-full flex">
+<div class="h-full bg-primary-container" style="width: 45%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between">
+<span>OVERHEAT</span>
+<span class="text-error">74%</span>
+</div>
+<div class="h-3 bg-surface-container-highest w-full flex">
+<div class="h-full bg-error" style="width: 74%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-panel p-6 border-dashed border-secondary/30">
+<h3 class="font-mono-label text-xs text-secondary/60 mb-4 tracking-[0.2em]">CALIBRATION DATA</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="border border-secondary/20 p-2">
+<div class="text-[10px] text-on-surface-variant font-mono-label">RECOIL</div>
+<div class="text-primary font-bold">STABLE</div>
+</div>
+<div class="border border-secondary/20 p-2">
+<div class="text-[10px] text-on-surface-variant font-mono-label">COOLING</div>
+<div class="text-primary font-bold">CRYOGENIC</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Central Area: Blueprint View -->
+<div class="col-span-6 flex flex-col gap-gutter">
+<div class="flex-1 glass-panel relative overflow-hidden group">
+<div class="absolute top-4 left-4 z-10">
+<h1 class="font-display-xl text-5xl text-primary tracking-tighter">RAIJIN RAILGUN</h1>
+<p class="font-mono-label text-secondary text-xs">MODEL ID: MK-IX BUSHIDO CORE</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center p-12">
+<img class="w-full h-full object-contain mix-blend-screen opacity-90 group-hover:scale-105 transition-transform duration-1000" data-alt="A highly detailed 3D technical blueprint of a futuristic railgun in a dark industrial workshop. The weapon has sleek carbon fiber parts, glowing red plasma chambers, and exposed electrical coils. The lighting is low-key with intense electric teal and crimson highlights reflecting off metallic surfaces. Floating digital HUD markers and Kanji calligraphy labels point to different components of the gun." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7sv2hKLDSUND684B0n1KBbKWJQ6F2S032WXaP-d6TTumdybzdfvwiK_BXTinjX7hhu-nmjKauKU2HlOIhVvRhRTYsq0dwDaQTsa-ZxCCkZUEkn0XdI0txs66-wicVFTSGAfOhbncbNyn_gC2_lwaQqxJodit__ki5SIujJJWoVvVjOCHLdbGHxMwz9JR_LnDFEW0nnwe5NhnZLkHMhakzSq4ZjycobqLF4Z1oyArCeGhO0TH_jfUSwSbBNs5mmzPOKFYDYIxKPEUE"/>
+</div>
+<!-- HUD Elements -->
+<div class="absolute bottom-4 right-4 text-right">
+<div class="font-kanji-decorative text-4xl text-primary opacity-30">電</div>
+<div class="text-[10px] font-mono-label text-on-surface-variant">VOLTAGE: 50.4KV</div>
+</div>
+<div class="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col gap-4">
+<div class="w-1 h-32 bg-primary/20 relative">
+<div class="absolute top-1/4 h-8 w-full bg-primary shadow-[0_0_10px_#ffb2be]"></div>
+</div>
+</div>
+</div>
+<!-- Modifications Grid -->
+<div class="grid grid-cols-3 gap-4 h-32">
+<div class="glass-panel p-4 flex flex-col items-center justify-center border-b-2 border-b-secondary cursor-pointer hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined text-secondary mb-1">bolt</span>
+<div class="font-mono-label text-[10px] text-on-surface-variant">KINETIC SLOT</div>
+<div class="font-mono-label text-xs text-primary font-bold">ACCELERATOR</div>
+</div>
+<div class="glass-panel p-4 flex flex-col items-center justify-center border-b-2 border-b-primary-container cursor-pointer hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container mb-1">cyclone</span>
+<div class="font-mono-label text-[10px] text-on-surface-variant">ENERGY SLOT</div>
+<div class="font-mono-label text-xs text-primary font-bold">VOID CORE</div>
+</div>
+<div class="glass-panel p-4 flex flex-col items-center justify-center border-b-2 border-b-on-secondary cursor-pointer hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined text-on-secondary mb-1">flare</span>
+<div class="font-mono-label text-[10px] text-on-surface-variant">PLASMIC SLOT</div>
+<div class="font-mono-label text-xs text-primary font-bold">EMPTY</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar: Loadout Summary -->
+<div class="col-span-3 flex flex-col h-full">
+<div class="glass-panel p-6 flex-1 relative flex flex-col">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-secondary">inventory_2</span>
+<h2 class="font-subheading text-lg tracking-widest text-on-surface">LOADOUT SUMMARY</h2>
+</div>
+<ul class="space-y-4 font-mono-label">
+<li class="flex items-start gap-4 pb-4 border-b border-secondary/10 group">
+<div class="w-1 h-full bg-primary self-stretch opacity-0 group-hover:opacity-100"></div>
+<div>
+<div class="text-primary font-bold">AP ROUNDS</div>
+<div class="text-[10px] text-on-surface-variant leading-relaxed">Armor-piercing tungsten slugs with explosive core. +15% Pen.</div>
+</div>
+</li>
+<li class="flex items-start gap-4 pb-4 border-b border-secondary/10 group">
+<div class="w-1 h-full bg-primary self-stretch opacity-0 group-hover:opacity-100"></div>
+<div>
+<div class="text-primary font-bold">OVERSHOT VENT</div>
+<div class="text-[10px] text-on-surface-variant leading-relaxed">External cooling radiator. Reduces overheat by 20% per burst.</div>
+</div>
+</li>
+<li class="flex items-start gap-4 pb-4 border-b border-secondary/10 group">
+<div class="w-1 h-full bg-primary self-stretch opacity-0 group-hover:opacity-100"></div>
+<div>
+<div class="text-secondary font-bold">SMART LINK</div>
+<div class="text-[10px] text-on-surface-variant leading-relaxed">Auto-aim correction module for mid-range targets.</div>
+</div>
+</li>
+</ul>
+<div class="mt-auto pt-8">
+<div class="mb-4 text-[10px] font-mono-label text-secondary flex justify-between uppercase">
+<span>Combat Ready Score</span>
+<span>S-CLASS</span>
+</div>
+<div class="flex gap-1 h-2 mb-8">
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-secondary/30"></div>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container py-5 font-headline-lg text-lg tracking-widest glitch-hover relative overflow-hidden transition-all active:scale-95 group">
+<span class="relative z-10">DEPLOY CONFIGURATION</span>
+<div class="absolute inset-0 bg-primary opacity-0 group-active:opacity-20"></div>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Background Atmospheric Elements -->
+<div class="fixed bottom-0 right-0 w-1/3 h-1/2 pointer-events-none z-[-1] opacity-10">
+<div class="w-full h-full asanoha-pattern"></div>
+</div>
+<script>
+        // Simple micro-interaction for the spec bars
+        const bars = document.querySelectorAll('.bg-primary-container, .bg-error');
+        bars.forEach(bar => {
+            const originalWidth = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.transition = 'width 1.5s cubic-bezier(0.23, 1, 0.32, 1)';
+                bar.style.width = originalWidth;
+            }, 500);
+        });
+
+        // Toggle hover effect sounds or glitches via script if needed
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                // Potential for haptic or sound triggers
+            });
+        });
+    </script>
+</body></html>

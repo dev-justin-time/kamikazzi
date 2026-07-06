@@ -14,21 +14,44 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Stick+No+Bills:wght@400;600;800&display=swap">
 <!-- Tactical HUD font -->
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Kamikaze theme fonts: Anton (display), Space Mono (mono labels), Geist (body), Epilogue (kanji decorative) -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Epilogue:wght@900&family=Geist:wght@400;600&display=swap" rel="stylesheet">
+<!-- Material Symbols (icon font) -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%; height: 100%; overflow: hidden;
-    background: #87ceeb;
-    font-family: 'Stick No Bills', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    background: #131313;
+    font-family: 'Stick No Bills', 'Anton', 'Trebuchet MS', 'Segoe UI', sans-serif;
     touch-action: manipulation;
   }
   #game { position: fixed; inset: 0; }
   canvas { display: block; }
 
-  /* Headlines & HUD use Stick No Bills — kamikaze-era signage vibe. */
-  h1, #score, .btn {
-    font-family: 'Stick No Bills', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  /* Headlines & HUD use Stick No Bills — kamikaze-era signage vibe.
+     Headline accents use Anton for the tactical display weight. */
+  h1, #score, .btn, .mission-panel h1, .success-panel h1, #bootScreen h2, #pauseScreen h2 {
+    font-family: 'Stick No Bills', 'Anton', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  }
+
+  /* Mono labels use Space Mono for tactical terminal aesthetic */
+  .mission-panel, .success-panel, .telemetry-card, .telemetry-label, .telemetry-value,
+  .critical-label, .critical-sub, .signal-lost, .sequence-complete,
+  .boot-status, .boot-meta, .pause-sub, .mission-stats,
+  #userBadge, .lb-panel, .lb-tab, .lb-close, .mt-btn, .pause-btn, .pause-hint,
+  .menu-grid .menu-btn, .settings-row, .settings-label, .legal-section-title,
+  .skin-style-chip, .cp-card, .cp-tab, .lobby-card, .replay-card,
+  .shortcuts-grid, .shortcut-key,
+  .profile-section, .profile-section-title, .profile-stat-row,
+  .profile-stat-label, .profile-stat-value, .profile-name, .profile-meta,
+  .profile-header, .profile-grade-pill, .profile-grade-count,
+  .profile-bar-label, .profile-level-bar-label, .profile-chart,
+  .skin-name, .skin-desc, .skin-status,
+  .lobby-name, .lobby-meta, .lobby-status, .lobby-score,
+  .cp-name, .cp-desc, .cp-meta, .cp-vote-btn, .cp-vote-count, .cp-vote-label {
+    font-family: 'JetBrains Mono', 'Space Mono', monospace;
   }
 
   /* Kanji sub-title under the brand line. */
@@ -39,7 +62,7 @@
     padding: 0 24px;
   }
   .subtitle .kanji {
-    font-family: 'Noto Sans JP', 'Yu Mincho', 'MS Mincho', serif;
+    font-family: 'Noto Sans JP', 'Epilogue', 'Yu Mincho', 'MS Mincho', serif;
     font-size: clamp(28px, 6vw, 44px);
     font-weight: 700;
     letter-spacing: 4px;            /* tight on a 2-char string so 風 doesn't drift apart */
@@ -85,7 +108,7 @@
   .overlay {
     position: fixed; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; z-index: 20;
-    background: radial-gradient(ellipse at center, rgba(20,30,60,0.55), rgba(10,15,35,0.8));
+    background: radial-gradient(ellipse at center, rgba(15,20,35,0.65), rgba(10,15,30,0.9));
     color: #fff; text-align: center; padding: 24px;
   }
   .overlay h1 {
@@ -98,6 +121,12 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .overlay p { font-size: clamp(15px, 4vw, 20px); margin-bottom: 6px; opacity: 0.92; }
+
+  /* Body / paragraph text uses Geist for readability */
+  .overlay p, .hint, .mission-stats, .best-score-line, .critical-sub, .status-sub,
+  .legal-section-content, .legal-footer, .legal-consent-checkbox {
+    font-family: 'Geist', 'Stick No Bills', 'Segoe UI', sans-serif;
+  }
   .overlay .big-score { font-size: clamp(28px, 8vw, 48px); font-weight: 800; margin: 14px 0; color: #ffe08a; letter-spacing: 2px; }
   .btn {
     margin-top: 22px; padding: 14px 40px; font-size: 20px; font-weight: 800;
@@ -147,7 +176,12 @@
     position: relative;
     overflow: hidden;
   }
-  .menu-btn .menu-btn-icon { font-size: 16px; display: block; margin-bottom: 3px; }
+  .menu-btn .menu-btn-icon { display: block; margin-bottom: 3px; line-height: 1; }
+  /* Material Symbols inside menu buttons and panel titles */
+  .menu-btn-icon.material-symbols-outlined { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 400; }
+  h3 .material-symbols-outlined { font-size: 20px; vertical-align: middle; margin-right: 4px; font-variation-settings: 'FILL' 0, 'wght' 400; }
+  #burger .material-symbols-outlined { font-size: 44px; font-variation-settings: 'FILL' 0, 'wght' 700; }
+  .hint .material-symbols-outlined { font-size: 14px; vertical-align: middle; margin-right: 2px; }
   .menu-btn:hover {
     background: rgba(0,221,221,0.12);
     border-color: rgba(0,221,221,0.35);
@@ -614,7 +648,7 @@
     #startScreen p { font-size: clamp(12px, 2.5vw, 14px); }
     .menu-grid { gap: 6px; }
     .menu-grid .menu-btn { padding: 8px 6px; font-size: 9px; }
-    .menu-btn .menu-btn-icon { font-size: 14px; }
+    .menu-btn-icon.material-symbols-outlined { font-size: 16px; }
   }
   @media (max-height: 520px) {
     #startScreen p { display: none; }
@@ -626,7 +660,7 @@
   @media (max-width: 360px) {
     .menu-grid { gap: 5px; }
     .menu-grid .menu-btn { padding: 6px 4px; font-size: 8px; }
-    .menu-btn .menu-btn-icon { font-size: 12px; margin-bottom: 2px; }
+    .menu-btn-icon.material-symbols-outlined { font-size: 14px; }
   }
 
   /* Leaderboard tab bar */
@@ -1390,7 +1424,7 @@
 <body>
 <div id="game" role="application" aria-label="Kamikazzi 3D game world"></div>
 <div id="hud" role="status" aria-live="polite" aria-atomic="true"><div id="score">Score: <span id="scoreVal">0</span><span class="speed">Level <span id="levelVal">1</span> · Speed <span id="speedVal">1.0x</span></span></div></div>
-<div id="burger" title="Burger! Click me!" role="button" tabindex="0" aria-label="Burger easter egg">🍔</div>
+<div id="burger" title="Burger! Click me!" role="button" tabindex="0" aria-label="Burger easter egg"><span class="material-symbols-outlined" aria-hidden="true">lunch_dining</span></div>
 <div id="userBadge" class="hidden" aria-live="polite"></div>
 
 <!-- Final Sector announcement overlay -->
@@ -1452,25 +1486,25 @@
   </div>
   <p data-i18n-html="startScreen.description">Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>
     <!-- Resume Run — appears when a snapshot is available (hidden by default) -->
-    <button id="resumeRunBtn" class="hidden" aria-label="Resume saved run">▶ Resume Run</button>
+    <button id="resumeRunBtn" class="hidden" aria-label="Resume saved run"><span class="material-symbols-outlined" aria-hidden="true">play_arrow</span> Resume Run</button>
     <!-- Primary action -->
     <button id="startBtn" class="btn" aria-label="Start flying game" data-i18n="btn.startFlying">Start Flying</button>
     <!-- Grid of secondary menu actions -->
     <div class="menu-grid" role="group" aria-label="Secondary actions">
-      <button id="leaderboardBtn" class="menu-btn highlight" aria-label="View leaderboard scores" data-i18n="btn.leaderboard"><span class="menu-btn-icon">🏆</span>Leaderboard</button>
-      <button id="lobbyBtn" class="menu-btn highlight" aria-label="Open multiplayer lobby" data-i18n="btn.lobby"><span class="menu-btn-icon">👥</span>Lobby</button>
-      <button id="profileBtn" class="menu-btn highlight" aria-label="View pilot profile"><span class="menu-btn-icon">👤</span>Profile</button>
-      <button id="skinLabBtn" class="menu-btn" aria-label="Customize plane skin and pilot portrait" data-i18n="btn.customize"><span class="menu-btn-icon">🎨</span>Customize</button>
-      <button id="marketplaceBtn" class="menu-btn" aria-label="Browse building skins marketplace" data-i18n="btn.skins"><span class="menu-btn-icon">🏙️</span>Skins</button>
-      <button id="communityPowerupBtn" class="menu-btn powerup" aria-label="Browse community powerups"><span class="menu-btn-icon">⚡</span>Powerups</button>
-      <button id="replayGalleryBtn" class="menu-btn" aria-label="View saved replays" data-i18n="btn.replays"><span class="menu-btn-icon">📼</span>Replays</button>
-      <button id="runHistoryBtn" class="menu-btn" aria-label="View run history" data-i18n="btn.history"><span class="menu-btn-icon">📜</span>History</button>
-      <button id="briefingsBtn" class="menu-btn" aria-label="Open pilot briefings" data-i18n="btn.briefings"><span class="menu-btn-icon">📡</span>Briefings</button>
-      <button id="sg-lv-fab-btn" class="menu-btn highlight" aria-label="Open Level Fabricator"><span class="menu-btn-icon">🌍</span>Terrain Editor</button>
-      <button id="settingsBtn" class="menu-btn" aria-label="Open settings" data-i18n="btn.settings"><span class="menu-btn-icon">⚙️</span>Settings</button>
-      <button id="legalBtn" class="menu-btn" aria-label="View legal and compliance information"><span class="menu-btn-icon">⚖️</span>Legal</button>
+      <button id="leaderboardBtn" class="menu-btn highlight" aria-label="View leaderboard scores" data-i18n="btn.leaderboard"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">military_tech</span>Leaderboard</button>
+      <button id="lobbyBtn" class="menu-btn highlight" aria-label="Open multiplayer lobby" data-i18n="btn.lobby"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">groups</span>Lobby</button>
+      <button id="profileBtn" class="menu-btn highlight" aria-label="View pilot profile"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">person</span>Profile</button>
+      <button id="skinLabBtn" class="menu-btn" aria-label="Customize plane skin and pilot portrait" data-i18n="btn.customize"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">palette</span>Customize</button>
+      <button id="marketplaceBtn" class="menu-btn" aria-label="Browse building skins marketplace" data-i18n="btn.skins"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">apartment</span>Skins</button>
+      <button id="communityPowerupBtn" class="menu-btn powerup" aria-label="Browse community powerups"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">bolt</span>Powerups</button>
+      <button id="replayGalleryBtn" class="menu-btn" aria-label="View saved replays" data-i18n="btn.replays"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">play_circle</span>Replays</button>
+      <button id="runHistoryBtn" class="menu-btn" aria-label="View run history" data-i18n="btn.history"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">description</span>History</button>
+      <button id="briefingsBtn" class="menu-btn" aria-label="Open pilot briefings" data-i18n="btn.briefings"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">satellite_alt</span>Briefings</button>
+      <button id="sg-lv-fab-btn" class="menu-btn highlight" aria-label="Open Level Fabricator"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">public</span>Terrain Editor</button>
+      <button id="settingsBtn" class="menu-btn" aria-label="Open settings" data-i18n="btn.settings"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">settings</span>Settings</button>
+      <button id="legalBtn" class="menu-btn" aria-label="View legal and compliance information"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">balance</span>Legal</button>
     </div>
-    <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tilt your device or drag the screen<br>🕹️ Use joystick (bottom-left) for touch<br>❓ Press <strong>?</strong> for keyboard shortcuts</div>
+    <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint"><span class="material-symbols-outlined" aria-hidden="true">keyboard</span> Arrow Keys / WASD to steer<br><span class="material-symbols-outlined" aria-hidden="true">smartphone</span> Tilt your device or drag the screen<br><span class="material-symbols-outlined" aria-hidden="true">sports_esports</span> Use joystick (bottom-left) for touch<br><span class="material-symbols-outlined" aria-hidden="true">help</span> Press <strong>?</strong> for keyboard shortcuts</div>
 </div>
 
 <div id="explodeScreen" class="hidden" aria-hidden="true" role="region" aria-label="Crash explosion animation">
@@ -1591,7 +1625,7 @@
   <div class="lb-panel">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>🏆 Mission Records</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">military_tech</span> Mission Records</h3>
     <div class="lb-tabs" role="tablist" aria-label="Leaderboard time period">
       <button class="lb-tab active" data-period="week" role="tab" aria-selected="true" aria-label="This week's scores">Week</button>
       <button class="lb-tab" data-period="month" role="tab" aria-selected="false" aria-label="This month's scores">Month</button>
@@ -1607,7 +1641,7 @@
   <div class="lb-panel" style="max-width:560px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>📼 Replay Gallery</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">play_circle</span> Replay Gallery</h3>
     <div class="lb-body" id="replayBody" style="display:flex;flex-direction:column;gap:10px;" role="list" aria-label="Saved replays">
       <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading replays...</div>
     </div>
@@ -1637,7 +1671,7 @@
   <div class="lb-panel" style="max-width:380px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3 style="color:#ffb4ab;">⚠️ Confirm Delete</h3>
+    <h3 style="color:#ffb4ab;"><span class="material-symbols-outlined" aria-hidden="true">warning</span> Confirm Delete</h3>
     <div class="lb-body" style="font-size:13px;color:#98cbff;font-family:'JetBrains Mono',monospace;text-align:center;padding:16px 0;">
       <p>This replay will be permanently removed.</p>
       <p style="color:rgba(152,203,255,0.55);font-size:11px;margin-top:8px;">This action cannot be undone.</p>
@@ -1654,7 +1688,7 @@
   <div class="sc-panel">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>⌨️ Keyboard Shortcuts</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">keyboard</span> Keyboard Shortcuts</h3>
     <div class="shortcuts-grid" role="list" aria-label="Available shortcuts">
       <div class="shortcut-section" role="listitem">Flight Controls</div>
       <div class="shortcut-row" role="listitem"><span class="shortcut-key">W / ↑</span><span class="shortcut-desc">Pitch up / descend</span></div>
@@ -1668,9 +1702,9 @@
       <div class="shortcut-row" role="listitem"><span class="shortcut-key">Space</span><span class="shortcut-desc">Start flying / retry mission</span></div>
 
       <div class="shortcut-section" role="listitem">Touch &amp; Mobile</div>
-      <div class="shortcut-row" role="listitem"><span class="shortcut-key" style="font-size:15px;">🖐︎</span><span class="shortcut-desc">Drag anywhere to steer</span></div>
-      <div class="shortcut-row" role="listitem"><span class="shortcut-key" style="font-size:15px;">🕹︎</span><span class="shortcut-desc">On-screen joystick (bottom-left)</span></div>
-      <div class="shortcut-row" role="listitem"><span class="shortcut-key" style="font-size:15px;">📱</span><span class="shortcut-desc">Tilt device for gyro steering</span></div>
+      <div class="shortcut-row" role="listitem"><span class="shortcut-key material-symbols-outlined" style="font-size:15px;" aria-hidden="true">touch_app</span><span class="shortcut-desc">Drag anywhere to steer</span></div>
+      <div class="shortcut-row" role="listitem"><span class="shortcut-key material-symbols-outlined" style="font-size:15px;" aria-hidden="true">sports_esports</span><span class="shortcut-desc">On-screen joystick (bottom-left)</span></div>
+      <div class="shortcut-row" role="listitem"><span class="shortcut-key material-symbols-outlined" style="font-size:15px;" aria-hidden="true">smartphone</span><span class="shortcut-desc">Tilt device for gyro steering</span></div>
     </div>
     <button class="sc-close" id="shortcutsClose" aria-label="Close keyboard shortcuts">Close</button>
   </div>
@@ -1681,7 +1715,7 @@
   <div class="lb-panel" style="max-width:520px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>📜 Run History</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">description</span> Run History</h3>
     <div class="lb-body" id="runHistoryBody" style="display:flex;flex-direction:column;gap:8px;" role="list" aria-label="Mission history">
       <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading history...</div>
     </div>
@@ -1694,7 +1728,7 @@
   <div class="lb-panel" style="max-width:520px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>📡 Pilot Briefings</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">satellite_alt</span> Pilot Briefings</h3>
     <div class="lb-body" id="briefingsBody" style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto;" role="list" aria-label="Briefing messages" aria-live="polite">
       <div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No briefings yet. Submit ideas and they appear here.</div>
     </div>
@@ -1712,7 +1746,7 @@
   <div class="lb-panel" style="max-width:540px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>🎨 Skin Lab</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">palette</span> Skin Lab</h3>
 
     <div class="lb-body" style="display:flex;flex-direction:column;gap:16px;">
       <!-- Plane Skin -->
@@ -1776,7 +1810,7 @@
   <div class="mp-panel">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>🏙️ Building Skins</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">apartment</span> Building Skins</h3>
     <div class="lb-body" id="marketplaceBody" role="list" aria-label="Available building skins"></div>
     <button class="mp-close" id="marketplaceClose" aria-label="Close building skins marketplace">Close</button>
   </div>
@@ -1787,7 +1821,7 @@
   <div class="lb-panel" style="max-width:560px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3 id="profileTitle">👤 Pilot Profile</h3>
+    <h3 id="profileTitle"><span class="material-symbols-outlined" aria-hidden="true">person</span> Pilot Profile</h3>
     <div class="lb-body" id="profileBody" style="overflow-y:auto;padding:4px 0;">
       <div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Loading profile...</div>
     </div>
@@ -1800,7 +1834,7 @@
   <div class="lb-panel" style="max-width:400px;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>⚙️ Settings</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">settings</span> Settings</h3>
     <div class="lb-body" style="padding:8px 0;">
       <div class="settings-label" style="padding:0 4px;" id="settingsDisplayLabel" data-i18n="settings.displayOptions">Display Options</div>
       <div class="settings-row" style="padding:10px 4px;" role="group" aria-labelledby="settingsDisplayLabel">
@@ -1833,7 +1867,7 @@
   <div class="lb-panel" style="max-width:560px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>⚡ Community Powerup Registry</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">bolt</span> Community Powerup Registry</h3>
     <div class="cp-tabs" style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid rgba(152,203,255,0.15);padding-bottom:8px;" role="tablist" aria-label="Community powerups view">
       <button class="cp-tab active" data-cpview="browse" role="tab" aria-selected="true" aria-label="Browse community powerups">Browse</button>
       <button class="cp-tab" data-cpview="submit" role="tab" aria-selected="false" aria-label="Submit a new powerup">Submit</button>
@@ -1902,7 +1936,7 @@
   <div class="lb-panel" style="max-width:520px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>👥 Pilot Lounge</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">groups</span> Pilot Lounge</h3>
     <div style="font-size:10px;color:rgba(152,203,255,0.5);text-align:center;margin-bottom:12px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;">
       <span id="lobbyCount">0</span> pilots connected
     </div>
@@ -1921,7 +1955,7 @@
   <div class="lb-panel" style="max-width:600px;max-height:85vh;">
     <div class="boot-bracket-tl" aria-hidden="true"></div><div class="boot-bracket-tr" aria-hidden="true"></div>
     <div class="boot-bracket-bl" aria-hidden="true"></div><div class="boot-bracket-br" aria-hidden="true"></div>
-    <h3>⚖️ Legal &amp; Compliance</h3>
+    <h3><span class="material-symbols-outlined" aria-hidden="true">balance</span> Legal &amp; Compliance</h3>
     <div class="lb-body" id="legalBody" style="overflow-y:auto;padding:4px 0;text-align:left;font-size:11px;line-height:1.6;color:rgba(152,203,255,0.85);">
       <div style="text-align:center;padding:20px 0;color:rgba(152,203,255,0.6);">Loading...</div>
     </div>

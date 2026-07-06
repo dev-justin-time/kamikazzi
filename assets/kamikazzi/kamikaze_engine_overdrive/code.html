@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>神風 KAMIKAZE | Neo-Tokyo Aerospace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Epilogue:wght@900&amp;family=Geist:wght@300;400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@100..900&amp;family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
+
+        .crimson-glow {
+            box-shadow: 0 0 20px rgba(224, 17, 95, 0.5);
+        }
+
+        .crimson-glow:hover {
+            box-shadow: 0 0 40px rgba(224, 17, 95, 0.8);
+            transform: scale(1.05) translateX(5px);
+            filter: hue-rotate(180deg); /* Glitch effect simulation */
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: absolute;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            from { top: 0%; }
+            to { top: 100%; }
+        }
+
+        .asanoha-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20 0l20 10v20L20 40 0 30V10L20 0zm0 4.6L4 12.6v14.8l16 8 16-8V12.6L20 4.6z' fill='%2349f9f9' fill-opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        .glitch-text {
+            text-shadow: 2px 0 #e0115f, -2px 0 #49f9f9;
+        }
+
+        .corner-bracket {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #49f9f9;
+        }
+
+        .vertical-divider {
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, #e0115f, transparent);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#454747",
+                        "outline": "#ab888d",
+                        "on-secondary-fixed": "#002020",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#e4bdc2",
+                        "surface-container": "#201f1f",
+                        "secondary-container": "#00dddd",
+                        "on-secondary-container": "#005c5c",
+                        "surface-container-highest": "#353534",
+                        "on-background": "#e5e2e1",
+                        "on-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-low": "#1c1b1b",
+                        "on-tertiary-container": "#fafafa",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "secondary-fixed": "#49f9f9",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "on-primary-fixed": "#3f0015",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-tint": "#ffb2be",
+                        "surface-bright": "#3a3939",
+                        "on-primary": "#660026",
+                        "surface": "#131313",
+                        "on-tertiary": "#2f3131",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed-variant": "#900039",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "inverse-primary": "#bc004d",
+                        "secondary-fixed-dim": "#00dddd",
+                        "tertiary-container": "#727373",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-error-container": "#ffdad6",
+                        "background": "#131313",
+                        "tertiary": "#c6c6c7",
+                        "primary-fixed-dim": "#ffb2be",
+                        "primary-fixed": "#ffd9de",
+                        "surface-dim": "#131313",
+                        "on-secondary": "#003737",
+                        "primary-container": "#e0115f",
+                        "outline-variant": "#5b3f44",
+                        "on-primary-container": "#fff8f8",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "secondary": "#49f9f9",
+                        "primary": "#ffb2be",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "section-gap": "120px",
+                        "grid-margin": "40px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "subheading": ["Geist"],
+                        "mono-label": ["Space Mono"],
+                        "display-xl": ["Anton"],
+                        "headline-lg": ["Anton"],
+                        "body-rt": ["Geist"],
+                        "display-xl-mobile": ["Anton"],
+                        "kanji-decorative": ["Epilogue"]
+                    },
+                    "fontSize": {
+                        "subheading": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "mono-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400" }],
+                        "display-xl": ["96px", { "lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                        "headline-lg": ["48px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "body-rt": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-xl-mobile": ["56px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "kanji-decorative": ["64px", { "lineHeight": "64px", "fontWeight": "900" }]
+                    }
+                },
+            },
+        }
+    </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="bg-background text-on-background asanoha-pattern overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- NAVIGATION SHELL -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-secondary/30 dark:border-secondary/30 shadow-[0_0_20px_rgba(73,249,249,0.1)] flex justify-between items-center px-gutter h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-secondary transition-all">menu</span>
+<div class="font-display-xl-mobile text-display-xl-mobile text-primary dark:text-primary tracking-tighter italic scale-75 origin-left">神風 KAMIKAZE</div>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<nav class="flex gap-6 font-mono-label text-mono-label uppercase tracking-widest">
+<a class="text-primary dark:text-primary font-bold hover:text-secondary transition-all" href="#">HANGAR</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-secondary transition-all" href="#">MISSIONS</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-secondary transition-all" href="#">RANK</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-secondary transition-all" href="#">DEPLOY</a>
+</nav>
+<span class="material-symbols-outlined text-secondary animate-pulse" style="font-variation-settings: 'FILL' 1;">sensors</span>
+</div>
+</header>
+<!-- BACKGROUND SHADER -->
+<div class="fixed inset-0 z-0 pointer-events-none opacity-40">
+</div>
+<!-- HERO SECTION -->
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-grid-margin z-10 overflow-hidden" id="hero-interactive-zone">
+<div class="absolute inset-0 z-0 opacity-60 pointer-events-none">
+<div class="w-full h-full" id="threejs-canvas-container"></div>
+</div>
+<div class="relative z-20 flex flex-col items-center text-center max-w-4xl">
+<img class="w-32 h-32 md:w-48 md:h-48 object-contain mb-8 animate-bounce" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB8YpCX1s9fveITHBMvVDPCKGplqGd5fnwA85yXL9SyBllUWTRRGGcE05sg3h3qFl6zxVUD78mM1etrlN9Rucb2a3QwJa3ZAv4VF0I0EDrzrsMKksrqk1e5LTPQ6PWO3h-u35AaXCOCfBZWc9p18aSI_9s8FH9JIaQ9NCwQG31hzM88pKMiDopxWDvEelz7Y8us16AQR3yTcFphm6XwVv2FOB9btzLsmr7aosOlD9mCyw6azTh6ylxvK4i8O4hJpWToTy36UsJMaVv" style="animation-duration: 3s"/>
+<h1 class="font-display-xl text-display-xl md:text-[120px] mb-4 text-on-surface tracking-tighter leading-none italic glitch-text">
+                DEFY THE <span class="text-primary-container">WIND</span>
+</h1>
+<p class="font-subheading text-subheading text-secondary mb-12 tracking-[0.3em] uppercase opacity-90">
+                Aero-Tactical Combat in Neo-Tokyo
+            </p>
+<button class="bg-primary-container text-on-primary-container font-headline-lg text-headline-lg-mobile md:text-headline-lg px-12 py-4 rounded-lg crimson-glow transition-all duration-300 transform active:scale-95 group relative overflow-hidden">
+<span class="relative z-10">DEPLOY NOW</span>
+<div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+</button>
+<div class="mt-16 flex gap-12 font-mono-label text-secondary opacity-60">
+<div class="flex flex-col items-center">
+<span class="text-3xl font-bold">4.2M</span>
+<span>ACTIVE PILOTS</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-3xl font-bold">0.03s</span>
+<span>RESPONSE LATENCY</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce opacity-40">
+<span class="font-mono-label text-xs tracking-widest">SCROLL TO CALIBRATE</span>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</section>
+<!-- FEATURES BENTO GRID -->
+<section class="relative py-section-gap px-grid-margin z-20 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row items-end justify-between mb-16 border-l-4 border-primary-container pl-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary uppercase">SYSTEM SPECS</h2>
+<p class="font-mono-label text-secondary tracking-widest mt-2">ハードウェア仕様 // PROTOCOL V.4.0</p>
+</div>
+<span class="font-kanji-decorative text-[80px] text-primary/10 select-none">仕様</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
+<!-- Card 1 -->
+<div class="md:col-span-8 glass-panel rounded-xl p-8 relative overflow-hidden group">
+<div class="scanline"></div>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-5xl text-secondary" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
+<div class="text-right font-mono-label text-outline">
+<p>REF: AGILITY_01</p>
+<p class="text-primary">ACTIVE</p>
+</div>
+</div>
+<div>
+<h3 class="font-headline-lg text-4xl mb-4">SUPERSONIC AGILITY</h3>
+<p class="font-body-rt text-on-surface-variant max-w-md">
+                            Experience the raw power of the H-9 'Hayabusa' engine. 360-degree vectoring thrust allows for maneuvers that defy gravity and conventional physics in the neon-lit canyons of Neo-Tokyo.
+                        </p>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full mt-6 overflow-hidden">
+<div class="bg-primary-container h-full w-4/5 animate-pulse"></div>
+</div>
+</div>
+<div class="absolute bottom-[-20px] right-[-20px] font-kanji-decorative text-[150px] text-white/5 pointer-events-none">速</div>
+</div>
+<!-- Card 2 -->
+<div class="md:col-span-4 glass-panel rounded-xl p-8 relative overflow-hidden flex flex-col justify-center border-primary-container/40">
+<div class="relative z-10 text-center">
+<span class="material-symbols-outlined text-6xl text-primary mb-6" style="font-variation-settings: 'FILL' 1;">shield</span>
+<h3 class="font-headline-lg text-3xl mb-4">KATANA CLASS SHIELDS</h3>
+<p class="font-mono-label text-on-surface-variant text-sm px-4">
+                        Reflective energy plating capable of parrying high-frequency laser fire. Timing is everything.
+                    </p>
+<div class="mt-8 border border-dashed border-secondary/50 p-4">
+<div class="flex justify-between text-xs font-mono-label text-secondary mb-2">
+<span>INTEGRITY</span>
+<span>98%</span>
+</div>
+<div class="grid grid-cols-10 gap-1">
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-primary-container"></div>
+<div class="h-4 bg-secondary/20"></div>
+</div>
+</div>
+</div>
+<div class="absolute top-4 left-4 font-mono-label text-[10px] opacity-30">ENRG_FLD_ALPHA</div>
+</div>
+<!-- Card 3 -->
+<div class="md:col-span-12 glass-panel rounded-xl p-8 relative overflow-hidden min-h-[300px] flex items-center group">
+<div class="absolute inset-0 bg-cover bg-center opacity-30 grayscale hover:grayscale-0 transition-all duration-700" data-alt="A cinematic overhead shot of a sprawling futuristic Neo-Tokyo cityscape at night, glowing with intense cyan and magenta neon lights. Massive holographic advertisements float between monolithic obsidian skyscrapers. The streets below are a blur of high-speed traffic, and the atmosphere is thick with rain-slicked surfaces and atmospheric fog. The lighting is dramatic and high-contrast, fitting a cyberpunk aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAarTS4JASXnQdnJlYdog_QL8LJ6hA6ENS_lQG5-iB8LMhC2aJRqKZZ1nwjDpfXplFYcYxZKgvMtPRoyPaVYvOF5ufjnaMwZ00vGEHDTC_WNAHxdICskpV7VLQKvdjKrK7jIk1IIbnQWcWuGEkUJI8NFQSwKPoiJmnZeVuAk-MRwg91N-NYmM6ziSQ7SGVAULP_o5kLL63jJD_PhDYFCOpdRoEB1vv0bNCmzAl0E_c7vZsu-6P2wrRVPuUKducksV4GqVNBY0e5zjH0')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent"></div>
+<div class="relative z-10 max-w-xl">
+<div class="flex items-center gap-3 mb-4">
+<span class="w-12 h-[1px] bg-primary-container"></span>
+<span class="font-mono-label text-primary">DESTINATION: SECTOR 07</span>
+</div>
+<h3 class="font-headline-lg text-5xl mb-4">NEO-TOKYO HUB</h3>
+<p class="font-body-rt text-on-surface-variant">
+                        The world is your battleground. From the vertical slums to the pristine aerospace corporate gardens, master every district. Real-time dynamic weather and global leaderboards.
+                    </p>
+<button class="mt-6 font-mono-label text-secondary hover:text-white flex items-center gap-2 group/btn">
+                        VIEW TACTICAL MAP <span class="material-symbols-outlined group-hover/btn:translate-x-2 transition-transform">arrow_right_alt</span>
+</button>
+</div>
+<div class="absolute top-10 right-10 flex gap-4">
+<div class="w-2 h-2 bg-primary animate-ping"></div>
+<div class="w-2 h-2 bg-primary"></div>
+<div class="w-2 h-2 bg-primary"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- PILOT BRIEFING SECTION -->
+<section class="relative py-section-gap overflow-hidden bg-surface-container-low/50 border-y border-secondary/10">
+<div class="max-w-5xl mx-auto px-grid-margin relative">
+<!-- Corner Brackets -->
+<div class="corner-bracket top-0 left-0 border-t-2 border-l-2"></div>
+<div class="corner-bracket top-0 right-0 border-t-2 border-r-2"></div>
+<div class="corner-bracket bottom-0 left-0 border-b-2 border-l-2"></div>
+<div class="corner-bracket bottom-0 right-0 border-b-2 border-r-2"></div>
+<div class="p-12 md:p-20 relative">
+<div class="scanline opacity-20"></div>
+<div class="mb-12 text-center">
+<h2 class="font-headline-lg text-5xl md:text-7xl mb-4 text-on-surface tracking-widest">PILOT BRIEFING</h2>
+<div class="flex items-center justify-center gap-4">
+<span class="text-primary font-mono-label">TOP SECRET</span>
+<span class="w-20 h-[1px] bg-outline"></span>
+<span class="text-outline font-mono-label text-xs">EYES ONLY</span>
+</div>
+</div>
+<div class="grid md:grid-cols-2 gap-12 font-body-rt text-on-surface-variant leading-relaxed">
+<div class="space-y-6">
+<p>
+<span class="text-secondary font-bold mr-2">// OBJECTIVE:</span> 
+                            Infiltrate the Kuro-Sawa data fortress and extract the neural core before the orbital strike countdown hits zero. 
+                        </p>
+<p>
+<span class="text-secondary font-bold mr-2">// RULES OF ENGAGEMENT:</span> 
+                            Full throttle engagement authorized. Avoid collateral damage to civilian energy grids to maintain your stealth rating. 
+                        </p>
+<div class="border-l-4 border-primary-container p-4 bg-primary-container/5">
+<p class="italic text-sm">"The wind does not break the bamboo that bends. But the Kamikaze is the wind itself." - Commander Sato</p>
+</div>
+</div>
+<div class="flex flex-col justify-center gap-8">
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-4xl text-primary">verified_user</span>
+<div>
+<h4 class="font-mono-label font-bold text-on-surface">BIO-METRIC LOCK</h4>
+<p class="text-xs opacity-60">Neural link established. Sync 99.8%</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-4xl text-primary">rocket</span>
+<div>
+<h4 class="font-mono-label font-bold text-on-surface">COCKPIT INJECTION</h4>
+<p class="text-xs opacity-60">Liquid cooling active. Pilot ready.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-4xl text-primary">history_edu</span>
+<div>
+<h4 class="font-mono-label font-bold text-on-surface">LOG PROTOCOL</h4>
+<p class="text-xs opacity-60">All flight data recorded for Intel.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-16 flex justify-center">
+<div class="flex items-center gap-2 px-6 py-2 bg-secondary/10 border border-secondary text-secondary font-mono-label text-sm uppercase animate-pulse">
+<span class="material-symbols-outlined text-sm">wifi_tethering</span> TRANSMITTING...
+                    </div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA SECTION -->
+<section class="py-section-gap text-center relative z-20">
+<div class="max-w-3xl mx-auto px-grid-margin">
+<h2 class="font-display-xl text-display-xl-mobile md:text-display-xl italic mb-8">THE SKY IS <span class="text-primary">YOURS</span></h2>
+<p class="font-subheading text-on-surface-variant mb-12">Available now on Neo-Link, Steam, and Neural-Interface Gear.</p>
+<div class="flex flex-col md:flex-row gap-4 justify-center">
+<a class="px-10 py-5 bg-on-background text-background font-headline-lg text-2xl rounded-none hover:bg-secondary transition-colors" href="#">GET ON STEAM</a>
+<a class="px-10 py-5 bg-transparent border-2 border-primary text-primary font-headline-lg text-2xl rounded-none hover:bg-primary/10 transition-colors" href="#">WATCH TRAILER</a>
+</div>
+</div>
+</section>
+<!-- FOOTER -->
+<footer class="w-full mt-section-gap bg-surface-container-high dark:bg-surface-container-high border-t-[1px] border-dashed border-secondary/50 flex flex-col items-center gap-6 py-12 px-grid-margin w-full">
+<div class="font-kanji-decorative text-headline-lg text-primary select-none">神風</div>
+<div class="flex flex-wrap justify-center gap-8 md:gap-16 font-mono-label text-mono-label uppercase tracking-[0.2em]">
+<a class="text-secondary underline underline-offset-4 cursor-pointer opacity-80 hover:opacity-100 transition-all" href="#">PROTOCOL</a>
+<a class="text-on-surface-variant cursor-pointer opacity-80 hover:opacity-100 hover:text-primary transition-all" href="#">INTEL</a>
+<a class="text-on-surface-variant cursor-pointer opacity-80 hover:opacity-100 hover:text-primary transition-all" href="#">SUPPORT</a>
+<a class="text-on-surface-variant cursor-pointer opacity-80 hover:opacity-100 hover:text-primary transition-all" href="#">CAREERS</a>
+</div>
+<div class="flex gap-6 mt-4">
+<span class="material-symbols-outlined text-outline hover:text-secondary cursor-pointer transition-colors">language</span>
+<span class="material-symbols-outlined text-outline hover:text-secondary cursor-pointer transition-colors">forum</span>
+<span class="material-symbols-outlined text-outline hover:text-secondary cursor-pointer transition-colors">share</span>
+</div>
+<p class="text-outline text-[10px] md:text-xs font-mono-label tracking-widest mt-8 opacity-40">
+            © 2124 NEO-TOKYO AEROSPACE. ALL RIGHTS RESERVED. // ENCRYPTION AES-512 ACTIVE
+        </p>
+</footer>
+<!-- MOBILE NAVIGATION BOTTOM BAR -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest/90 dark:bg-surface-container-lowest/90 backdrop-blur-lg border-t-2 border-primary dark:border-primary flex justify-around items-center px-4 py-2 pb-safe shadow-[0_-4px_30px_rgba(224,17,95,0.2)]">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 scale-110 shadow-[0_0_15px_#e0115f] transition-transform active:translate-y-1" href="#">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="font-mono-label text-[10px] uppercase">HANGAR</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline p-2 hover:text-primary transition-colors active:translate-y-1" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-mono-label text-[10px] uppercase">MISSIONS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline p-2 hover:text-primary transition-colors active:translate-y-1" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-mono-label text-[10px] uppercase">RANK</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline p-2 hover:text-primary transition-colors active:translate-y-1" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-mono-label text-[10px] uppercase">DEPLOY</span>
+</a>
+</nav>
+<!-- INTERACTION SCRIPTS -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // HERO THREE.JS BACKGROUND WITH INTERACTIVE ENGINE GLOW
+            const container = document.getElementById('threejs-canvas-container');
+            if (container) {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+
+                // Simple Stylized Fighter Aircraft Mesh Group
+                const ship = new THREE.Group();
+                
+                // Fuselage
+                const bodyGeom = new THREE.ConeGeometry(0.5, 3, 4);
+                const bodyMat = new THREE.MeshPhongMaterial({ color: 0x131313, flatShading: true, shininess: 100 });
+                const fuselage = new THREE.Mesh(bodyGeom, bodyMat);
+                fuselage.rotation.x = Math.PI / 2;
+                ship.add(fuselage);
+
+                // Wings
+                const wingGeom = new THREE.BoxGeometry(4, 0.1, 1);
+                const wingMat = new THREE.MeshPhongMaterial({ color: 0x49f9f9, transparent: true, opacity: 0.8 });
+                const wings = new THREE.Mesh(wingGeom, wingMat);
+                wings.position.y = -0.2;
+                ship.add(wings);
+
+                // Tail Fins
+                const tailGeom = new THREE.BoxGeometry(0.1, 1, 0.8);
+                const tail = new THREE.Mesh(tailGeom, wingMat);
+                tail.position.z = -1;
+                tail.position.y = 0.5;
+                ship.add(tail);
+
+                // --- ENGINE GLOW EFFECT ---
+                // 1. Engine Exhaust Mesh (Rear)
+                const exhaustGeom = new THREE.CylinderGeometry(0.3, 0.1, 0.5, 8);
+                const exhaustMat = new THREE.MeshBasicMaterial({ color: 0xe0115f });
+                const exhaust = new THREE.Mesh(exhaustGeom, exhaustMat);
+                exhaust.position.z = -1.5;
+                exhaust.rotation.x = Math.PI / 2;
+                ship.add(exhaust);
+
+                // 2. Glowing PointLight
+                const engineLight = new THREE.PointLight(0xe0115f, 1, 10);
+                engineLight.position.z = -1.8;
+                ship.add(engineLight);
+
+                // 3. Glowing Sprite (Visual Flare)
+                const spriteMap = new THREE.TextureLoader().load('https://threejs.org/examples/textures/lensflare/lensflare0.png');
+                const spriteMat = new THREE.SpriteMaterial({ 
+                    map: spriteMap, 
+                    color: 0xe0115f, 
+                    transparent: true, 
+                    blending: THREE.AdditiveBlending,
+                    opacity: 0.6
+                });
+                const glowSprite = new THREE.Sprite(spriteMat);
+                glowSprite.scale.set(1.5, 1.5, 1);
+                glowSprite.position.z = -1.6;
+                ship.add(glowSprite);
+
+                scene.add(ship);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                directionalLight.position.set(1, 1, 2);
+                scene.add(directionalLight);
+
+                camera.position.z = 5;
+
+                // INTERACTION STATE
+                let isEngaged = false;
+                let mouseX = 0;
+                let mouseY = 0;
+
+                const onInteractionStart = () => { isEngaged = true; };
+                const onInteractionEnd = () => { isEngaged = false; };
+
+                // Event Listeners on the Hero Zone
+                const interactionZone = document.getElementById('hero-interactive-zone');
+                interactionZone.addEventListener('mousedown', onInteractionStart);
+                interactionZone.addEventListener('touchstart', (e) => {
+                    onInteractionStart();
+                }, { passive: true });
+                
+                window.addEventListener('mouseup', onInteractionEnd);
+                window.addEventListener('touchend', onInteractionEnd);
+
+                window.addEventListener('mousemove', (e) => {
+                    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                });
+
+                // Animation Loop
+                const animate = function (time) {
+                    requestAnimationFrame(animate);
+
+                    // Idle Bobbing and Tilting
+                    const bob = Math.sin(time * 0.002) * 0.2;
+                    ship.position.y = bob;
+                    ship.rotation.y = THREE.MathUtils.lerp(ship.rotation.y, mouseX * 0.5, 0.05);
+                    ship.rotation.z = THREE.MathUtils.lerp(ship.rotation.z, -mouseX * 0.3, 0.05);
+                    ship.rotation.x = THREE.MathUtils.lerp(ship.rotation.x, -mouseY * 0.2, 0.05);
+
+                    // Dynamic Glow Response
+                    const targetIntensity = isEngaged ? 5 : 0.8;
+                    const targetScale = isEngaged ? 3.5 : 1.5;
+                    const targetOpacity = isEngaged ? 1.0 : 0.6;
+
+                    engineLight.intensity = THREE.MathUtils.lerp(engineLight.intensity, targetIntensity, 0.15);
+                    glowSprite.scale.x = THREE.MathUtils.lerp(glowSprite.scale.x, targetScale, 0.15);
+                    glowSprite.scale.y = THREE.MathUtils.lerp(glowSprite.scale.y, targetScale, 0.15);
+                    glowSprite.material.opacity = THREE.MathUtils.lerp(glowSprite.material.opacity, targetOpacity, 0.15);
+
+                    // Pulsing effect when engaged
+                    if (isEngaged) {
+                        const pulse = Math.sin(time * 0.02) * 0.5 + 1;
+                        glowSprite.scale.multiplyScalar(pulse);
+                        engineLight.intensity *= pulse;
+                    }
+
+                    renderer.render(scene, camera);
+                };
+
+                animate(0);
+
+                // Handle Resize
+                window.addEventListener('resize', () => {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                });
+            }
+
+            const cards = document.querySelectorAll('.glass-panel');
+            const observerOptions = { threshold: 0.1 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-10', 'duration-1000');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            cards.forEach(card => observer.observe(card));
+
+            // Micro-interaction for primary button
+            const mainBtn = document.querySelector('.crimson-glow');
+            if (mainBtn) {
+                mainBtn.addEventListener('mousedown', () => {
+                    document.body.style.filter = 'contrast(1.2) brightness(0.8)';
+                    setTimeout(() => {
+                        document.body.style.filter = 'none';
+                    }, 100);
+                });
+            }
+        });
+    </script>
+</body></html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>KAMIKAZE | SYSTEM PROTOCOLS</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Epilogue:wght@900&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#201f1f",
+                    "on-primary-fixed-variant": "#900039",
+                    "inverse-primary": "#bc004d",
+                    "on-tertiary": "#2f3131",
+                    "outline": "#ab888d",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error": "#690005",
+                    "primary-fixed-dim": "#ffb2be",
+                    "surface-bright": "#3a3939",
+                    "on-surface-variant": "#e4bdc2",
+                    "surface-container-highest": "#353534",
+                    "primary": "#ffb2be",
+                    "background": "#131313",
+                    "outline-variant": "#5b3f44",
+                    "error": "#ffb4ab",
+                    "on-background": "#e5e2e1",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "tertiary": "#c6c6c7",
+                    "surface-tint": "#ffb2be",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "surface-variant": "#353534",
+                    "on-primary-fixed": "#3f0015",
+                    "primary-container": "#e0115f",
+                    "on-secondary-fixed": "#002020",
+                    "tertiary-fixed": "#e2e2e2",
+                    "secondary-fixed-dim": "#00dddd",
+                    "secondary": "#49f9f9",
+                    "tertiary-container": "#727373",
+                    "on-primary-container": "#fff8f8",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-high": "#2a2a2a",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#005c5c",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-secondary": "#003737",
+                    "error-container": "#93000a",
+                    "on-tertiary-container": "#fafafa",
+                    "on-primary": "#660026",
+                    "inverse-on-surface": "#313030",
+                    "secondary-fixed": "#49f9f9",
+                    "primary-fixed": "#ffd9de",
+                    "inverse-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "secondary-container": "#00dddd",
+                    "surface-dim": "#131313"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "grid-margin": "40px",
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "subheading": ["Geist"],
+                    "body-rt": ["Geist"],
+                    "headline-lg": ["Anton"],
+                    "kanji-decorative": ["Epilogue"],
+                    "display-xl-mobile": ["Anton"],
+                    "display-xl": ["Anton"],
+                    "mono-label": ["Space Mono"]
+            },
+            "fontSize": {
+                    "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                    "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .shoji-divider {
+            background: linear-gradient(to bottom, transparent, #e0115f, transparent);
+            width: 2px;
+        }
+        .glass-panel {
+            background: rgba(73, 249, 249, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.2s linear infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(73, 249, 249, 0.05) 50%);
+            background-size: 100% 4px;
+        }
+        .kanji-watermark {
+            opacity: 0.05;
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            pointer-events: none;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 1000px;
+        }
+        .accordion-item.active .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-rt selection:bg-secondary selection:text-on-secondary overflow-x-hidden">
+<!-- HUD BACKGROUND ELEMENTS -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute inset-0 scanline opacity-30"></div>
+
+</div>
+<!-- TOP NAVIGATION BAR (Based on Shared Components) -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-secondary/30 shadow-[0_0_20px_rgba(73,249,249,0.1)] h-16 flex justify-between items-center px-gutter">
+<div class="flex items-center gap-2 active:scale-95 transition-transform cursor-pointer" onclick="window.history.back()">
+<span class="material-symbols-outlined text-primary">arrow_back_ios</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">Back to Start</span>
+</div>
+<div class="font-display-xl-mobile text-headline-lg-mobile text-primary tracking-tighter italic font-headline-lg">
+            神風 KAMIKAZE
+        </div>
+<div class="flex items-center gap-2">
+<span class="bg-primary-container text-on-primary-container font-mono-label text-[10px] px-2 py-0.5 rounded border border-primary/50">SECURE_LINK</span>
+<span class="material-symbols-outlined text-secondary">sensors</span>
+</div>
+</nav>
+<!-- MAIN CONTENT CANVAS -->
+<main class="relative z-10 pt-24 pb-32 px-4 max-w-lg mx-auto">
+<!-- HEADER BRIEFING -->
+<header class="mb-10 relative">
+<div class="flex items-center gap-4 mb-2">
+<div class="h-[2px] flex-1 bg-secondary/30"></div>
+<span class="font-mono-label text-secondary tracking-[0.3em] text-[10px] uppercase">Protocol 00-LEGAL</span>
+<div class="h-[2px] flex-1 bg-secondary/30"></div>
+</div>
+<h1 class="font-headline-lg text-headline-lg-mobile text-on-surface leading-none uppercase mb-2">System Protocols</h1>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary animate-pulse"></span>
+<span class="font-mono-label text-on-surface-variant text-[11px]">STATE: MANDATORY_REVIEW</span>
+</div>
+<span class="font-mono-label text-primary text-[11px] font-bold">V.2124.0.9</span>
+</div>
+</header>
+<!-- DOSSIER ACCORDIONS -->
+<section class="space-y-4">
+<!-- 13+ Age Requirement -->
+<div class="accordion-item glass-panel rounded-lg overflow-hidden border-l-4 border-l-secondary active">
+<button class="w-full p-4 flex justify-between items-center text-left" onclick="toggleAccordion(this.parentElement)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-subheading text-on-surface uppercase tracking-tighter">Age Requirement</span>
+</div>
+<span class="material-symbols-outlined text-secondary chevron transition-transform">expand_more</span>
+</button>
+<div class="accordion-content px-4 pb-4">
+<div class="pt-2 border-t border-secondary/20 font-mono-label text-[13px] text-on-surface-variant leading-relaxed">
+                        In accordance with global digital safety mandates, access to KAMIKAZE Tactical Operations is strictly restricted to individuals <span class="text-primary font-bold">13 years of age or older</span>. By proceeding, you confirm that you meet this biological age threshold.
+                    </div>
+</div>
+</div>
+<!-- Privacy Policy -->
+<div class="accordion-item glass-panel rounded-lg overflow-hidden border-l-4 border-l-primary/30">
+<button class="w-full p-4 flex justify-between items-center text-left" onclick="toggleAccordion(this.parentElement)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">visibility_off</span>
+<span class="font-subheading text-on-surface uppercase tracking-tighter">Privacy Policy</span>
+</div>
+<span class="material-symbols-outlined text-secondary chevron transition-transform">expand_more</span>
+</button>
+<div class="accordion-content px-4 pb-4">
+<div class="pt-2 border-t border-secondary/20 space-y-3 font-mono-label text-[13px] text-on-surface-variant">
+<p>Our data harvesting is minimal and strictly operational. We collect:</p>
+<ul class="list-disc pl-5 space-y-1 text-secondary/80">
+<li>Telemetry &amp; Gameplay performance metrics</li>
+<li>Unique device identification tags</li>
+<li>Session duration and frequency</li>
+</ul>
+<p>We leverage <span class="text-secondary font-bold">Puter Cloud Infrastructure</span> for secure, decentralized data management. Your biometric signatures are never stored outside of local encrypted hardware.</p>
+</div>
+</div>
+</div>
+<!-- Terms of Service -->
+<div class="accordion-item glass-panel rounded-lg overflow-hidden border-l-4 border-l-primary/30">
+<button class="w-full p-4 flex justify-between items-center text-left" onclick="toggleAccordion(this.parentElement)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">gavel</span>
+<span class="font-subheading text-on-surface uppercase tracking-tighter">Terms of Service</span>
+</div>
+<span class="material-symbols-outlined text-secondary chevron transition-transform">expand_more</span>
+</button>
+<div class="accordion-content px-4 pb-4">
+<div class="pt-2 border-t border-secondary/20 font-mono-label text-[13px] text-on-surface-variant leading-relaxed">
+                        Usage of the KAMIKAZE interface constitutes a binding contract between the Pilot and NEO-TOKYO AEROSPACE. Disruption of system services, reverse-engineering of tactical firmware, or unauthorized flight patterns are grounds for immediate terminal lockout.
+                    </div>
+</div>
+</div>
+<!-- Compliance -->
+<div class="accordion-item glass-panel rounded-lg overflow-hidden border-l-4 border-l-primary/30">
+<button class="w-full p-4 flex justify-between items-center text-left" onclick="toggleAccordion(this.parentElement)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">security</span>
+<span class="font-subheading text-on-surface uppercase tracking-tighter">Compliance</span>
+</div>
+<span class="material-symbols-outlined text-secondary chevron transition-transform">expand_more</span>
+</button>
+<div class="accordion-content px-4 pb-4">
+<div class="pt-2 border-t border-secondary/20 font-mono-label text-[13px] text-on-surface-variant leading-relaxed">
+                        Full adherence to <span class="text-secondary">CCPA</span>, <span class="text-secondary">GDPR</span>, and <span class="text-secondary">COPPA</span> frameworks. All data processing is transparent and subject to the jurisdiction of Neo-Tokyo Aerospace Regulatory Board.
+                    </div>
+</div>
+</div>
+<!-- Licensing -->
+<div class="accordion-item glass-panel rounded-lg overflow-hidden border-l-4 border-l-primary/30 relative">
+<span class="font-kanji-decorative kanji-watermark text-primary select-none">法</span>
+<button class="w-full p-4 flex justify-between items-center text-left" onclick="toggleAccordion(this.parentElement)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">copyright</span>
+<span class="font-subheading text-on-surface uppercase tracking-tighter">Licensing</span>
+</div>
+<span class="material-symbols-outlined text-secondary chevron transition-transform">expand_more</span>
+</button>
+<div class="accordion-content px-4 pb-4">
+<div class="pt-2 border-t border-secondary/20 font-mono-label text-[13px] text-on-surface-variant leading-relaxed">
+                        KAMIKAZE is proprietary tech. Unauthorized replication or commercial exploitation of the Asanoha grid or Sumi-e visual modules is strictly prohibited under international aerospace law.
+                    </div>
+</div>
+</div>
+</section>
+<!-- CONSENT & CTA -->
+<footer class="mt-12 space-y-6">
+<label class="flex items-start gap-4 group cursor-pointer">
+<div class="relative mt-1">
+<input class="peer hidden" id="consent-check" type="checkbox"/>
+<div class="w-6 h-6 border-2 border-secondary bg-transparent peer-checked:bg-secondary transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-background scale-0 peer-checked:scale-100 transition-transform font-bold">check</span>
+</div>
+<!-- Decorative brackets -->
+<div class="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-primary"></div>
+</div>
+<div class="font-mono-label text-[11px] text-on-surface-variant uppercase leading-tight select-none">
+                    I acknowledge that I have read and agree to all <span class="text-secondary underline underline-offset-2">System Protocols</span> and biological age requirements.
+                </div>
+</label>
+<div class="relative group">
+<button class="w-full py-5 bg-primary-container text-on-primary-container font-headline-lg text-subheading uppercase tracking-widest glitch-hover relative z-10 overflow-hidden disabled:opacity-50 disabled:grayscale transition-all" disabled="" id="cta-button">
+<div class="flex items-center justify-center gap-4">
+<span>I Agree &amp; Continue</span>
+<span class="material-symbols-outlined">bolt</span>
+</div>
+</button>
+<!-- Decorative offsets for Brutalist feel -->
+<div class="absolute inset-0 translate-x-1 translate-y-1 bg-secondary -z-0 opacity-20 group-hover:opacity-40 transition-opacity"></div>
+</div>
+<p class="text-center font-mono-label text-[10px] text-outline uppercase tracking-widest opacity-60">
+                Secured via End-to-End Encryption Terminal
+            </p>
+</footer>
+</main>
+<!-- FOOTER LOGO (Simplified for Mobile Dossier) -->
+<div class="py-12 border-t border-dashed border-secondary/30 bg-surface-container-high flex flex-col items-center">
+<span class="font-kanji-decorative text-headline-lg text-primary mb-2 select-none">神風</span>
+<span class="font-mono-label text-[10px] text-on-surface-variant opacity-60 uppercase">© 2124 NEO-TOKYO AEROSPACE</span>
+</div>
+<script>
+        function toggleAccordion(element) {
+            const isActive = element.classList.contains('active');
+            
+            // Close all others
+            document.querySelectorAll('.accordion-item').forEach(item => {
+                item.classList.remove('active');
+                item.classList.add('border-l-primary/30');
+                item.classList.remove('border-l-secondary');
+            });
+
+            if (!isActive) {
+                element.classList.add('active');
+                element.classList.remove('border-l-primary/30');
+                element.classList.add('border-l-secondary');
+                
+                // Haptic feel
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            }
+        }
+
+        // Enable button logic
+        const checkbox = document.getElementById('consent-check');
+        const cta = document.getElementById('cta-button');
+
+        checkbox.addEventListener('change', () => {
+            cta.disabled = !checkbox.checked;
+            if (checkbox.checked) {
+                cta.classList.add('shadow-[0_0_20px_#e0115f]');
+            } else {
+                cta.classList.remove('shadow-[0_0_20px_#e0115f]');
+            }
+        });
+
+        cta.addEventListener('click', () => {
+            if (!cta.disabled) {
+                // Tactical Glitch effect on click
+                cta.innerText = "LINKING...";
+                cta.classList.add('scale-95');
+                setTimeout(() => {
+                    cta.classList.add('bg-secondary', 'text-on-secondary');
+                    cta.innerText = "ACCESS GRANTED";
+                }, 800);
+            }
+        });
+
+        // Background atmosphere micro-interaction
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.querySelector('main').style.transform = `perspective(1000px) rotateX(${(y - 0.5) * 2}deg) rotateY(${(x - 0.5) * 2}deg)`;
+        });
+    </script>
+</body></html>

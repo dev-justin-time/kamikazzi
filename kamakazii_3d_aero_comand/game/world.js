@@ -4,6 +4,7 @@
 
 
 import * as THREE from 'https://esm.sh/three@0.128.0';
+import { GLTFLoader } from 'https://esm.sh/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
 import { buildPlane, loadPlaneFromGLB } from './world/plane/factory.js';
 import { PlaneController } from './world/plane/controller.js';
@@ -287,26 +288,88 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     strips.push(s);
   }
 
-  // ---- clouds (shared white material — was 0xff5a5a red) ----
-  const cloudMat = new THREE.MeshLambertMaterial({ color: TUNING.CLOUD_COLOR });
-  function makeCloud() {
-    const g = new THREE.Group();
-    const puffs = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < puffs; i++) {
-      const r = 4 + Math.random() * 5;
-      const puff = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 8), cloudMat);
-      puff.position.set((Math.random() - 0.5) * 16, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 10);
-      g.add(puff);
-    }
-    return g;
-  }
+  // ---- clouds (rain_1 GLTF model — randomly spawned, recycled, cleaned up) ----
   const clouds = [];
-  for (let i = 0; i < TUNING.CLOUD_COUNT; i++) {
-    const c = makeCloud();
-    c.position.set((Math.random() - 0.5) * 200, 20 + Math.random() * 40, -Math.random() * 600);
-    scene.add(c);
-    clouds.push(c);
+  let cloudSourceModel = null;  // source GLTF scene, cloned for each cloud instance
+
+  async function initClouds() {
+    try {
+      const loader = new GLTFLoader();
+      const gltf = await new Promise((resolve, reject) => {
+        loader.load('/assets/model/rain_1/scene.gltf', resolve, undefined, reject);
+      });
+      cloudSourceModel = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+      if (!cloudSourceModel) { console.warn('initClouds: no scene in GLTF'); return; }
+
+      // Tint all meshes white for cloud appearance — preserve textures but
+      // multiply color toward white so dark parts read as cloud shadow.
+      cloudSourceModel.traverse(node => {
+        if (node.isMesh && node.material) {
+          const mats = Array.isArray(node.material) ? node.material : [node.material];
+          for (const m of mats) {
+            if (m.color) m.color.setHex(TUNING.CLOUD_COLOR);
+            if (m.emissive) m.emissive.setHex(0x444444);
+            m.emissiveIntensity = 0.15;
+            m.transparent = true;
+            m.opacity = 0.78;
+            m.depthWrite = true;
+          }
+        }
+      });
+
+      // Spawn the cloud pool — each instance is a clone with random
+      // scale, rotation, and position so the sky reads as varied.
+      for (let i = 0; i < TUNING.CLOUD_COUNT; i++) {
+        const clone = cloudSourceModel.clone(true);
+        const s = 0.03 + Math.random() * 0.08;            // varied puff sizes
+        clone.scale.set(s, s * (0.6 + Math.random() * 0.8), s);
+        clone.rotation.set(
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2
+        );
+        clone.position.set(
+          (Math.random() - 0.5) * 200,
+          20 + Math.random() * 40,
+          -Math.random() * 600
+        );
+        clone.castShadow = false;
+        clone.receiveShadow = false;
+        scene.add(clone);
+        clouds.push(clone);
+      }
+    } catch (e) {
+      console.warn('initClouds: GLTF load failed, using procedural fallback', e);
+      initProceduralClouds();
+    }
   }
+
+  // Procedural fallback — same sphere-puff clouds as before, kept so the
+  // sky always has *something* even if the GLTF file is missing.
+  function initProceduralClouds() {
+    const cloudMat = new THREE.MeshLambertMaterial({ color: TUNING.CLOUD_COLOR });
+    function makeCloud() {
+      const g = new THREE.Group();
+      const puffs = 3 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < puffs; i++) {
+        const r = 4 + Math.random() * 5;
+        const puff = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 8), cloudMat);
+        puff.position.set((Math.random() - 0.5) * 16, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 10);
+        g.add(puff);
+      }
+      return g;
+    }
+    for (let i = 0; i < TUNING.CLOUD_COUNT; i++) {
+      const c = makeCloud();
+      c.position.set((Math.random() - 0.5) * 200, 20 + Math.random() * 40, -Math.random() * 600);
+      scene.add(c);
+      clouds.push(c);
+    }
+  }
+
+  // Fire-and-forget: kick off GLTF cloud load in the background.
+  // Falls back to procedural sphere-puffs if the GLTF file is missing.
+  initClouds();
 
   // ---- engine sound (best-effort, plays after first user gesture) ----
   function attachEngineSoundTo(obj) {
@@ -1483,6 +1546,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         try { room.dispose(); } catch (_) {}
       }
       Object.values(peersMeshes).forEach(m => removeAndDispose(m));
+      // No explicit cloud disposal — clone(true) shares geometries/materials
+      // across all instances; disposeScene(scene) below handles everything.
+      clouds.length = 0;
+      cloudSourceModel = null;
       window.removeEventListener('resize', syncBgAspect);
       bg.dispose();
       explosion.dispose();

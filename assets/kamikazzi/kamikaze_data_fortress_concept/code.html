@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>神風 KAMIKAZE | DATA FORTRESS TERMINAL</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Epilogue:wght@900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --obsidian: #0e0e0e;
+            --olive-dark: #1a1c1a;
+            --olive-mid: #2d362d;
+            --amber: #ffb000;
+            --green-terminal: #00ff41;
+            --border-color: rgba(0, 255, 65, 0.2);
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--obsidian);
+            color: var(--green-terminal);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+
+        .terminal-border {
+            border: 1px solid var(--border-color);
+        }
+
+        .terminal-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+        }
+
+        .brutalist-button {
+            border: 2px solid var(--green-terminal);
+            background: transparent;
+            padding: 12px 24px;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.2s;
+            border-radius: 0;
+            position: relative;
+        }
+
+        .brutalist-button:hover {
+            background: var(--green-terminal);
+            color: var(--obsidian);
+            box-shadow: 4px 4px 0px var(--amber);
+        }
+
+        .folder-tab {
+            position: relative;
+            background: var(--olive-mid);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            padding: 4px 16px;
+            display: inline-block;
+            clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+            margin-bottom: -1px;
+            z-index: 10;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 255, 65, 0) 0%,
+                rgba(0, 255, 65, 0.03) 50%,
+                rgba(0, 255, 65, 0) 100%
+            );
+            position: absolute;
+            top: -100%;
+            left: 0;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        @keyframes scan {
+            from { top: -100%; }
+            to { top: 100%; }
+        }
+
+        .code-scroll {
+            mask-image: linear-gradient(to bottom, transparent, black, transparent);
+            opacity: 0.1;
+        }
+
+        .crv-distort {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00ff41",
+                        "secondary": "#ffb000",
+                        "background": "#0e0e0e",
+                        "surface": "#1a1c1a",
+                        "on-surface": "#00ff41",
+                        "outline": "rgba(0, 255, 65, 0.3)"
+                    },
+                    fontFamily: {
+                        "mono-label": ["Space Mono"],
+                        "display-xl": ["Space Mono"],
+                        "headline-lg": ["Space Mono"],
+                        "body-rt": ["Space Mono"],
+                        "kanji-decorative": ["Epilogue"]
+                    },
+                    spacing: {
+                        "gutter": "24px",
+                        "section-gap": "80px",
+                        "grid-margin": "40px"
+                    }
+                }
+            }
+        }
+    </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="bg-background text-primary terminal-grid selection:bg-primary selection:text-background">
+<div class="crv-distort"></div>
+<div class="scanline"></div>
+<!-- NAVIGATION SHELL -->
+<header class="fixed top-0 w-full z-50 bg-background/90 border-b border-outline flex justify-between items-center px-gutter h-14 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-xl cursor-pointer hover:text-secondary">terminal</span>
+<div class="font-bold tracking-tighter text-lg">神風 KAMIKAZE [v4.0.0-STABLE]</div>
+</div>
+<div class="hidden md:flex gap-8 items-center text-[10px] tracking-widest font-bold">
+<nav class="flex gap-6 uppercase">
+<a class="text-primary hover:text-secondary border-b-2 border-primary" href="#">/HANGAR</a>
+<a class="text-primary/60 hover:text-primary transition-all" href="#">/MISSIONS</a>
+<a class="text-primary/60 hover:text-primary transition-all" href="#">/RANK</a>
+<a class="text-primary/60 hover:text-primary transition-all" href="#">/DEPLOY</a>
+</nav>
+<div class="flex items-center gap-2 text-secondary">
+<span class="w-2 h-2 bg-secondary animate-pulse rounded-full"></span>
+            SYS_LINK_OK
+        </div>
+</div>
+</header>
+<!-- HERO SECTION -->
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-grid-margin z-10" id="hero-interactive-zone">
+<div class="absolute inset-0 z-0 opacity-50">
+<div class="w-full h-full" id="threejs-canvas-container"></div>
+</div>
+<div class="relative z-20 flex flex-col items-center text-center max-w-4xl border border-outline bg-background/60 p-8 md:p-12">
+<div class="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-primary"></div>
+<img class="w-24 h-24 object-contain mb-8 grayscale invert brightness-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB8YpCX1s9fveITHBMvVDPCKGplqGd5fnwA85yXL9SyBllUWTRRGGcE05sg3h3qFl6zxVUD78mM1etrlN9Rucb2a3QwJa3ZAv4VF0I0EDrzrsMKksrqk1e5LTPQ6PWO3h-u35AaXCOCfBZWc9p18aSI_9s8FH9JIaQ9NCwQG31hzM88pKMiDopxWDvEelz7Y8us16AQR3yTcFphm6XwVv2FOB9btzLsmr7aosOlD9mCyw6azTh6ylxvK4i8O4hJpWToTy36UsJMaVv"/>
+<div class="mb-4 text-xs font-bold text-secondary uppercase tracking-[0.5em] flex items-center gap-2">
+<span class="w-8 h-[1px] bg-secondary"></span>
+            NEO-TOKYO AERO-TACTICS
+            <span class="w-8 h-[1px] bg-secondary"></span>
+</div>
+<h1 class="text-5xl md:text-8xl font-bold mb-6 tracking-tighter uppercase leading-none">
+            DEFY THE <span class="text-secondary">WIND</span>
+</h1>
+<p class="text-sm md:text-base text-primary/80 mb-12 max-w-xl leading-relaxed">
+            &gt; INITIALIZING NEURAL LINK...<br/>
+            &gt; CALIBRATING VECTORS...<br/>
+            &gt; Awaiting Pilot Authentication for deployment in Neo-Tokyo Sector 07.
+        </p>
+<div class="flex flex-col md:flex-row gap-6 items-center">
+<button class="brutalist-button group flex items-center gap-4">
+<span>[ EXECUTE_DEPLOYMENT ]</span>
+<span class="material-symbols-outlined group-hover:translate-x-1">login</span>
+</button>
+<div class="text-[10px] text-primary/40 font-bold">
+                PRESS_ANY_KEY_TO_CONTINUE
+            </div>
+</div>
+<div class="mt-16 grid grid-cols-2 gap-12 border-t border-outline pt-8 w-full">
+<div class="flex flex-col items-center">
+<span class="text-2xl font-bold text-secondary">4.2M</span>
+<span class="text-[10px] opacity-60">ACTIVE_PILOTS</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-2xl font-bold text-secondary">0.03s</span>
+<span class="text-[10px] opacity-60">LATENCY_MS</span>
+</div>
+</div>
+</div>
+</section>
+<!-- FEATURES SECTION -->
+<section class="relative py-section-gap px-grid-margin z-20 max-w-7xl mx-auto">
+<div class="flex items-end justify-between mb-2">
+<div class="folder-tab">
+<span class="text-xs font-bold">DATA_LOG: SPECS</span>
+</div>
+</div>
+<div class="border border-outline bg-surface/30 p-1">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-1">
+<!-- Card 1 -->
+<div class="md:col-span-7 border border-outline bg-background p-8 relative group overflow-hidden">
+<div class="flex justify-between items-start mb-12">
+<div>
+<div class="text-[10px] text-secondary font-bold mb-2">01_PROPULSION</div>
+<h3 class="text-3xl font-bold uppercase italic">SUPERSONIC AGILITY</h3>
+</div>
+<span class="material-symbols-outlined text-4xl text-secondary">settings_input_component</span>
+</div>
+<p class="text-sm text-primary/70 mb-8 leading-relaxed">
+                    Experience the raw power of the H-9 'Hayabusa' engine. 360-degree vectoring thrust allows for maneuvers that defy gravity and conventional physics in the neon-lit canyons of Neo-Tokyo.
+                </p>
+<div class="font-bold text-[10px] space-y-1">
+<div class="flex justify-between"><span>THRUST_VECTOR:</span> <span class="text-secondary">ACTIVE</span></div>
+<div class="flex justify-between"><span>G_LIMIT:</span> <span class="text-secondary">9.5G</span></div>
+</div>
+<div class="absolute bottom-4 right-4 opacity-10 pointer-events-none">
+<span class="font-kanji-decorative text-8xl">速</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="md:col-span-5 border border-outline bg-olive-dark p-8 relative flex flex-col justify-between">
+<div class="text-center">
+<div class="text-[10px] text-secondary font-bold mb-4">02_DEFENSE</div>
+<span class="material-symbols-outlined text-5xl text-primary mb-4">security</span>
+<h3 class="text-xl font-bold uppercase mb-4">KATANA CLASS SHIELDS</h3>
+<p class="text-xs text-primary/60">Reflective energy plating capable of parrying high-frequency laser fire.</p>
+</div>
+<div class="mt-8 bg-black/40 p-4 border border-outline/50">
+<div class="flex justify-between text-[10px] mb-2 font-bold">
+<span>INTEGRITY_INDEX</span>
+<span>98%</span>
+</div>
+<div class="grid grid-cols-20 gap-0.5 h-2">
+<div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div>
+<div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div>
+<div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div>
+<div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-outline"></div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="md:col-span-12 border border-outline bg-background h-80 relative group overflow-hidden">
+<div class="absolute inset-0 grayscale opacity-20 group-hover:opacity-40 transition-all duration-700 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAarTS4JASXnQdnJlYdog_QL8LJ6hA6ENS_lQG5-iB8LMhC2aJRqKZZ1nwjDpfXplFYcYxZKgvMtPRoyPaVYvOF5ufjnaMwZ00vGEHDTC_WNAHxdICskpV7VLQKvdjKrK7jIk1IIbnQWcWuGEkUJI8NFQSwKPoiJmnZeVuAk-MRwg91N-NYmM6ziSQ7SGVAULP_o5kLL63jJD_PhDYFCOpdRoEB1vv0bNCmzAl0E_c7vZsu-6P2wrRVPuUKducksV4GqVNBY0e5zjH0')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent"></div>
+<div class="relative z-10 h-full p-10 flex flex-col justify-center max-w-xl">
+<div class="text-[10px] text-secondary font-bold mb-2">03_ENVIRONMENT</div>
+<h3 class="text-4xl font-bold uppercase mb-4">NEO-TOKYO HUB</h3>
+<p class="text-sm text-primary/70 mb-6">Master every district from vertical slums to aerospace gardens. Real-time dynamic weather and global leaderboards active.</p>
+<button class="flex items-center gap-2 text-xs font-bold text-secondary hover:underline">
+                        &gt; LOAD_TACTICAL_MAP.EXE
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- PILOT BRIEFING SECTION -->
+<section class="relative py-section-gap">
+<div class="max-w-4xl mx-auto px-grid-margin">
+<div class="folder-tab">
+<span class="text-xs font-bold">TOP_SECRET: BRIEFING</span>
+</div>
+<div class="border border-outline bg-olive-dark/40 p-8 md:p-16 relative">
+<div class="grid md:grid-cols-2 gap-12">
+<div class="space-y-6">
+<h2 class="text-3xl font-bold uppercase tracking-widest text-secondary">PILOT BRIEFING</h2>
+<div class="space-y-4 text-sm leading-relaxed">
+<p><span class="text-secondary font-bold">// OBJECTIVE:</span> Infiltrate the Kuro-Sawa data fortress and extract the neural core before the orbital strike countdown hits zero.</p>
+<p><span class="text-secondary font-bold">// RULES:</span> Full throttle engagement authorized. Avoid collateral damage to civilian energy grids to maintain your stealth rating.</p>
+</div>
+<div class="border-l-2 border-secondary pl-4 py-2 bg-secondary/5">
+<p class="text-xs italic opacity-70">"The wind does not break the bamboo that bends. But the Kamikaze is the wind itself." - Commander Sato</p>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 border-l border-outline/30 pl-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">fingerprint</span>
+<div class="text-[10px]">
+<div class="font-bold">BIO-METRIC LOCK</div>
+<div class="opacity-60 italic">Neural link: 99.8% SYNC</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">deployed_code</span>
+<div class="text-[10px]">
+<div class="font-bold">COCKPIT INJECTION</div>
+<div class="opacity-60 italic">Liquid coolant active</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">history_edu</span>
+<div class="text-[10px]">
+<div class="font-bold">LOG PROTOCOL</div>
+<div class="opacity-60 italic">Flight recorder: ARMED</div>
+</div>
+</div>
+<div class="mt-4 px-4 py-2 bg-secondary/10 border border-secondary text-secondary text-[10px] font-bold text-center animate-pulse">
+                        TRANSMITTING_ENCRYPTED_SIGNAL...
+                    </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA SECTION -->
+<section class="py-section-gap text-center relative z-20">
+<div class="max-w-3xl mx-auto px-grid-margin border-t border-outline pt-16">
+<h2 class="text-4xl md:text-6xl font-bold mb-8 uppercase tracking-tighter">THE SKY IS <span class="text-secondary">YOURS</span></h2>
+<p class="text-sm text-primary/60 mb-12 uppercase tracking-widest">Available now on Neo-Link, Steam, and Neural-Interface Gear.</p>
+<div class="flex flex-col md:flex-row gap-4 justify-center">
+<button class="brutalist-button">GET_ON_STEAM</button>
+<button class="brutalist-button border-secondary text-secondary">WATCH_TRAILER_CLIP</button>
+</div>
+</div>
+</section>
+<!-- FOOTER -->
+<footer class="w-full mt-section-gap bg-olive-dark border-t border-primary/20 py-12 px-grid-margin">
+<div class="max-w-7xl mx-auto flex flex-col items-center gap-8">
+<div class="text-4xl font-bold tracking-tighter opacity-50">神風 KAMIKAZE</div>
+<div class="flex flex-wrap justify-center gap-8 text-[10px] font-bold tracking-widest uppercase">
+<a class="text-primary hover:text-secondary" href="#">PROTOCOL</a>
+<a class="text-primary/60 hover:text-primary" href="#">INTEL</a>
+<a class="text-primary/60 hover:text-primary" href="#">SUPPORT</a>
+<a class="text-primary/60 hover:text-primary" href="#">CAREERS</a>
+</div>
+<div class="flex gap-6 opacity-60">
+<span class="material-symbols-outlined hover:text-secondary cursor-pointer">terminal</span>
+<span class="material-symbols-outlined hover:text-secondary cursor-pointer">radar</span>
+<span class="material-symbols-outlined hover:text-secondary cursor-pointer">share</span>
+</div>
+<p class="text-[9px] opacity-30 text-center uppercase tracking-widest">
+            © 2124 NEO-TOKYO AEROSPACE. DATA_ENCRYPTION_AES-512_ACTIVE. LOGGED_AS_GUEST
+        </p>
+</div>
+</footer>
+<!-- MOBILE NAVIGATION BOTTOM BAR -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-background border-t border-primary flex justify-around items-center px-4 py-2 pb-safe">
+<a class="flex flex-col items-center justify-center text-primary p-2 border-t-2 border-primary" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[8px] font-bold">INIT</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary/40 p-2" href="#">
+<span class="material-symbols-outlined">task</span>
+<span class="text-[8px] font-bold">TASKS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary/40 p-2" href="#">
+<span class="material-symbols-outlined">equalizer</span>
+<span class="text-[8px] font-bold">STATS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary p-2" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-[8px] font-bold">EXE</span>
+</a>
+</nav>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('threejs-canvas-container');
+        if (container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Wireframe Ship
+            const ship = new THREE.Group();
+            const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ff41, wireframe: true, transparent: true, opacity: 0.4 });
+            
+            // Body
+            const bodyGeom = new THREE.ConeGeometry(0.5, 3, 4);
+            const body = new THREE.Mesh(bodyGeom, wireMat);
+            body.rotation.x = Math.PI / 2;
+            ship.add(body);
+
+            // Wings
+            const wingGeom = new THREE.BoxGeometry(4, 0.1, 1);
+            const wings = new THREE.Mesh(wingGeom, wireMat);
+            wings.position.y = -0.2;
+            ship.add(wings);
+
+            // Vertical Stabilizer
+            const tailGeom = new THREE.BoxGeometry(0.1, 1, 0.8);
+            const tail = new THREE.Mesh(tailGeom, wireMat);
+            tail.position.z = -1; tail.position.y = 0.5;
+            ship.add(tail);
+
+            // Scanning Bar (Visual Indicator)
+            const scanGeom = new THREE.CylinderGeometry(2.5, 2.5, 0.05, 32);
+            const scanMat = new THREE.MeshBasicMaterial({ color: 0x00ff41, transparent: true, opacity: 0.2 });
+            const scanBar = new THREE.Mesh(scanGeom, scanMat);
+            scanBar.rotation.x = Math.PI / 2;
+            ship.add(scanBar);
+
+            scene.add(ship);
+            camera.position.z = 5;
+
+            let mouseX = 0, mouseY = 0;
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const animate = function (time) {
+                requestAnimationFrame(animate);
+                
+                // Ship Rotation
+                ship.rotation.y = THREE.MathUtils.lerp(ship.rotation.y, mouseX * 0.5, 0.05);
+                ship.rotation.x = THREE.MathUtils.lerp(ship.rotation.x, -mouseY * 0.2, 0.05);
+                ship.position.y = Math.sin(time * 0.001) * 0.1;
+
+                // Scanning Bar Movement
+                scanBar.position.z = Math.sin(time * 0.002) * 2;
+                scanBar.material.opacity = (Math.sin(time * 0.01) * 0.2) + 0.3;
+
+                renderer.render(scene, camera);
+            };
+            animate(0);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+    });
+</script>
+</body></html>

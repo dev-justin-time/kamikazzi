@@ -1,88 +1,382 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — Mission Terminated</title>
-<link rel="stylesheet" href="styles.css">
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MISSION TERMINATED | KAMIKAZE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Epilogue:wght@900&amp;family=Geist:wght@400;600&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
-  .page-content { background: radial-gradient(ellipse at center, rgba(30,10,10,0.6), rgba(10,5,5,0.9)); justify-content: center; overflow-y: auto; }
-  .nav-links { margin-top: 20px; text-align: center; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .nav-links a { color: rgba(152,203,255,0.3); text-decoration: none; border-bottom: 1px dotted rgba(152,203,255,0.1); transition: color 0.15s; }
-  .nav-links a:hover { color: #98cbff; }
-</style>
-</head>
-<body>
-<div class="nav-bar">
-  <a href="crash.html" class="nav-back">← Crash</a>
-  <span class="nav-title">❌ Mission Terminated</span>
-  <a href="start.html" class="nav-close" title="Quit to menu">✕</a>
-</div>
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+        }
+        .animate-pulse-red { animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #ffb2be, transparent);
+            opacity: 0.1;
+            position: absolute;
+            animation: scanline 8s linear infinite;
+        }
 
-<div class="page-content">
-  <div class="mission-panel">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+        .glitch-border {
+            position: relative;
+        }
+        .glitch-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 1px solid #e0115f;
+            opacity: 0.5;
+            z-index: -1;
+            animation: glitch-offset 4s steps(2) infinite;
+        }
+        @keyframes glitch-offset {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            100% { transform: translate(0, 0); }
+        }
 
-    <div class="mission-header">
-      <div class="signal-lost">
-        <span class="warn-icon">!</span>
-        <span>SIGNAL LOST</span>
+        .bg-sumi {
+            background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 1) 0%, rgba(10, 10, 10, 1) 100%);
+        }
+        
+        .asana-grid {
+            background-image: radial-gradient(#49f9f9 0.5px, transparent 0.5px);
+            background-size: 32px 32px;
+            opacity: 0.05;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary-fixed": "#002020",
+                        "inverse-primary": "#bc004d",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-tint": "#ffb2be",
+                        "on-surface": "#e5e2e1",
+                        "surface-dim": "#131313",
+                        "secondary-fixed-dim": "#00dddd",
+                        "background": "#131313",
+                        "primary-fixed-dim": "#ffb2be",
+                        "on-error": "#690005",
+                        "secondary": "#49f9f9",
+                        "inverse-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "secondary-fixed": "#49f9f9",
+                        "on-tertiary": "#2f3131",
+                        "surface-container": "#201f1f",
+                        "outline": "#ab888d",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container-highest": "#353534",
+                        "on-primary-container": "#fff8f8",
+                        "tertiary": "#c6c6c7",
+                        "surface-container-high": "#2a2a2a",
+                        "outline-variant": "#5b3f44",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "inverse-on-surface": "#313030",
+                        "error-container": "#93000a",
+                        "on-secondary": "#003737",
+                        "primary": "#ffb2be",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#727373",
+                        "secondary-container": "#00dddd",
+                        "on-secondary-container": "#005c5c",
+                        "on-primary-fixed": "#3f0015",
+                        "on-background": "#e5e2e1",
+                        "on-primary": "#660026",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "surface-bright": "#3a3939",
+                        "primary-fixed": "#ffd9de",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-tertiary-container": "#fafafa",
+                        "on-surface-variant": "#e4bdc2",
+                        "surface-variant": "#353534",
+                        "primary-container": "#e0115f",
+                        "on-primary-fixed-variant": "#900039"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "120px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "grid-margin": "40px"
+                    },
+                    "fontFamily": {
+                        "kanji-decorative": ["Epilogue"],
+                        "display-xl": ["Anton"],
+                        "subheading": ["Geist"],
+                        "display-xl-mobile": ["Anton"],
+                        "body-rt": ["Geist"],
+                        "mono-label": ["Space Mono"],
+                        "headline-lg": ["Anton"]
+                    },
+                    "fontSize": {
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="pt-10 bg-background text-on-surface font-body-rt overflow-x-hidden min-h-screen">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
       </div>
-      <h1>MISSION TERMINATED</h1>
-      <div class="mission-divider"></div>
-    </div>
-
-    <div class="critical-box">
-      <div class="critical-bar"></div>
-      <div>
-        <div class="critical-label">CRITICAL SYSTEM FAILURE</div>
-        <div class="critical-sub">KERNEL_PANIC: IMPACT_DETECTED</div>
-      </div>
-    </div>
-
-    <div class="telemetry-grid">
-      <div class="telemetry-card">
-        <div class="telemetry-label">FINAL_SCORE</div>
-        <div class="telemetry-value"><span>12,847</span><span class="telemetry-unit">PTS</span></div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">SECTOR_ID</div>
-        <div class="telemetry-value" style="font-size:16px;">SECTOR_04</div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">DISTANCE_FLOWN</div>
-        <div class="telemetry-value"><span>8.42</span><span class="telemetry-unit">KM</span></div>
-      </div>
-    </div>
-
-    <div class="mission-stats">
-      <div>
-        <div>ALT_AT_IMPACT: <span>342.18m</span></div>
-        <div>THROTTLE_STATE: <span>1.3x</span></div>
-      </div>
-      <div style="text-align:right;">
-        <div class="stats-reason" style="color:#ffb4ab;">REASON: COLLISION_DETECTED</div>
-        <div>TIME_ELAPSED: <span>03:47</span></div>
-      </div>
-    </div>
-
-    <div class="best-score-line">PERSONAL BEST: <span>18,250</span></div>
-
-    <div class="mission-actions">
-      <a href="hud.html" class="mt-btn primary" style="text-decoration:none;">RETRY MISSION</a>
-      <a href="start.html" class="mt-btn secondary" style="text-decoration:none;">ABORT TO COMMAND</a>
     </div>
   </div>
-
-  <div class="nav-links">
-    <a href="mission-success.html">✅ Next: Success →</a>
-    <a href="crash.html">💥 Back to Crash</a>
-    <a href="pause.html">⏸ Pause</a>
-    <a href="boot.html">🖥️ Boot</a>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
   </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<!-- TOP APP BAR -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-secondary/30 dark:border-secondary/30 shadow-[0_0_20px_rgba(73,249,249,0.1)] flex justify-between items-center px-gutter h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">menu</span>
+<h1 class="font-display-xl-mobile text-display-xl-mobile text-primary dark:text-primary tracking-tighter italic">神風 KAMIKAZE</h1>
 </div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">sensors</span>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="relative pt-24 pb-32 px-4 md:px-grid-margin min-h-screen bg-sumi flex flex-col items-center">
+<!-- Background Decor -->
+<div class="absolute inset-0 asana-grid pointer-events-none"></div>
+<div class="scanline"></div>
+<!-- SIGNAL LOST WARNING -->
+<div class="w-full max-w-4xl mb-8">
+<div class="flex items-center gap-2 text-error animate-pulse-red">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-mono-label text-mono-label tracking-[0.2em] font-bold uppercase">SIGNAL LOST // TRANSMISSION INTERRUPTED</span>
+</div>
+<div class="h-[1px] w-full bg-gradient-to-right from-error via-error/20 to-transparent mt-2"></div>
+</div>
+<!-- HERO TERMINATION HEADER -->
+<div class="text-center mb-12">
+<h2 class="font-display-xl-mobile text-display-xl-mobile md:font-display-xl md:text-display-xl text-primary-container italic uppercase tracking-tighter shadow-primary-container drop-shadow-[0_0_15px_rgba(224,17,95,0.6)]">
+                MISSION TERMINATED
+            </h2>
+<div class="mt-4 bg-error-container/20 border border-error/40 px-6 py-3 inline-block backdrop-blur-md">
+<p class="font-mono-label text-mono-label text-error font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+                    CRITICAL SYSTEM FAILURE: KERNEL_PANIC: IMPACT_DETECTED
+                </p>
+</div>
+</div>
+<!-- CONTENT GRID -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 w-full max-w-5xl">
+<!-- LEFT: KEY TELEMETRY -->
+<div class="md:col-span-8 space-y-6">
+<!-- Bento Stats -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div class="bg-surface-container-low border-l-4 border-primary-container p-6 flex flex-col justify-between">
+<span class="font-mono-label text-mono-label text-outline uppercase">Final Score</span>
+<div class="mt-2">
+<span class="font-display-xl-mobile text-display-xl-mobile text-on-surface">12,847</span>
+<span class="text-primary font-mono-label text-mono-label ml-1">PTS</span>
+</div>
+</div>
+<div class="bg-surface-container-low border-l-4 border-secondary p-6 flex flex-col justify-between">
+<span class="font-mono-label text-mono-label text-outline uppercase">Sector ID</span>
+<div class="mt-2">
+<span class="font-display-xl-mobile text-display-xl-mobile text-secondary">04</span>
+<span class="text-secondary/60 font-mono-label text-mono-label ml-1">ALPHA</span>
+</div>
+</div>
+<div class="bg-surface-container-low border-l-4 border-tertiary p-6 flex flex-col justify-between col-span-2 md:col-span-1">
+<span class="font-mono-label text-mono-label text-outline uppercase">Distance</span>
+<div class="mt-2">
+<span class="font-display-xl-mobile text-display-xl-mobile text-on-surface">8.42</span>
+<span class="text-tertiary font-mono-label text-mono-label ml-1">KM</span>
+</div>
+</div>
+</div>
+<!-- Personal Best Comparison -->
+<div class="bg-surface-container-highest/40 border border-secondary/20 p-6 relative overflow-hidden">
+<div class="flex justify-between items-end">
+<div>
+<span class="font-mono-label text-mono-label text-secondary uppercase">Personal Best</span>
+<p class="font-headline-lg text-headline-lg text-secondary/40">18,250</p>
+</div>
+<div class="text-right">
+<span class="font-mono-label text-mono-label text-outline uppercase">Deficit</span>
+<p class="font-subheading text-subheading text-error">-5,403 PTS</p>
+</div>
+</div>
+<!-- Segmented Progress Bar -->
+<div class="mt-4 flex gap-1 h-3">
+<div class="w-[60%] bg-primary-container"></div>
+<div class="w-[10%] bg-primary-container/40"></div>
+<div class="flex-1 bg-surface-container-highest"></div>
+</div>
+</div>
+</div>
+<!-- RIGHT: IMPACT REPORT -->
+<div class="md:col-span-4 bg-surface-container border border-primary-container/30 relative">
+<div class="absolute top-0 right-0 p-2 opacity-10">
+<span class="font-kanji-decorative text-[80px]">滅</span>
+</div>
+<div class="p-6">
+<h3 class="font-mono-label text-mono-label text-primary uppercase mb-6 flex items-center gap-2">
+<span class="w-1 h-4 bg-primary"></span>
+                        IMPACT_DATA_REPORT
+                    </h3>
+<ul class="space-y-6 font-mono-label text-mono-label uppercase">
+<li class="flex justify-between border-b border-dashed border-secondary/20 pb-2">
+<span class="text-outline">Alt at Impact</span>
+<span class="text-on-surface">342.18m</span>
+</li>
+<li class="flex justify-between border-b border-dashed border-secondary/20 pb-2">
+<span class="text-outline">Throttle</span>
+<span class="text-on-surface">1.3x</span>
+</li>
+<li class="flex justify-between border-b border-dashed border-secondary/20 pb-2">
+<span class="text-outline">Reason</span>
+<span class="text-error">COLLISION</span>
+</li>
+<li class="flex justify-between border-b border-dashed border-secondary/20 pb-2">
+<span class="text-outline">Mission Time</span>
+<span class="text-on-surface">03:47</span>
+</li>
+</ul>
+<div class="mt-8 bg-surface-variant p-4">
+<div class="w-full h-32 bg-background relative overflow-hidden">
+<!-- Visual representation of crash -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-[1px] bg-secondary/20"></div>
+<div class="absolute w-8 h-8 border-2 border-error rotate-45 animate-ping"></div>
+<div class="absolute w-4 h-4 bg-error rotate-45"></div>
+</div>
+<div class="absolute bottom-2 left-2 font-mono-label text-[10px] text-primary/40">MAP_REF: 35.6895° N, 139.6917° E</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ACTION BUTTONS -->
+<div class="mt-12 flex flex-col md:flex-row gap-6 w-full max-w-md">
+<a href="../index.html" class="group flex-1 bg-primary-container text-on-primary-container py-4 font-headline-lg-mobile text-headline-lg-mobile uppercase italic relative overflow-hidden transition-all active:scale-95 no-underline text-center">
+<span class="relative z-10">RETRY MISSION</span>
+<div class="absolute inset-0 bg-secondary translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 opacity-20"></div>
+</a>
+<a href="../index.html" class="flex-1 border-2 border-secondary/40 text-secondary py-4 font-headline-lg-mobile text-headline-lg-mobile uppercase italic hover:bg-secondary/10 transition-all active:scale-95 no-underline text-center">
+                ABORT TO COMMAND
+            </a>
+</div>
+<!-- FOOTER LOGO -->
+<footer class="mt-section-gap flex flex-col items-center gap-6 py-12 px-grid-margin w-full border-t-[1px] border-dashed border-secondary/50">
+<div class="font-kanji-decorative text-headline-lg text-primary">神風</div>
+<p class="font-mono-label text-mono-label text-on-surface-variant">© 2124 NEO-TOKYO AEROSPACE. ALL RIGHTS RESERVED.</p>
+<div class="flex gap-8">
+<span class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary cursor-pointer transition-all">PROTOCOL</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary cursor-pointer transition-all">INTEL</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary cursor-pointer transition-all">SUPPORT</span>
+</div>
+</footer>
+</main>
+<!-- BOTTOM NAVBAR -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-lg border-t-2 border-primary shadow-[0_-4px_30px_rgba(224,17,95,0.2)] flex justify-around items-center px-4 py-2 pb-safe">
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200 active:translate-y-1">
+<a href="../index.html" class="flex flex-col items-center no-underline text-outline hover:text-primary">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="font-mono-label text-mono-label uppercase mt-1">HANGAR</span>
+</a>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 scale-110 shadow-[0_0_15px_#e0115f] active:translate-y-1 transition-transform">
+<a href="../index.html" class="flex flex-col items-center no-underline text-on-primary-container">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-mono-label text-mono-label uppercase mt-1">MISSIONS</span>
+</a>
+</div>
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200 active:translate-y-1">
+<a href="leaderboard.html" class="flex flex-col items-center no-underline text-outline hover:text-primary">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-mono-label text-mono-label uppercase mt-1">RANK</span>
+</a>
+</div>
+<div class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200 active:translate-y-1">
+<a href="../index.html" class="flex flex-col items-center no-underline text-outline hover:text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-mono-label text-mono-label uppercase mt-1">DEPLOY</span>
+</a>
+</div>
+</nav>
+<script>
+        // Simple micro-interaction for tactical elements
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                // Potential for adding sound effects or more glitch animations
+            });
+        });
 
-<div class="state-badge">STATE: mission-terminated</div>
-</body>
-</html>
+        // Simulating kernel panic logging in console for flavor
+        console.log("%c [CRITICAL] IMPACT DETECTED AT SECTOR_04 ", "background: #e0115f; color: white; font-weight: bold;");
+        console.log("%c [SYSTEM] EJECTING CORE... FAILED. ", "color: #49f9f9;");
+    </script>
+</body></html>

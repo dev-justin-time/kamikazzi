@@ -1,156 +1,440 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — Profile</title>
-<link rel="stylesheet" href="styles.css">
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE.CORP // PILOT_PROFILE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#ffb2be",
+                    "secondary-container": "#00dddd",
+                    "error-container": "#93000a",
+                    "on-error": "#690005",
+                    "inverse-on-surface": "#313030",
+                    "primary-fixed": "#ffd9de",
+                    "primary": "#ffb2be",
+                    "on-primary-fixed-variant": "#900039",
+                    "error": "#ffb4ab",
+                    "on-surface": "#e5e2e1",
+                    "primary-container": "#e0115f",
+                    "surface-bright": "#3a3939",
+                    "surface-container-low": "#1c1b1b",
+                    "surface": "#131313",
+                    "on-primary": "#660026",
+                    "on-secondary-fixed": "#002020",
+                    "secondary": "#49f9f9",
+                    "surface-container": "#201f1f",
+                    "tertiary": "#c6c6c7",
+                    "inverse-primary": "#bc004d",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-container": "#727373",
+                    "surface-container-high": "#2a2a2a",
+                    "outline-variant": "#5b3f44",
+                    "secondary-fixed": "#49f9f9",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "on-secondary": "#003737",
+                    "outline": "#ab888d",
+                    "surface-dim": "#131313",
+                    "surface-tint": "#ffb2be",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-primary-fixed": "#3f0015",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-container": "#005c5c",
+                    "surface-variant": "#353534",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "on-primary-container": "#fff8f8",
+                    "surface-container-highest": "#353534",
+                    "on-background": "#e5e2e1",
+                    "on-surface-variant": "#e4bdc2",
+                    "on-tertiary": "#2f3131",
+                    "secondary-fixed-dim": "#00dddd",
+                    "background": "#131313",
+                    "on-tertiary-container": "#fafafa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "gutter": "24px",
+                    "grid-margin": "40px"
+            },
+            "fontFamily": {
+                    "mono-label": ["Space Mono"],
+                    "headline-lg": ["Anton"],
+                    "headline-lg-mobile": ["Anton"],
+                    "subheading": ["Geist"],
+                    "display-xl-mobile": ["Anton"],
+                    "kanji-decorative": ["Epilogue"],
+                    "body-rt": ["Geist"],
+                    "display-xl": ["Anton"]
+            },
+            "fontSize": {
+                    "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "400"}],
+                    "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                    "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                    "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
 <style>
-  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
-  .profile-body { overflow-y: auto; padding: 4px 0; text-align: left; }
-  .profile-bar-label { font-size: 8px; color: rgba(152,203,255,0.35); text-align: center; margin-top: 2px; }
-  .profile-level-bar-label { font-size: 8px; color: rgba(152,203,255,0.35); text-align: center; margin-top: 2px; }
-  .profile-level-bars { display: flex; gap: 3px; align-items: flex-end; height: 40px; margin-top: 6px; }
-  .profile-level-bar { flex: 1; min-width: 12px; background: linear-gradient(180deg, #98cbff 0%, #004d79 100%); border-radius: 2px 2px 0 0; }
-</style>
-</head>
-<body>
-<div class="nav-bar">
-  <a href="start.html" class="nav-back">← Start</a>
-  <span class="nav-title">👤 Pilot Profile</span>
-  <a href="start.html" class="nav-close" title="Close">✕</a>
-</div>
+        body {
+            background-color: #131313;
+            background-image: 
+                linear-gradient(rgba(73, 249, 249, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(73, 249, 249, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #e5e2e1;
+            overflow-x: hidden;
+        }
 
-<div class="page-content">
-  <div class="lb-panel" style="max-width:560px;max-height:85vh;">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-    <h3>👤 Pilot Profile</h3>
+        .glitch-effect:hover {
+            text-shadow: 2px 0 #e0115f, -2px 0 #49f9f9;
+            animation: glitch 0.3s infinite;
+        }
 
-    <div class="profile-body">
-      <!-- Pilot Header -->
-      <div class="profile-header">
-        <div class="profile-avatar"><span>👤</span></div>
-        <div>
-          <div class="profile-name">ACE_PILOT</div>
-          <div class="profile-meta">PILOT  ·  27 runs  ·  since 3/15/2026</div>
-        </div>
-      </div>
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
 
-      <!-- Performance Stats -->
-      <div class="profile-section">
-        <div class="profile-section-title">Performance</div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Total Missions</span><span class="profile-stat-value gold">27</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best Score</span><span class="profile-stat-value gold">24,500 pts</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Avg Score</span><span class="profile-stat-value">9,430 pts</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Total Distance</span><span class="profile-stat-value">142.8 km</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Win Rate</span><span class="profile-stat-value highlight">14.8%</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Total Flight Time</span><span class="profile-stat-value">38 min 12 s</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Longest Run</span><span class="profile-stat-value">8 min 22 s · 24,500 pts</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Avg Grade</span><span class="profile-stat-value highlight">C</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Perfect Streak</span><span class="profile-stat-value">2 wins</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Most Common Sector</span><span class="profile-stat-value">SECTOR_04</span></div>
-      </div>
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            pointer-events: none;
+            animation: scan 8s linear infinite;
+        }
 
-      <!-- Grade Distribution -->
-      <div class="profile-section">
-        <div class="profile-section-title">Grade Distribution</div>
-        <div class="profile-grades">
-          <div class="profile-grade-pill profile-grade-S"><span class="profile-grade-count">1</span><span>S</span></div>
-          <div class="profile-grade-pill profile-grade-A"><span class="profile-grade-count">2</span><span>A</span></div>
-          <div class="profile-grade-pill profile-grade-B"><span class="profile-grade-count">4</span><span>B</span></div>
-          <div class="profile-grade-pill profile-grade-C"><span class="profile-grade-count">9</span><span>C</span></div>
-          <div class="profile-grade-pill profile-grade-D"><span class="profile-grade-count">11</span><span>D</span></div>
-        </div>
-      </div>
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
 
-      <!-- Score Trend -->
-      <div class="profile-section">
-        <div class="profile-section-title">Score Trend (Last 10)</div>
-        <div class="profile-chart">
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar win" style="height:60%;" title="1,200 pts · SUCCESS"></div>
-            <div class="profile-bar-label">#1</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:25%;" title="430 pts"></div>
-            <div class="profile-bar-label">#2</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:45%;" title="890 pts"></div>
-            <div class="profile-bar-label">#3</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:80%;" title="3,200 pts"></div>
-            <div class="profile-bar-label">#4</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar win" style="height:55%;" title="1,100 pts · SUCCESS"></div>
-            <div class="profile-bar-label">#5</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:15%;" title="220 pts"></div>
-            <div class="profile-bar-label">#6</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:35%;" title="680 pts"></div>
-            <div class="profile-bar-label">#7</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:65%;" title="2,100 pts"></div>
-            <div class="profile-bar-label">#8</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar new-best" style="height:100%;" title="24,500 pts · NEW BEST!"></div>
-            <div class="profile-bar-label">#9</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-bar" style="height:40%;" title="780 pts"></div>
-            <div class="profile-bar-label">#10</div>
-          </div>
-        </div>
-      </div>
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
 
-      <!-- Level Breakdown -->
-      <div class="profile-section">
-        <div class="profile-section-title">Level Reached</div>
-        <div class="profile-level-bars">
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:100%;" title="Level 1: 27×"></div>
-            <div class="profile-level-bar-label">Lv1</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:85%;" title="Level 2: 23×"></div>
-            <div class="profile-level-bar-label">Lv2</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:70%;" title="Level 3: 19×"></div>
-            <div class="profile-level-bar-label">Lv3</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:52%;" title="Level 4: 14×"></div>
-            <div class="profile-level-bar-label">Lv4</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:33%;" title="Level 5: 9×"></div>
-            <div class="profile-level-bar-label">Lv5</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:15%;" title="Level 6: 4×"></div>
-            <div class="profile-level-bar-label">Lv6</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-            <div class="profile-level-bar" style="height:7%;" title="Level 8: 2×"></div>
-            <div class="profile-level-bar-label">Lv8</div>
-          </div>
-        </div>
+        .crimson-bar {
+            width: 4px;
+            background: #e0115f;
+            box-shadow: 0 0 10px #e0115f;
+        }
+
+        .tactical-bracket::before {
+            content: '[';
+            color: #49f9f9;
+            margin-right: 4px;
+        }
+
+        .tactical-bracket::after {
+            content: ']';
+            color: #49f9f9;
+            margin-left: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="pt-10 pt-10 font-body-rt antialiased pb-24 pt-16">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
       </div>
     </div>
-
-    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
   </div>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
+  </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<div class="scanline"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-primary/30 flex justify-between items-center px-gutter h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tighter uppercase">KAMIKAZE.CORP</h1>
 </div>
+<button class="transition-all duration-300 active:scale-95 text-primary hover:text-secondary hover:glitch-effect">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+</header>
+<main class="px-gutter space-y-8 mt-6">
+<!-- Pilot Profile Header -->
+<section class="relative">
+<div class="flex items-center gap-6 p-4 glass-panel border-l-4 border-l-primary">
+<div class="relative">
+<div class="w-20 h-20 bg-surface-container-highest border-2 border-secondary relative overflow-hidden">
+<img class="w-full h-full object-cover grayscale contrast-125" data-alt="A gritty, high-contrast digital illustration of a futuristic jet pilot wearing a tactical HUD-enabled helmet with crimson glowing visors. The background is dark obsidian with faint cyan neon scan lines. The aesthetic is sharp, cinematic, and cyber-noir with a slight digital glitch texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8v-vPjxT5LPp6mkgv3gShEySwXSrV6hrogi0OkF5mTDdhislD2jrDEY_duLmc4LeYuHfobjs5DlDKNREJhVZnaa1maJdAWbbmtGIncjYTCGheETmHXE7zKjIU3207q13GrhzkoKgiaBiqPHmgIYIfnLPma9-eyB07RW-DlgP-Jsf7GIY80jydWKc0Bye_XBJ-weJl73SnVQU71KIfQkw-M6NdvAfZIhDSlegDHMeH-1sel3pzUawX_0TKcYUegrUMUN5ffJk_RD88"/>
+<div class="absolute inset-0 border border-primary/40 pointer-events-none"></div>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-primary px-2 py-0.5 font-mono-label text-[10px] text-on-primary">
+                        RANK: DAIMYO
+                    </div>
+</div>
+<div class="flex-1">
+<div class="font-mono-label text-secondary text-[10px] tracking-widest mb-1 uppercase">OPERATOR_ID</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface leading-none mb-1">ACE_PILOT</h2>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+<span class="font-mono-label text-on-surface-variant text-[10px]">STATUS: ENGINES_HOT</span>
+</div>
+</div>
+<div class="font-kanji-decorative text-primary/10 absolute right-4 top-2 select-none">
+                    神風
+                </div>
+</div>
+</section>
+<!-- Performance Stats Bento Grid -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<div class="crimson-bar h-4"></div>
+<h3 class="font-subheading text-subheading uppercase tracking-wider text-primary">Performance</h3>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="glass-panel p-3 border-r-2 border-r-secondary/30">
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Total Missions</div>
+<div class="text-2xl font-headline-lg-mobile text-primary">27</div>
+</div>
+<div class="glass-panel p-3">
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Best Score</div>
+<div class="text-2xl font-headline-lg-mobile text-secondary">24,500 <span class="text-xs">PTS</span></div>
+</div>
+<div class="glass-panel p-3">
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Avg Score</div>
+<div class="text-xl font-headline-lg-mobile text-on-surface">9,430</div>
+</div>
+<div class="glass-panel p-3">
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Win Rate</div>
+<div class="text-xl font-headline-lg-mobile text-on-surface">14.8%</div>
+</div>
+<div class="col-span-2 glass-panel p-4 flex justify-between items-center bg-gradient-to-r from-primary-container/10 to-transparent">
+<div>
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Total Flight Time</div>
+<div class="text-2xl font-headline-lg-mobile text-on-surface">38:12 <span class="text-xs">MIN</span></div>
+</div>
+<div class="text-right">
+<div class="font-mono-label text-on-surface-variant text-[10px] uppercase">Avg Grade</div>
+<div class="text-3xl font-headline-lg-mobile text-primary-container">C</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Score Trend Chart -->
+<section class="glass-panel p-4 overflow-hidden">
+<div class="flex justify-between items-end mb-6">
+<div class="flex items-center gap-2">
+<div class="crimson-bar h-4"></div>
+<h3 class="font-subheading text-subheading uppercase text-primary">Score Trend</h3>
+</div>
+<span class="font-mono-label text-secondary text-[10px] tactical-bracket uppercase">Last 10 Runs</span>
+</div>
+<div class="flex items-end justify-between h-32 gap-1 px-2 relative">
+<!-- Grid Lines -->
+<div class="absolute inset-x-0 top-0 border-t border-secondary/10 w-full h-px"></div>
+<div class="absolute inset-x-0 top-1/2 border-t border-secondary/5 w-full h-px"></div>
+<!-- Bars -->
+<div class="w-full bg-secondary/20 h-[30%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[45%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[25%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[60%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[40%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[55%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[70%] hover:bg-secondary/40 transition-colors"></div>
+<div class="w-full bg-secondary/20 h-[50%] hover:bg-secondary/40 transition-colors"></div>
+<!-- Personal Best -->
+<div class="w-full bg-primary h-[100%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 font-mono-label text-[8px] text-primary whitespace-nowrap">NEW_BEST</div>
+</div>
+<div class="w-full bg-secondary/20 h-[65%] hover:bg-secondary/40 transition-colors"></div>
+</div>
+<div class="flex justify-between mt-2 font-mono-label text-[8px] text-on-surface-variant/50">
+<span>R_01</span>
+<span>R_05</span>
+<span>R_10</span>
+</div>
+</section>
+<!-- Grade Distribution & Level Reach -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Grade Distribution -->
+<section class="glass-panel p-4">
+<div class="flex items-center gap-2 mb-4">
+<div class="crimson-bar h-4"></div>
+<h3 class="font-subheading text-subheading uppercase text-primary">Grade Distribution</h3>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<span class="font-headline-lg-mobile text-lg text-secondary w-4">S</span>
+<div class="flex-1 h-2 bg-surface-container flex">
+<div class="h-full bg-secondary" style="width: 5%"></div>
+</div>
+<span class="font-mono-label text-[10px] w-6 text-right">01</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-headline-lg-mobile text-lg text-secondary/80 w-4">A</span>
+<div class="flex-1 h-2 bg-surface-container flex">
+<div class="h-full bg-secondary/80" style="width: 15%"></div>
+</div>
+<span class="font-mono-label text-[10px] w-6 text-right">04</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-headline-lg-mobile text-lg text-on-surface w-4">B</span>
+<div class="flex-1 h-2 bg-surface-container flex">
+<div class="h-full bg-on-surface" style="width: 30%"></div>
+</div>
+<span class="font-mono-label text-[10px] w-6 text-right">08</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-headline-lg-mobile text-lg text-primary w-4">C</span>
+<div class="flex-1 h-2 bg-surface-container flex">
+<div class="h-full bg-primary" style="width: 40%"></div>
+</div>
+<span class="font-mono-label text-[10px] w-6 text-right">11</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-headline-lg-mobile text-lg text-primary-container w-4">D</span>
+<div class="flex-1 h-2 bg-surface-container flex">
+<div class="h-full bg-primary-container" style="width: 10%"></div>
+</div>
+<span class="font-mono-label text-[10px] w-6 text-right">03</span>
+</div>
+</div>
+</section>
+<!-- Level Reached Breakdown -->
+<section class="glass-panel p-4 mb-10">
+<div class="flex items-center gap-2 mb-4">
+<div class="crimson-bar h-4"></div>
+<h3 class="font-subheading text-subheading uppercase text-primary">Level Reach</h3>
+</div>
+<div class="flex justify-between gap-1 h-8">
+<div class="flex-1 bg-secondary shadow-[0_0_8px_rgba(73,249,249,0.3)]"></div>
+<div class="flex-1 bg-secondary shadow-[0_0_8px_rgba(73,249,249,0.3)]"></div>
+<div class="flex-1 bg-secondary shadow-[0_0_8px_rgba(73,249,249,0.3)]"></div>
+<div class="flex-1 bg-secondary shadow-[0_0_8px_rgba(73,249,249,0.3)]"></div>
+<div class="flex-1 bg-secondary/40"></div>
+<div class="flex-1 bg-secondary/20"></div>
+<div class="flex-1 bg-surface-variant"></div>
+<div class="flex-1 bg-surface-variant"></div>
+</div>
+<div class="flex justify-between mt-2 font-mono-label text-[10px]">
+<span class="text-secondary">LVL_04 REACHED</span>
+<span class="text-on-surface-variant">NEXT: LVL_05</span>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 px-4 bg-surface/90 dark:bg-surface/90 backdrop-blur-lg border-t border-primary/20 z-50">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 transition-transform duration-200 active:scale-90 hover:opacity-100 hover:text-secondary" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-mono-label text-mono-label mt-1 uppercase">DASHBOARD</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 transition-transform duration-200 active:scale-90 hover:opacity-100 hover:text-secondary" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-mono-label text-mono-label mt-1 uppercase">TACTICAL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 opacity-60 transition-transform duration-200 active:scale-90 hover:opacity-100 hover:text-secondary" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-mono-label text-mono-label mt-1 uppercase">PREQUEL</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-sm px-4 py-1 border-l-2 border-primary transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-mono-label text-mono-label mt-1 uppercase">INTEL</span>
+</a>
+</nav>
+<!-- Footer -->
+<footer class="w-full py-unit px-gutter flex flex-col items-center gap-4 mb-20 bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-dashed border-outline-variant">
+<p class="font-mono-label text-mono-label text-on-tertiary-fixed-variant opacity-80 uppercase">©2044 KAMIKAZE FRANCHISE // NEO-TOKYO SECTOR 7</p>
+<div class="flex gap-4">
+<a class="font-mono-label text-mono-label text-on-tertiary-fixed-variant hover:text-primary underline decoration-primary uppercase" href="#">PROTOCOL_01</a>
+<a class="font-mono-label text-mono-label text-on-tertiary-fixed-variant hover:text-primary underline decoration-primary uppercase" href="#">ENCRYPTED_LINE</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for tactical feel
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mouseenter', () => {
+                panel.style.boxShadow = '0 0 15px rgba(73, 249, 249, 0.15)';
+                panel.style.borderColor = 'rgba(73, 249, 249, 0.4)';
+            });
+            panel.addEventListener('mouseleave', () => {
+                panel.style.boxShadow = 'none';
+                panel.style.borderColor = 'rgba(73, 249, 249, 0.2)';
+            });
+        });
 
-<div class="state-badge">STATE: profile</div>
-</body>
-</html>
+        // Simulating digital "re-sync" flicker
+        setInterval(() => {
+            if (Math.random() > 0.98) {
+                document.body.style.opacity = '0.7';
+                setTimeout(() => document.body.style.opacity = '1', 50);
+            }
+        }, 2000);
+    </script>
+</body></html>

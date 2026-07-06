@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE TACTICAL HUD - SYSTEM BOOT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600;900&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes glitch {
+            0% { clip-path: inset(80% 0 0 0); transform: translate(-2px, 2px); }
+            10% { clip-path: inset(10% 0 85% 0); transform: translate(2px, -2px); }
+            20% { clip-path: inset(40% 0 43% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(80% 0 0 0); transform: translate(-2px, 2px); }
+        }
+        .scanline-effect {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(73, 249, 249, 0.05) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+        .custom-grid {
+            background-image: 
+                linear-gradient(to right, rgba(73, 249, 249, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(73, 249, 249, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .asanoha-pattern {
+            mask-image: radial-gradient(circle, black 50%, transparent 100%);
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='104' viewBox='0 0 60 104' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 17.32v34.64L30 69.28 0 51.96V17.32L30 0zM0 17.32L30 34.64l30-17.32M0 51.96L30 34.64l30 17.32M30 34.64v34.64' fill='none' stroke='%2349f9f9' stroke-width='1'/%3E%3C/svg%3E");
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#201f1f",
+                        "on-tertiary-container": "#fafafa",
+                        "surface-tint": "#ffb2be",
+                        "on-primary-container": "#fff8f8",
+                        "inverse-surface": "#e5e2e1",
+                        "primary-fixed": "#ffd9de",
+                        "on-secondary-fixed": "#002020",
+                        "secondary": "#49f9f9",
+                        "primary": "#ffb2be",
+                        "on-primary-fixed": "#3f0015",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "tertiary": "#c6c6c7",
+                        "surface": "#131313",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary-container": "#00dddd",
+                        "on-background": "#e5e2e1",
+                        "on-secondary-container": "#005c5c",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary": "#003737",
+                        "background": "#131313",
+                        "tertiary-container": "#727373",
+                        "inverse-primary": "#bc004d",
+                        "on-error": "#690005",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-surface": "#e5e2e1",
+                        "surface-bright": "#3a3939",
+                        "primary-fixed-dim": "#ffb2be",
+                        "inverse-on-surface": "#313030",
+                        "on-tertiary": "#2f3131",
+                        "on-surface-variant": "#e4bdc2",
+                        "on-error-container": "#ffdad6",
+                        "primary-container": "#e0115f",
+                        "on-primary": "#660026",
+                        "surface-dim": "#131313",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-variant": "#353534",
+                        "secondary-fixed": "#49f9f9",
+                        "outline": "#ab888d",
+                        "error-container": "#93000a",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-highest": "#353534",
+                        "on-primary-fixed-variant": "#900039",
+                        "outline-variant": "#5b3f44"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "section-gap": "120px",
+                        "unit": "8px",
+                        "grid-margin": "40px"
+                    },
+                    "fontFamily": {
+                        "body-rt": ["Geist"],
+                        "display-xl": ["Anton"],
+                        "headline-lg": ["Anton"],
+                        "mono-label": ["Space Mono"],
+                        "subheading": ["Geist"],
+                        "display-xl-mobile": ["Anton"],
+                        "kanji-decorative": ["Epilogue"]
+                    },
+                    "fontSize": {
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-rt overflow-hidden h-screen flex flex-col relative custom-grid">
+<!-- HUD Overlay Assets -->
+<div class="scanline-effect"></div>
+<div class="absolute inset-0 asanoha-pattern pointer-events-none"></div>
+<!-- Top App Bar (Shared Component Reference) -->
+<header class="bg-surface/80 backdrop-blur-xl text-primary font-subheading text-subheading flex justify-between items-center w-full px-gutter h-16 border-b border-secondary/30 fixed top-0 z-50">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg text-primary uppercase tracking-tighter">KAMIKAZE TACTICAL HUD</span>
+<div class="hidden md:flex gap-6 ml-8">
+<span class="text-primary border-b-2 border-primary skew-x-[-12deg] transition-transform cursor-pointer">BOOT_LOADER</span>
+<span class="text-on-surface-variant hover:bg-secondary-container/20 transition-all duration-150 cursor-pointer">SYSTEM_INFO</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-mono-label text-mono-label opacity-70">PILOT ID: 0-K-0</span>
+<div class="flex gap-4">
+<span class="material-symbols-outlined hover:bg-secondary-container/20 p-1 rounded transition-all">sensors</span>
+<span class="material-symbols-outlined hover:bg-secondary-container/20 p-1 rounded transition-all">terminal</span>
+<span class="material-symbols-outlined hover:bg-secondary-container/20 p-1 rounded transition-all">notifications</span>
+</div>
+</div>
+</header>
+<!-- Main Tactical Boot Canvas -->
+<main class="flex-grow flex items-center justify-center relative p-gutter">
+<!-- Tactical Corner Brackets -->
+<div class="absolute top-24 left-10 w-24 h-24 border-t-2 border-l-2 border-secondary/40"></div>
+<div class="absolute top-24 right-10 w-24 h-24 border-t-2 border-r-2 border-secondary/40"></div>
+<div class="absolute bottom-10 left-10 w-24 h-24 border-b-2 border-l-2 border-secondary/40"></div>
+<div class="absolute bottom-10 right-10 w-24 h-24 border-b-2 border-r-2 border-secondary/40"></div>
+<!-- Center Tactical Panel -->
+<section class="w-full max-w-4xl relative">
+<!-- Atmospheric Glitch Header -->
+<div class="mb-12 text-center">
+<h1 class="font-display-xl text-display-xl text-primary relative inline-block">
+                    AERO_COMMAND
+                    <span class="absolute -right-24 bottom-2 text-subheading font-mono-label text-secondary px-3 py-1 bg-secondary/10 border border-secondary">KAMIKAZE 3D</span>
+</h1>
+<p class="font-mono-label text-secondary mt-4 tracking-[0.3em] uppercase opacity-60">KERNEL_MOUNT_SEQUENCE_V.9.4.0</p>
+</div>
+<!-- Boot Status Panel (Glassmorphism) -->
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-secondary/20 p-8 relative overflow-hidden group">
+<!-- Kanji Decorative Watermark -->
+<span class="absolute bottom-0 right-0 font-kanji-decorative text-kanji-decorative text-primary opacity-5 select-none pointer-events-none translate-y-1/4 translate-x-1/4">神風</span>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<!-- Left: Progress & Core Data -->
+<div class="space-y-6">
+<div class="flex justify-between items-end">
+<span class="font-mono-label text-secondary uppercase text-[10px]">Initialization Progress</span>
+<span class="font-headline-lg text-primary leading-none">89%</span>
+</div>
+<!-- High Fidelity Progress Bar -->
+<div class="h-10 w-full bg-surface-container-high border border-secondary/30 p-1 flex gap-1">
+<div class="flex gap-1 w-full overflow-hidden">
+<script>
+                                    for(let i=0; i<32; i++) {
+                                        const opacity = i < 28 ? 'bg-primary-container' : 'bg-surface-variant';
+                                        document.write(`<div class="h-full w-4 ${opacity} transition-all duration-1000"></div>`);
+                                    }
+                                </script>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="border-l-2 border-primary pl-4 py-2 bg-secondary/5">
+<p class="text-[10px] font-mono-label text-secondary uppercase">Vector_Sync</p>
+<p class="font-subheading text-on-surface">NOMINAL</p>
+</div>
+<div class="border-l-2 border-primary pl-4 py-2 bg-secondary/5">
+<p class="text-[10px] font-mono-label text-secondary uppercase">Mach_Target</p>
+<p class="font-subheading text-on-surface">MACH 2.4</p>
+</div>
+</div>
+</div>
+<!-- Right: Initialization Logs -->
+<div class="bg-surface-container-lowest/80 border border-secondary/10 p-4 h-64 overflow-hidden relative">
+<div class="absolute top-0 right-0 p-2">
+<span class="font-mono-label text-[10px] text-primary animate-pulse">LIVE_STREAM</span>
+</div>
+<div class="font-mono-label text-mono-label text-secondary/70 space-y-1" id="boot-logs">
+<p class="text-primary">[OK] KERNEL_MOUNT_DATA_SUCCESS</p>
+<p>[OK] SYNC_NVRAM: 4096KB COMMITTED</p>
+<p>[OK] BUS_INIT: PCIE_GEN5_ACTIVE</p>
+<p>[OK] AUDIO_DRIVER: NEURAL_ATMOS_LOADED</p>
+<p class="text-secondary">[...] DEPLOYING_AERO_SHROUD</p>
+<p>[...] CALIBRATING_THRUST_VECTORS</p>
+<p class="animate-pulse text-white">&gt; LOADING_RESOURCES...</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Area -->
+<div class="mt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-3xl">bolt</span>
+</div>
+<div class="space-y-1">
+<p class="font-mono-label text-secondary text-[10px] uppercase">Direct Access Prot_01</p>
+<button class="font-headline-lg text-[24px] uppercase text-on-background bg-primary-container px-6 py-2 glitch-hover transition-all hover:translate-x-2">
+                            SKIP TO START
+                        </button>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="text-right border-r border-primary/40 pr-4">
+<p class="font-mono-label text-[10px] text-secondary">LATENCY</p>
+<p class="font-subheading text-primary">0.02ms</p>
+</div>
+<div class="text-right border-r border-primary/40 pr-4">
+<p class="font-mono-label text-[10px] text-secondary">UPLINK</p>
+<p class="font-subheading text-primary">ACTIVE</p>
+</div>
+<div class="text-right">
+<p class="font-mono-label text-[10px] text-secondary">REGION</p>
+<p class="font-subheading text-primary">NEO-TOKYO</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Side Navigation (Suppressed/Minimal Version for Boot) -->
+<nav class="fixed left-0 top-1/2 -translate-y-1/2 h-fit z-40 flex flex-col gap-2 p-2">
+<div class="bg-secondary/10 text-secondary border-l-4 border-primary px-4 py-3 flex items-center gap-3 transition-transform hover:translate-x-1 duration-200">
+<span class="material-symbols-outlined text-xl">assignment</span>
+<span class="font-mono-label text-mono-label">LOGS</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-secondary/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-xl">description</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-secondary/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-xl">monitoring</span>
+</div>
+</nav>
+<!-- Background Animation Asset -->
+
+<!-- Footer (Shared Component Reference) -->
+<footer class="bg-surface-container-lowest text-on-surface-variant font-mono-label text-mono-label flex justify-between items-center px-gutter py-2 w-full text-[10px] opacity-70 border-t border-secondary/10 fixed bottom-0 z-50">
+<div class="flex gap-4">
+<span class="text-secondary font-subheading text-subheading opacity-100">NEO-TOKYO AEROSPACE</span>
+<span>© 20XX ALL RIGHTS RESERVED.</span>
+</div>
+<div class="flex gap-6 uppercase">
+<a class="hover:text-secondary hover:glow-effect transition-all duration-300" href="#">ENCRYPTED_PROT_01</a>
+<a class="hover:text-secondary hover:glow-effect transition-all duration-300" href="#">ENCRYPTED_PROT_02</a>
+<a class="hover:text-secondary hover:glow-effect transition-all duration-300" href="#">SIGNAL_DUMP</a>
+</div>
+</footer>
+<script>
+        // Micro-interaction: Log generation simulation
+        const logContainer = document.getElementById('boot-logs');
+        const logs = [
+            "[OK] RE-INITIALIZING HUD_LAYERS",
+            "[OK] ASANOHA_MESH_READY",
+            "[SYSTEM] V-SYNC LOCKED @ 120HZ",
+            "[WARN] MINOR_TURBULENCE_DETECTED",
+            "[INFO] PILOT_BIO_AUTH_PASSED",
+            "[OK] NEURAL_LINK_STABLE",
+            "[OK] BUSHIDO_PROTOCOL_ENGAGED",
+            "[INIT] WEAPONRY_CHECK_BYPASS",
+            "[STATUS] TERMINAL_VELOCITY_PRE_READY"
+        ];
+
+        let index = 0;
+        setInterval(() => {
+            const p = document.createElement('p');
+            p.className = 'text-secondary/50 fade-in';
+            p.innerText = logs[index % logs.length];
+            logContainer.appendChild(p);
+            if (logContainer.children.length > 12) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+            index++;
+        }, 1200);
+    </script>
+</body></html>

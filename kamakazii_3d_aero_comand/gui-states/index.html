@@ -1,239 +1,316 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — GUI States Prototype</title>
-<link rel="stylesheet" href="styles.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE // GUI STATES HUB</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Epilogue:wght@900&family=Geist:wght@400;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "background":"#131313","surface":"#131313","surface-dim":"#131313",
+          "surface-container-lowest":"#0e0e0e","surface-container-low":"#1c1b1b",
+          "surface-container":"#201f1f","surface-container-high":"#2a2a2a",
+          "surface-container-highest":"#353534","surface-bright":"#3a3939",
+          "surface-variant":"#353534","on-surface":"#e5e2e1","on-surface-variant":"#e4bdc2",
+          "primary":"#ffb2be","primary-container":"#e0115f","on-primary":"#660026",
+          "on-primary-container":"#fff8f8","secondary":"#49f9f9","secondary-container":"#00dddd",
+          "on-secondary":"#003737","on-secondary-container":"#005c5c",
+          "outline":"#ab888d","outline-variant":"#5b3f44","error":"#ffb4ab",
+          "error-container":"#93000a","tertiary":"#c6c6c7"
+        },
+        fontFamily: {
+          "display-xl":["Anton"],"headline-lg":["Anton"],"mono-label":["Space Mono"],
+          "subheading":["Geist"],"body-rt":["Geist"],"kanji-decorative":["Epilogue"]
+        }
+      }
+    }
+  }
+</script>
 <style>
-  /* Override nav for hub */
-  .nav-bar .nav-title { color: #00ffff; }
-  .page-content {
-    justify-content: flex-start;
-    padding-top: 60px;
-    background: radial-gradient(ellipse at 50% 30%, rgba(10,30,60,0.4), #000b1a);
-  }
-  .hub-title {
-    font-family: 'Stick No Bills', sans-serif;
-    font-size: clamp(32px, 6vw, 56px);
-    font-weight: 800;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    text-align: center;
-    background: linear-gradient(180deg, #ffffff 0%, #ff6a3d 50%, #c01818 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 4px;
-  }
-  .hub-subtitle {
-    font-family: 'Noto Sans JP', serif;
-    font-size: clamp(18px, 3vw, 28px);
-    font-weight: 700;
-    color: #ff9352;
-    text-align: center;
-    letter-spacing: 4px;
-    margin-bottom: 4px;
-  }
-  .hub-desc {
-    text-align: center;
-    color: rgba(152,203,255,0.6);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    margin-bottom: 32px;
-  }
-  .hub-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 8px;
-    width: 100%;
-    max-width: 800px;
-  }
-  .hub-group-label {
-    grid-column: 1 / -1;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #00dddd;
-    text-transform: uppercase;
-    padding: 16px 0 4px;
-    border-bottom: 1px solid rgba(0,221,221,0.15);
-  }
-  .hub-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 16px 10px;
-    border: 1px solid rgba(152,203,255,0.15);
-    border-radius: 4px;
-    background: rgba(152,203,255,0.03);
-    transition: all 0.15s ease;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-  }
-  .hub-card:hover {
-    background: rgba(0,221,221,0.08);
-    border-color: rgba(0,221,221,0.35);
-    transform: translateY(-2px);
-  }
-  .hub-card-icon { font-size: 24px; }
-  .hub-card-name {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #98cbff;
-    text-transform: uppercase;
-  }
-  .hub-card-desc {
-    font-size: 9px;
-    color: rgba(152,203,255,0.45);
-    line-height: 1.3;
-  }
-  .hub-card:hover .hub-card-name { color: #fff; }
-  .hub-card.core { border-color: rgba(0,221,221,0.25); background: rgba(0,221,221,0.04); }
-  .hub-card.overlay { border-color: rgba(201,153,255,0.15); background: rgba(201,153,255,0.03); }
-  .hub-card.overlay:hover { background: rgba(201,153,255,0.08); border-color: rgba(201,153,255,0.3); }
-  .hub-card.announce { border-color: rgba(255,200,50,0.2); background: rgba(255,200,50,0.03); }
-  .hub-card.announce:hover { background: rgba(255,200,50,0.08); border-color: rgba(255,200,50,0.3); }
+  .tactical-grid { background-image: linear-gradient(rgba(73,249,249,0.05) 1px,transparent 1px), linear-gradient(90deg, rgba(73,249,249,0.05) 1px,transparent 1px); background-size:40px 40px; }
+  .scanline { background: linear-gradient(to bottom, transparent 50%, rgba(73,249,249,0.05) 50%); background-size: 100% 4px; }
+  .glitch-hover:hover { text-shadow:2px 0 #e0115f,-2px 0 #49f9f9; }
+  .bracket-tl { position:absolute; top:-1px; left:-1px; width:16px; height:16px; border-top:2px solid #49f9f9; border-left:2px solid #49f9f9; }
+  .bracket-tr { position:absolute; top:-1px; right:-1px; width:16px; height:16px; border-top:2px solid #49f9f9; border-right:2px solid #49f9f9; }
+  .bracket-bl { position:absolute; bottom:-1px; left:-1px; width:16px; height:16px; border-bottom:2px solid #49f9f9; border-left:2px solid #49f9f9; }
+  .bracket-br { position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border-bottom:2px solid #49f9f9; border-right:2px solid #49f9f9; }
+  body { min-height: max(884px, 100dvh); }
 </style>
 </head>
-<body>
-<div class="nav-bar">
-  <span></span>
-  <span class="nav-title">GUI States Prototype</span>
-  <a href="../index.html" class="nav-close" title="Back to game">✕</a>
-</div>
+<body class="bg-background text-on-surface font-body-rt overflow-x-hidden">
+<div class="fixed inset-0 tactical-grid pointer-events-none z-0"></div>
+<div class="fixed inset-0 scanline pointer-events-none z-0 opacity-30"></div>
 
-<div class="page-content">
-  <div class="hub-title">KAMIKAZZI 3D</div>
-  <div class="hub-subtitle">神風</div>
-  <div class="hub-desc">GUI States Prototype — click any card to view that screen</div>
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-secondary/30 flex justify-between items-center px-6 h-16">
+  <span class="font-headline-lg text-xl text-primary tracking-tighter italic uppercase">神風 KAMIKAZE</span>
+  <div class="flex items-center gap-4">
+    <span class="font-mono-label text-[10px] text-secondary animate-pulse">GUI STATES HUB</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/60 hover:text-secondary transition-colors no-underline" title="Back to Game" style="font-size:20px">exit_to_app</a>
+  </div>
+</header>
 
-  <div class="hub-grid">
-    <div class="hub-group-label">🚀 Core Flow</div>
+<main class="relative z-10 pt-24 pb-32 px-6 max-w-5xl mx-auto">
+  <div class="text-center mb-12 relative">
+    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-kanji-decorative text-[120px] text-primary/5 select-none pointer-events-none">神風</div>
+    <h1 class="font-display-xl text-5xl md:text-7xl text-primary-container tracking-tighter italic uppercase mb-2">KAMIKAZE</h1>
+    <p class="font-mono-label text-secondary uppercase tracking-[0.3em] text-xs">GUI States Prototype</p>
+    <p class="font-mono-label text-on-surface-variant/50 text-[10px] mt-2">Click any card to view that screen — all wired to generated designs</p>
+  </div>
 
-    <a href="boot.html" class="hub-card core">
-      <span class="hub-card-icon">🖥️</span>
-      <span class="hub-card-name">Boot</span>
-      <span class="hub-card-desc">System Initializing</span>
+  <!-- Quick Launch: Primary CTA to the actual game -->
+  <div class="text-center mb-12">
+    <a href="../index.html" class="inline-flex items-center gap-3 px-10 py-4 bg-primary-container hover:bg-primary hover:shadow-lg hover:shadow-primary/20 transition-all no-underline group relative overflow-hidden rounded-sm">
+      <span class="material-symbols-outlined text-white text-3xl group-hover:scale-110 transition-transform">rocket_launch</span>
+      <span class="font-display-xl text-2xl text-white italic uppercase tracking-tighter">LAUNCH GAME</span>
+      <div class="absolute -right-4 top-1/2 -translate-y-1/2 font-kanji-decorative text-[80px] text-white/5 pointer-events-none select-none">神風</div>
     </a>
-    <a href="start.html" class="hub-card core">
-      <span class="hub-card-icon">🏠</span>
-      <span class="hub-card-name">Start Menu</span>
-      <span class="hub-card-desc">Main menu hub</span>
-    </a>
-    <a href="hud.html" class="hub-card core">
-      <span class="hub-card-icon">📊</span>
-      <span class="hub-card-name">In-Game HUD</span>
-      <span class="hub-card-desc">Active gameplay</span>
-    </a>
-    <a href="pause.html" class="hub-card core">
-      <span class="hub-card-icon">⏸️</span>
-      <span class="hub-card-name">Pause</span>
-      <span class="hub-card-desc">System Suspended</span>
-    </a>
-    <a href="crash.html" class="hub-card core">
-      <span class="hub-card-icon">💥</span>
-      <span class="hub-card-name">Crash</span>
-      <span class="hub-card-desc">Explosion sequence</span>
-    </a>
-    <a href="mission-terminated.html" class="hub-card core">
-      <span class="hub-card-icon">❌</span>
-      <span class="hub-card-name">Mission Terminated</span>
-      <span class="hub-card-desc">Game Over</span>
-    </a>
-    <a href="mission-success.html" class="hub-card core">
-      <span class="hub-card-icon">✅</span>
-      <span class="hub-card-name">Mission Success</span>
-      <span class="hub-card-desc">Victory screen</span>
-    </a>
+    <p class="font-mono-label text-[10px] text-on-surface-variant/40 mt-3 tracking-widest uppercase">KAMIKAZZI 3D — AERO COMMAND</p>
+  </div>
 
-    <div class="hub-group-label">📋 Overlay Panels</div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Core Flow -->
+    <div class="col-span-full">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="h-0.5 flex-1 bg-secondary/20"></div>
+        <span class="font-mono-label text-secondary text-[10px] uppercase tracking-widest">Core Flow</span>
+        <div class="h-0.5 flex-1 bg-secondary/20"></div>
+      </div>
+    </div>
 
-    <a href="leaderboard.html" class="hub-card overlay">
-      <span class="hub-card-icon">🏆</span>
-      <span class="hub-card-name">Leaderboard</span>
-      <span class="hub-card-desc">Rankings</span>
+    <a href="boot.html" class="block p-4 border border-secondary/20 bg-surface-container-low/40 hover:bg-secondary/10 transition-all hover:border-secondary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-secondary text-2xl">terminal</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-secondary transition-colors">Boot</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">System Initializing</div>
     </a>
-    <a href="lobby.html" class="hub-card overlay">
-      <span class="hub-card-icon">👥</span>
-      <span class="hub-card-name">Lobby</span>
-      <span class="hub-card-desc">Multiplayer lounge</span>
+    <a href="start.html" class="block p-4 border border-secondary/20 bg-surface-container-low/40 hover:bg-secondary/10 transition-all hover:border-secondary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-secondary text-2xl">rocket_launch</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-secondary transition-colors">Start Menu</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Main menu hub</div>
     </a>
-    <a href="profile.html" class="hub-card overlay">
-      <span class="hub-card-icon">👤</span>
-      <span class="hub-card-name">Profile</span>
-      <span class="hub-card-desc">Pilot stats</span>
+    <a href="hud.html" class="block p-4 border border-secondary/20 bg-surface-container-low/40 hover:bg-secondary/10 transition-all hover:border-secondary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-secondary text-2xl">dashboard</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-secondary transition-colors">In-Game HUD</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Active gameplay</div>
     </a>
-    <a href="skin-lab.html" class="hub-card overlay">
-      <span class="hub-card-icon">🎨</span>
-      <span class="hub-card-name">Skin Lab</span>
-      <span class="hub-card-desc">Customize</span>
+    <a href="pause.html" class="block p-4 border border-secondary/20 bg-surface-container-low/40 hover:bg-secondary/10 transition-all hover:border-secondary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-secondary text-2xl">pause_circle</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-secondary transition-colors">Pause</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">System Suspended</div>
     </a>
-    <a href="marketplace.html" class="hub-card overlay">
-      <span class="hub-card-icon">🏙️</span>
-      <span class="hub-card-name">Marketplace</span>
-      <span class="hub-card-desc">Building skins</span>
+    <a href="crash.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-primary-container text-2xl">warning</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Crash</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Explosion sequence</div>
     </a>
-    <a href="powerups.html" class="hub-card overlay">
-      <span class="hub-card-icon">⚡</span>
-      <span class="hub-card-name">Powerups</span>
-      <span class="hub-card-desc">Community registry</span>
+    <a href="mission-terminated.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-error text-2xl">gps_off</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Mission Terminated</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Game Over</div>
     </a>
-    <a href="replays.html" class="hub-card overlay">
-      <span class="hub-card-icon">📼</span>
-      <span class="hub-card-name">Replays</span>
-      <span class="hub-card-desc">Gallery</span>
-    </a>
-    <a href="replay-detail.html" class="hub-card overlay">
-      <span class="hub-card-icon">🔍</span>
-      <span class="hub-card-name">Replay Detail</span>
-      <span class="hub-card-desc">Run details</span>
-    </a>
-    <a href="history.html" class="hub-card overlay">
-      <span class="hub-card-icon">📜</span>
-      <span class="hub-card-name">History</span>
-      <span class="hub-card-desc">Run history</span>
-    </a>
-    <a href="briefings.html" class="hub-card overlay">
-      <span class="hub-card-icon">📡</span>
-      <span class="hub-card-name">Briefings</span>
-      <span class="hub-card-desc">Pilot notes</span>
-    </a>
-    <a href="settings.html" class="hub-card overlay">
-      <span class="hub-card-icon">⚙️</span>
-      <span class="hub-card-name">Settings</span>
-      <span class="hub-card-desc">Preferences</span>
-    </a>
-    <a href="legal.html" class="hub-card overlay">
-      <span class="hub-card-icon">⚖️</span>
-      <span class="hub-card-name">Legal</span>
-      <span class="hub-card-desc">Compliance</span>
-    </a>
-    <a href="shortcuts.html" class="hub-card overlay">
-      <span class="hub-card-icon">⌨️</span>
-      <span class="hub-card-name">Shortcuts</span>
-      <span class="hub-card-desc">Key bindings</span>
+    <a href="mission-success.html" class="block p-4 border border-secondary/20 bg-surface-container-low/40 hover:bg-secondary/10 transition-all hover:border-secondary/40 group relative">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="material-symbols-outlined text-secondary text-2xl">verified</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-secondary transition-colors">Mission Success</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Victory screen</div>
     </a>
 
-    <div class="hub-group-label">📢 Announcements</div>
+    <!-- Overlay Panels -->
+    <div class="col-span-full mt-6">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="h-0.5 flex-1 bg-primary/20"></div>
+        <span class="font-mono-label text-primary text-[10px] uppercase tracking-widest">Overlay Panels</span>
+        <div class="h-0.5 flex-1 bg-primary/20"></div>
+      </div>
+    </div>
 
-    <a href="final-sector.html" class="hub-card announce">
-      <span class="hub-card-icon">⚠️</span>
-      <span class="hub-card-name">Final Sector</span>
-      <span class="hub-card-desc">Boss approaching</span>
+    <a href="leaderboard.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">military_tech</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Leaderboard</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Global rankings</div>
     </a>
-    <a href="model-upgrade.html" class="hub-card announce">
-      <span class="hub-card-icon">✈️</span>
-      <span class="hub-card-name">Model Upgrade</span>
-      <span class="hub-card-desc">BOEING 747</span>
+    <a href="lobby.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">group</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Pilot Lounge</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Multiplayer lobby</div>
+    </a>
+    <a href="profile.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">account_circle</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Pilot Profile</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Stats & analytics</div>
+    </a>
+    <a href="skin-lab.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">palette</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Skin Lab</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Customize aircraft</div>
+    </a>
+    <a href="marketplace.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">storefront</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Marketplace</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Building skins</div>
+    </a>
+    <a href="powerups.html" class="block p-4 border border-[#8b5cf6]/20 bg-surface-container-low/40 hover:bg-[#8b5cf6]/10 transition-all hover:border-[#8b5cf6]/40 group relative">
+      <span class="material-symbols-outlined text-[#c999ff] text-2xl">bolt</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-[#c999ff] transition-colors">Powerups</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Community registry</div>
+    </a>
+    <a href="replays.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">videocam</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Replays</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Gallery</div>
+    </a>
+    <a href="replay-detail.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">search</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Replay Detail</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Run details</div>
+    </a>
+    <a href="history.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">history</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Run History</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Operational logs</div>
+    </a>
+    <a href="briefings.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">communication</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Briefings</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Pilot messages</div>
+    </a>
+    <a href="settings.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">settings</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Settings</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Preferences</div>
+    </a>
+    <a href="legal.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">gavel</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Legal</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Compliance</div>
+    </a>
+    <a href="shortcuts.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">keyboard</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Shortcuts</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Key bindings</div>
+    </a>
+    <a href="terrain-editor.html" class="block p-4 border border-primary/20 bg-surface-container-low/40 hover:bg-primary/10 transition-all hover:border-primary/40 group relative">
+      <span class="material-symbols-outlined text-primary-container text-2xl">terrain</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-primary transition-colors">Terrain Editor</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Level fabricator</div>
+    </a>
+
+    <!-- Announcements -->
+    <div class="col-span-full mt-6">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="h-0.5 flex-1 bg-[#ffe08a]/20"></div>
+        <span class="font-mono-label text-[#ffe08a] text-[10px] uppercase tracking-widest">Announcements</span>
+        <div class="h-0.5 flex-1 bg-[#ffe08a]/20"></div>
+      </div>
+    </div>
+
+    <a href="final-sector.html" class="block p-4 border border-[#ffe08a]/20 bg-surface-container-low/40 hover:bg-[#ffe08a]/10 transition-all hover:border-[#ffe08a]/40 group relative">
+      <span class="material-symbols-outlined text-[#ffe08a] text-2xl">dangerous</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-[#ffe08a] transition-colors">Final Sector</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Boss approaching</div>
+    </a>
+    <a href="model-upgrade.html" class="block p-4 border border-[#ffe08a]/20 bg-surface-container-low/40 hover:bg-[#ffe08a]/10 transition-all hover:border-[#ffe08a]/40 group relative">
+      <span class="material-symbols-outlined text-[#ffe08a] text-2xl">upgrade</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-[#ffe08a] transition-colors">Model Upgrade</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">BOEING 747</div>
+    </a>
+    <a href="delete-confirm.html" class="block p-4 border border-error/20 bg-surface-container-low/40 hover:bg-error/10 transition-all hover:border-error/40 group relative">
+      <span class="material-symbols-outlined text-error text-2xl">delete_forever</span>
+      <div class="font-headline-lg text-lg text-on-surface mt-2 group-hover:text-error transition-colors">Delete Confirm</div>
+      <div class="font-mono-label text-[10px] text-on-surface-variant/50">Confirm purge</div>
     </a>
   </div>
-</div>
 
-<div class="state-badge">GUI HUB v1.0</div>
+  <div class="mt-16 text-center">
+    <div class="inline-flex items-center gap-3 px-5 py-2 border border-primary/30 bg-primary/5">
+      <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+      <span class="font-mono-label text-[10px] text-primary tracking-[0.3em] uppercase">STATE: hub v2.0 — all screens wired</span>
+    </div>
+  </div>
+</main>
+
+<!-- Landscape Orientation Overlay — requires landscape on mobile, one-time permission -->
+<div id="landscapeOverlay" style="position:fixed;inset:0;z-index:9999;background:#0e0e0e;display:none;flex-direction:column;align-items:center;justify-content:center;color:#98cbff;font-family:'Space Mono',monospace;text-align:center;padding:24px;">
+  <span class="material-symbols-outlined" style="font-size:72px;color:#49f9f9;margin-bottom:20px;animation:rotateHint 2s ease-in-out infinite;">screen_rotation</span>
+  <p style="font-size:18px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;color:#49f9f9;">Rotate Your Device</p>
+  <p style="font-size:13px;color:rgba(152,203,255,0.6);max-width:280px;line-height:1.5;">Landscape orientation is required for the best Kamikaze experience.</p>
+</div>
+<style>
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  25%  { transform: rotate(-90deg); }
+  75%  { transform: rotate(-90deg); }
+}
+#landscapeOverlay.active { display: flex !important; }
+</style>
+<script>
+(function() {
+  const LANDSCAPE_KEY = 'kamikaze_landscape_granted';
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
+  const overlay = document.getElementById('landscapeOverlay');
+
+  function isPortrait() { return window.innerWidth < window.innerHeight; }
+
+  function checkOrientation() {
+    if (!isMobile) return;
+    if (isPortrait()) {
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    } else {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      try { localStorage.setItem(LANDSCAPE_KEY, '1'); } catch(_) {}
+    }
+  }
+
+  // Screen Orientation API lock — requires user gesture, fires once
+  async function tryLock() {
+    if (!isMobile) return;
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        try { localStorage.setItem(LANDSCAPE_KEY, '1'); } catch(_) {}
+      }
+    } catch(e) { /* user denied or API unsupported — overlay stays */ }
+  }
+
+  // One-time permission: request lock on first user interaction
+  const alreadyGranted = (function() {
+    try { return localStorage.getItem(LANDSCAPE_KEY) === '1'; } catch(_) { return false; }
+  })();
+
+  if (isMobile && !alreadyGranted) {
+    const unlock = () => {
+      tryLock();
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('touchstart', unlock);
+    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
+  }
+
+  checkOrientation();
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', checkOrientation);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkOrientation();
+  });
+})();
+</script>
+
 </body>
 </html>

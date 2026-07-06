@@ -1,73 +1,354 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — Replays</title>
-<link rel="stylesheet" href="styles.css">
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>KAMIKAZE | REPLAY ARCHIVE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
-  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
-</style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+        }
+        .scan-line {
+            background: linear-gradient(to bottom, transparent 50%, rgba(73, 249, 249, 0.05) 50%);
+            background-size: 100% 4px;
+        }
+        .tactical-bracket::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 10px; height: 10px;
+            border-top: 2px solid #e0115f; border-left: 2px solid #e0115f;
+        }
+        .tactical-bracket::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0; width: 10px; height: 10px;
+            border-bottom: 2px solid #e0115f; border-right: 2px solid #e0115f;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.2s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); color: #49f9f9; }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); color: #e0115f; }
+            100% { transform: translate(0); }
+        }
+        body {
+            background-color: #131313;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#e0115f",
+                        "on-primary-container": "#fff8f8",
+                        "on-secondary-fixed": "#002020",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#ffb2be",
+                        "on-primary-fixed-variant": "#900039",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "tertiary-container": "#727373",
+                        "outline": "#ab888d",
+                        "background": "#131313",
+                        "on-primary": "#660026",
+                        "surface-bright": "#3a3939",
+                        "on-secondary": "#003737",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed": "#49f9f9",
+                        "on-primary-fixed": "#3f0015",
+                        "on-secondary-container": "#005c5c",
+                        "on-tertiary-container": "#fafafa",
+                        "secondary": "#49f9f9",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container": "#201f1f",
+                        "surface-variant": "#353534",
+                        "primary": "#ffb2be",
+                        "on-surface-variant": "#e4bdc2",
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#e2e2e2",
+                        "inverse-on-surface": "#313030",
+                        "primary-fixed-dim": "#ffb2be",
+                        "outline-variant": "#5b3f44",
+                        "on-background": "#e5e2e1",
+                        "secondary-container": "#00dddd",
+                        "on-tertiary": "#2f3131",
+                        "tertiary": "#c6c6c7",
+                        "secondary-fixed-dim": "#00dddd",
+                        "on-error": "#690005",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-primary": "#bc004d",
+                        "surface": "#131313",
+                        "primary-fixed": "#ffd9de",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-tertiary-fixed": "#1a1c1c"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Anton"],
+                        "mono-label": ["Space Mono"],
+                        "subheading": ["Geist"],
+                        "headline-lg": ["Anton"],
+                        "display-xl-mobile": ["Anton"],
+                        "body-rt": ["Geist"],
+                        "kanji-decorative": ["Epilogue"]
+                    },
+                    "fontSize": {
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "400"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
 </head>
-<body>
-<div class="nav-bar">
-  <a href="start.html" class="nav-back">← Start</a>
-  <span class="nav-title">📼 Replay Gallery</span>
-  <a href="start.html" class="nav-close" title="Close">✕</a>
-</div>
-
-<div class="page-content">
-  <div class="lb-panel" style="max-width:560px;max-height:85vh;">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-    <h3>📼 Replay Gallery</h3>
-
-    <div class="lb-body" style="display:flex;flex-direction:column;gap:10px;">
-      <!-- Replay 1 -->
-      <a href="replay-detail.html" class="replay-card" style="text-decoration:none;display:flex;">
-        <div class="replay-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">🎬</div>
-        <div style="flex:1;text-align:left;min-width:0;">
-          <div style="font-size:13px;font-weight:700;color:#98cbff;">24,500 pts · Grade S</div>
-          <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">ACE_PILOT · 4/5/2026 · Level 8</div>
-        </div>
-        <div style="font-size:10px;font-weight:700;color:#00dddd;white-space:nowrap;">⭐ NEW BEST</div>
-      </a>
-
-      <!-- Replay 2 -->
-      <a href="replay-detail.html" class="replay-card" style="text-decoration:none;display:flex;">
-        <div class="replay-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">🎬</div>
-        <div style="flex:1;text-align:left;min-width:0;">
-          <div style="font-size:13px;font-weight:700;color:#98cbff;">12,847 pts · Grade A</div>
-          <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">ACE_PILOT · 4/3/2026 · Level 4</div>
-        </div>
-        <div style="font-size:10px;font-weight:700;color:#00dddd;white-space:nowrap;">✅ SUCCESS</div>
-      </a>
-
-      <!-- Replay 3 -->
-      <a href="replay-detail.html" class="replay-card" style="text-decoration:none;display:flex;">
-        <div class="replay-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">🎬</div>
-        <div style="flex:1;text-align:left;min-width:0;">
-          <div style="font-size:13px;font-weight:700;color:#98cbff;">8,200 pts · Grade B</div>
-          <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">ACE_PILOT · 3/30/2026 · Level 3</div>
-        </div>
-        <div style="font-size:10px;font-weight:700;color:#00dddd;white-space:nowrap;">🔥 HIGH SCORE</div>
-      </a>
-
-      <!-- Replay 4 -->
-      <a href="replay-detail.html" class="replay-card" style="text-decoration:none;display:flex;">
-        <div class="replay-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">🎬</div>
-        <div style="flex:1;text-align:left;min-width:0;">
-          <div style="font-size:13px;font-weight:700;color:#98cbff;">3,450 pts · Grade C</div>
-          <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">ACE_PILOT · 3/25/2026 · Level 2</div>
-        </div>
-        <div style="font-size:10px;font-weight:700;color:#ffb4ab;white-space:nowrap;">💥 CRASH</div>
-      </a>
+<body class="pt-10 pt-10 bg-background text-on-surface min-h-screen pb-32">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
+      </div>
     </div>
-
-    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
   </div>
-</div>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
+  </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<!-- Background Animation Layer -->
 
-<div class="state-badge">STATE: replays</div>
-</body>
-</html>
+<div class="fixed inset-0 scan-line pointer-events-none z-10 opacity-30"></div>
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-surface/80 backdrop-blur-xl border-b border-secondary/30 shadow-[0_0_20px_rgba(73,249,249,0.1)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">menu</span>
+<h1 class="font-display-xl-mobile text-display-xl-mobile text-primary tracking-tighter italic scale-75 origin-left">神風 KAMIKAZE</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary active:scale-95 transition-transform">sensors</span>
+</div>
+</header>
+<main class="relative z-20 pt-24 px-5">
+<!-- Section Header -->
+<div class="flex items-end justify-between mb-8 border-l-4 border-primary-container pl-4">
+<div>
+<p class="font-mono-label text-secondary uppercase tracking-[0.2em] mb-1">Log Archive // Sortie Data</p>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface uppercase tracking-tighter">REPLAY ARCHIVE</h2>
+</div>
+<div class="text-right">
+<p class="font-mono-label text-outline uppercase">Active Pilot</p>
+<p class="font-mono-label text-primary-fixed-dim">ACE_PILOT_01</p>
+</div>
+</div>
+<!-- Replay Grid -->
+<div class="space-y-6">
+<!-- Card 1: NEW BEST -->
+<div class="relative group active:scale-[0.98] transition-transform">
+<div class="glass-panel p-4 rounded-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 opacity-10 font-kanji-decorative text-secondary pointer-events-none select-none">極</div>
+<div class="flex gap-4">
+<div class="relative w-24 h-24 flex-shrink-0 tactical-bracket overflow-hidden rounded bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A cinematic cinematic cockpit view of a futuristic jet fighter diving through neon-lit clouds of a cyberpunk Neo-Tokyo at night. The lighting is dominated by electric teal and crimson laser tracers. The aesthetic is gritty and high-tech with digital HUD overlays visible in the foreground." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIwxGpXF384FMx0ki8WDcZf--6M1-NeQ1Z8Lec1dcFdIXHwCBj38B8cIFd7RowZN74Jf6pdUqnKXEGV6IOYT2IS-sSJVRZ2ZvRRkVgqpUjrWsLvOGcD_7LIllTrnel3KPaXctqyTvu5lzQ0xbVT41XYFgX0JrQ79oOwZeyKJPDdqoZwowwskGWfgnADBLn392gl19-OG3kLxqXyADBj15adqxmLUAbdMDBmJ5yQAf51P380UbryGA7JFxDHyWfCZYer8jsJUUX4kYf"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-display-xl-mobile text-3xl leading-none text-primary-container">S</span>
+<span class="font-mono-label px-2 py-0.5 bg-primary-container text-on-primary-container rounded shadow-[0_0_10px_#e0115f]">NEW BEST</span>
+</div>
+<p class="font-display-xl-mobile text-xl text-on-surface tracking-widest">24,500 PTS</p>
+</div>
+<div class="flex items-center gap-4 font-mono-label text-secondary">
+<span>LVL 8</span>
+<span class="w-1 h-1 rounded-full bg-secondary"></span>
+<span>MISSION: ZERO</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-dashed border-secondary/30 flex justify-between items-center font-mono-label">
+<span class="text-outline uppercase">2024.10.12 // 14:22</span>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-primary-container">play_arrow</span>
+<span class="text-primary tracking-widest uppercase">REPLAY</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: SUCCESS -->
+<div class="relative group">
+<div class="glass-panel p-4 rounded-lg relative overflow-hidden border-secondary/10">
+<div class="absolute top-0 right-0 w-16 h-16 opacity-5 font-kanji-decorative text-secondary pointer-events-none">功</div>
+<div class="flex gap-4">
+<div class="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded bg-surface-container-highest">
+<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" data-alt="Dynamic shot of a sleek black interceptor aircraft performing a high-G turn over a futuristic naval fleet. The water reflects shimmering neon lights of the aerospace carrier. High-contrast lighting with cyan accents and deep obsidian shadows. Digital glitch artifacts subtly frame the corners." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI5jCrYtpxhdq7HtUN-LQzBqJiFxRzA06G97tIlAYnVOrWVJNkiKS7I8rwO_LomK4nme1q8TleUYyClEMQmBu4mS8AxHxNpCneJ7THgwR-VbVsIsEe2SFcVXg9H8eZB05NFYX4dmPP9FQboYgQ4pEjzWmLhBhlAZTVDWUOZwX8ONauVxyPZEYTh_JnepI3sEeRmPvVJnTFZgMLsVaK_Sr-92cHLIt-yho6LnLD4ZgBagxCtnO9FSvcwCOIi_aQ7PLFokH3s4nvgVXv"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-display-xl-mobile text-3xl leading-none text-secondary">A</span>
+<span class="font-mono-label px-2 py-0.5 border border-secondary text-secondary rounded">SUCCESS</span>
+</div>
+<p class="font-display-xl-mobile text-xl text-on-surface tracking-widest">12,847 PTS</p>
+</div>
+<div class="flex items-center gap-4 font-mono-label text-outline">
+<span>LVL 4</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span>MISSION: ECHO</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-dashed border-secondary/30 flex justify-between items-center font-mono-label">
+<span class="text-outline uppercase">2024.10.11 // 09:15</span>
+<span class="material-symbols-outlined text-outline">share</span>
+</div>
+</div>
+</div>
+<!-- Card 3: HIGH SCORE -->
+<div class="relative group">
+<div class="glass-panel p-4 rounded-lg relative overflow-hidden border-secondary/10">
+<div class="absolute top-0 right-0 w-16 h-16 opacity-5 font-kanji-decorative text-secondary pointer-events-none">高</div>
+<div class="flex gap-4">
+<div class="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="Close up of a flight helmet visor reflecting a tactical dashboard and the lights of a high-speed tunnel descent. The visor shows data streams in a sharp teal font. The mood is intense and concentrated, featuring a blend of dark metal and glowing electronics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4Fyky_k628nx7sJ6kd4zLgo8DOclj6YoQrELKp1xJjgi39qGCGIMB5kR9QHW_N2sjBREZGWX4KR3U-aQoiMq7V7ybR-3W9lz-nGe__BriI6XxtAujqbota4JUq3_RUSXTxuxBvrx33Nc7uTf5pmDvTdeAHAOrf1lBbpPcfYUGRjc8ZY_SkGljhOc7VfHE1Z_lCtmdMemU07FpCARrlnApoGWfCAaP9V6VgmKv8yzdQdIvKYPY4TfGxX_TYQGFbTPagUjOxxE2W8pU"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-display-xl-mobile text-3xl leading-none text-on-surface-variant">B</span>
+<span class="font-mono-label px-2 py-0.5 border border-primary text-primary rounded">HIGH SCORE</span>
+</div>
+<p class="font-display-xl-mobile text-xl text-on-surface tracking-widest">8,200 PTS</p>
+</div>
+<div class="flex items-center gap-4 font-mono-label text-outline">
+<span>LVL 3</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span>MISSION: BETA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: CRASH -->
+<div class="relative group opacity-80">
+<div class="glass-panel p-4 rounded-lg relative overflow-hidden border-error-container/40">
+<div class="absolute top-0 right-0 w-16 h-16 opacity-5 font-kanji-decorative text-error pointer-events-none">破</div>
+<div class="flex gap-4">
+<div class="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded bg-surface-container-highest border border-error/20">
+<img class="w-full h-full object-cover brightness-50 contrast-125" data-alt="Dramatic explosion of a spacecraft in a dark asteroid field. Red distress signals blink through thick black smoke. Debris is scattered with sharp metallic edges. The atmosphere is chaotic and tragic, lit by the fading glow of a fusion engine breach." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtQUCKpe8rtGEkVvaoWgmRhChcdgxtFuH6DILPQWHDfvoRvb4ladjoq2Q50-1PyPzIYm-YoqKM2yaC2B7SgSVItAko_4qZ5rmK5XL2qXGXAs6hpJUVMGhTertp59O6UMD0vML-9vrhKigIl6pVtOz1cbgD_-SO0wUrtgtTX-yYl82fmPO5zlvrv6jjq6xOK_X7bLLp1mHMcaQ0P_cABpB-JJseexk-PkQ7XFInKBcJe_AR75DRw2Wdule9J00BoPFAOkuugGAK9W7G"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="font-display-xl-mobile text-3xl leading-none text-error">C</span>
+<span class="font-mono-label px-2 py-0.5 bg-error-container/20 text-error border border-error/50 rounded">CRASH</span>
+</div>
+<p class="font-display-xl-mobile text-xl text-on-surface-variant tracking-widest">3,450 PTS</p>
+</div>
+<div class="flex items-center gap-4 font-mono-label text-error/60">
+<span>LVL 2</span>
+<span class="w-1 h-1 rounded-full bg-error/40"></span>
+<span>MISSION: ALPHA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Call to Action -->
+<button class="w-full mt-12 py-4 bg-primary-container text-on-primary-container font-headline-lg-mobile text-xl rounded-none relative glitch-hover group transition-all">
+<span class="relative z-10 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">rocket_launch</span>
+                NEW SORTIE
+            </span>
+<div class="absolute inset-0 border-2 border-white/20 translate-x-1 translate-y-1 -z-0 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform"></div>
+</button>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest/90 backdrop-blur-lg border-t-2 border-primary shadow-[0_-4px_30px_rgba(224,17,95,0.2)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="font-mono-label text-[10px] uppercase mt-1">HANGAR</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-mono-label text-[10px] uppercase mt-1">MISSIONS</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 scale-110 shadow-[0_0_15px_#e0115f] active:translate-y-1 transition-transform" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-mono-label text-[10px] uppercase mt-1">RANK</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline p-2 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-mono-label text-[10px] uppercase mt-1">DEPLOY</span>
+</a>
+</nav>
+<!-- Decorative Corner Elements -->
+<div class="fixed top-20 right-0 w-12 h-12 pointer-events-none opacity-20 border-r-2 border-t-2 border-secondary"></div>
+<div class="fixed bottom-24 left-0 w-8 h-8 pointer-events-none opacity-20 border-l-2 border-b-2 border-primary"></div>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.add('scale-95');
+                setTimeout(() => card.classList.remove('scale-95'), 100);
+            });
+        });
+    </script>
+</body></html>

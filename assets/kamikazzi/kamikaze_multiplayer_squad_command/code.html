@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE // SQUAD COORDINATION</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600;900&amp;family=Epilogue:wght@900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@100..900&amp;family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#e5e2e1",
+                        "on-secondary-container": "#005c5c",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-secondary": "#003737",
+                        "tertiary-container": "#727373",
+                        "on-primary-container": "#fff8f8",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#2a2a2a",
+                        "secondary-fixed-dim": "#00dddd",
+                        "secondary": "#49f9f9",
+                        "surface": "#131313",
+                        "secondary-container": "#00dddd",
+                        "surface-dim": "#131313",
+                        "inverse-on-surface": "#313030",
+                        "secondary-fixed": "#49f9f9",
+                        "primary-fixed": "#ffd9de",
+                        "inverse-surface": "#e5e2e1",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#fafafa",
+                        "on-primary": "#660026",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#ffb2be",
+                        "surface-bright": "#3a3939",
+                        "on-surface-variant": "#e4bdc2",
+                        "outline": "#ab888d",
+                        "surface-container-low": "#1c1b1b",
+                        "on-tertiary": "#2f3131",
+                        "surface-container": "#201f1f",
+                        "on-primary-fixed-variant": "#900039",
+                        "inverse-primary": "#bc004d",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-variant": "#353534",
+                        "on-primary-fixed": "#3f0015",
+                        "primary-container": "#e0115f",
+                        "on-secondary-fixed": "#002020",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary": "#c6c6c7",
+                        "surface-tint": "#ffb2be",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "surface-container-highest": "#353534",
+                        "primary": "#ffb2be",
+                        "background": "#131313",
+                        "outline-variant": "#5b3f44",
+                        "error": "#ffb4ab",
+                        "on-background": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "grid-margin": "40px",
+                        "unit": "8px",
+                        "section-gap": "120px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Anton"],
+                        "subheading": ["Geist"],
+                        "body-rt": ["Geist"],
+                        "mono-label": ["Space Mono"],
+                        "kanji-decorative": ["Epilogue"],
+                        "display-xl-mobile": ["Anton"],
+                        "display-xl": ["Anton"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(73, 249, 249, 0.03) 1px, rgba(73, 249, 249, 0.03) 2px);
+            pointer-events: none;
+        }
+
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); color: #49f9f9; }
+            40% { transform: translate(-2px, -2px); color: #ffb2be; }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(73, 249, 249, 0.1);
+            position: absolute;
+            top: 0;
+            z-index: 10;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .kanji-watermark {
+            position: absolute;
+            bottom: -10px;
+            right: -5px;
+            opacity: 0.08;
+            font-family: 'Epilogue', sans-serif;
+            font-size: 80px;
+            pointer-events: none;
+        }
+
+        .vertical-laser {
+            width: 1px;
+            height: 100%;
+            background: #e0115f;
+            box-shadow: 0 0 8px #e0115f;
+        }
+
+        .ready-pulse {
+            animation: pulse-ready 2s infinite;
+        }
+
+        @keyframes pulse-ready {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        
+        body {
+            background-color: #0e0e0e;
+            color: #e5e2e1;
+            overflow-x: hidden;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131313;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #49f9f9;
+        }
+    </style>
+</head>
+<body class="font-body-rt selection:bg-secondary selection:text-on-secondary">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-gutter h-16 fixed top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant">
+<div class="font-headline-lg text-headline-lg text-primary uppercase tracking-tighter">ARCHITECT // SQUAD</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">TACTICAL</a>
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">TERRAIN</a>
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-primary border-b-2 border-primary pb-1" href="#">SQUAD</a>
+<a class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">LOGS</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 transition-all duration-200 active:scale-95 hover:bg-primary-container/10">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="p-2 transition-all duration-200 active:scale-95 hover:bg-primary-container/10">
+<span class="material-symbols-outlined text-primary">settings</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col pt-8 bg-surface-container-low/90 backdrop-blur-2xl border-r border-outline-variant hidden lg:flex">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-10 h-10 rounded-full border border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A gritty, high-contrast portrait of a futuristic cyberpunk pilot wearing a dark tactical helmet with glowing red visors. The lighting is moody and dramatic with deep shadows and sharp electric teal rim lighting, reflecting a high-tech hangar environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYctbBzLBksJbE4yeqyqtsY7_3Jc009oXT3T84HImLLJveQH04EtqQSL3TW2DCWNoxTpL1AatygAkM5ncJ1Z06-iyeBd-qVt0XejMN3zovwN_O-pd_HwxOYub5mxRd_ZJ6Fk9f4JC9Z7pnkdmbC0We3goP62o2SJef363npa8RtLE7l5I4zoXuXXdY7LQ5w6KirOKaG1bjqBO3b65KeazMwpV90lFcIPprADEdZKIYCj5OwxYvQqibtmeRMg8-gWghzRr6EjIar9vh"/>
+</div>
+<div>
+<div class="font-mono-label text-mono-label uppercase tracking-widest text-secondary">OPERATOR_01</div>
+<div class="text-[10px] text-on-surface-variant">MACH 2.4</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 text-on-surface-variant px-4 py-3 hover:bg-surface-variant font-mono-label text-mono-label uppercase tracking-widest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">rocket_launch</span> COCKPIT
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant px-4 py-3 hover:bg-surface-variant font-mono-label text-mono-label uppercase tracking-widest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">layers</span> MAP_GEN
+            </a>
+<a class="flex items-center gap-4 bg-secondary-container text-on-secondary-container border-l-4 border-primary px-4 py-3 font-mono-label text-mono-label uppercase tracking-widest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">groups</span> SQUAD_COMMS
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant px-4 py-3 hover:bg-surface-variant font-mono-label text-mono-label uppercase tracking-widest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">military_tech</span> LOADOUT
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant px-4 py-3 hover:bg-surface-variant font-mono-label text-mono-label uppercase tracking-widest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">troubleshoot</span> INTEL
+            </a>
+</nav>
+<div class="mt-auto p-4 border-t border-outline-variant">
+<button class="w-full bg-primary-container text-on-primary-container py-3 font-headline-lg text-lg uppercase tracking-tight glitch-hover transition-all">
+                DEPLOY MISSION
+            </button>
+<div class="mt-4 flex flex-col gap-2">
+<a class="flex items-center gap-2 text-[10px] text-on-surface-variant hover:text-secondary uppercase" href="#">
+<span class="material-symbols-outlined text-sm">memory</span> SYSTEM_STATUS
+                </a>
+<a class="flex items-center gap-2 text-[10px] text-on-surface-variant hover:text-secondary uppercase" href="#">
+<span class="material-symbols-outlined text-sm">logout</span> LOGOUT
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-20 px-gutter min-h-screen relative">
+<!-- Atmospheric Background Element -->
+<div class="fixed inset-0 pointer-events-none z-0 opacity-20">
+
+</div>
+<!-- Section Header -->
+<div class="relative z-10 mb-8 flex items-end gap-4">
+<div class="w-1 h-12 bg-primary shadow-[0_0_10px_#e0115f]"></div>
+<div>
+<h1 class="font-headline-lg text-headline-lg uppercase leading-none">SQUAD_COORDINATION</h1>
+<p class="font-mono-label text-mono-label text-secondary mt-1">SECTOR: NEO-TOKYO // ALTITUDE: 15,000M</p>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter relative z-10">
+<!-- MISSION_BRIEFING (Left Column) -->
+<div class="col-span-12 xl:col-span-3 space-y-gutter">
+<section class="glass-panel p-6">
+<div class="scanline"></div>
+<div class="flex items-center gap-2 mb-4 border-b border-dashed border-secondary/30 pb-2">
+<span class="material-symbols-outlined text-secondary text-lg">description</span>
+<h2 class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface">MISSION_BRIEFING</h2>
+</div>
+<div class="relative aspect-video mb-4 group cursor-crosshair">
+<div class="absolute inset-0 border border-secondary/50"></div>
+<img class="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida/AP1WRLvhcrGvTqX1ZOR_eqs45lqCzko2wHZ5DXsgKS2oV6LD4EgrJm7DBnL8OqwVra8AJK-eP-vmnv2N1USQsS9sHBLiAYto-Ic_Nwg41C7atz5PWijiet65qQFfJN20yaEEO5FgjBS8xAwCiNvtMqAcyn-9NuQxpxqYnGitYAqZ5ueoWm4JIKjfW373-CUxrQMUL2sKSRlRnu62E_tKIFGIwneqMo-rzqtnKD0-jIK6-9ww56KU-jNtLOKosAWk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent"></div>
+<div class="absolute bottom-2 left-2 font-mono-label text-[10px] text-secondary">TACTICAL_OBJ: 09</div>
+</div>
+<div class="space-y-4">
+<div>
+<span class="text-[10px] text-on-surface-variant block uppercase font-mono-label">Objective</span>
+<p class="text-body-rt text-sm leading-snug">Infiltrate the central data-hub in District 4. Neutralize anti-air batteries before descent.</p>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-high p-2 border-l-2 border-primary">
+<span class="text-[9px] text-secondary block uppercase font-mono-label">Target</span>
+<span class="font-mono-label text-xs">SHADOW_CORE</span>
+</div>
+<div class="bg-surface-container-high p-2 border-l-2 border-secondary">
+<span class="text-[9px] text-secondary block uppercase font-mono-label">Threat Level</span>
+<span class="font-mono-label text-xs">S-CLASS</span>
+</div>
+</div>
+</div>
+<div class="kanji-watermark">作戦</div>
+</section>
+<section class="glass-panel p-6">
+<div class="flex items-center gap-2 mb-4 border-b border-dashed border-secondary/30 pb-2">
+<span class="material-symbols-outlined text-secondary text-lg">radar</span>
+<h2 class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface">WEATHER_INTEL</h2>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-mono-label text-xs text-on-surface-variant">
+<span>PRECIPITATION</span>
+<span class="text-secondary">88% (ACID)</span>
+</div>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-primary w-4/5"></div>
+</div>
+<div class="flex justify-between font-mono-label text-xs text-on-surface-variant">
+<span>VISIBILITY</span>
+<span class="text-secondary">LOW (1.2KM)</span>
+</div>
+</div>
+</section>
+</div>
+<!-- SQUAD_ROSTER (Center Column) -->
+<div class="col-span-12 xl:col-span-6">
+<section class="glass-panel h-full flex flex-col">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">groups</span>
+<h2 class="font-headline-lg text-3xl uppercase tracking-tighter">SQUAD_ROSTER</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-mono-label text-on-surface-variant uppercase">Slots Filled:</span>
+<span class="font-mono-label text-secondary">4 / 6</span>
+</div>
+</div>
+<div class="flex-1 p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Slot 1: Active -->
+<div class="relative bg-surface-container-highest/40 border border-secondary p-4 group">
+<div class="flex gap-4">
+<div class="w-20 h-20 bg-surface-container relative overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up face of a female elite pilot with sharp features, wearing a sleek matte-black flight helmet with a cyan HUD reflection. Neon city lights blur in the background. Hyper-realistic and tactical, echoing a cyberpunk aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBISMpmn8guj0_jbyKDGNN1FY2zwbse7sbqv0TkeE3d2GrM_q3GB1scprGHIx4gt7lS96xI8VwNlFytDL9r2Tp_CGfpMzmyTI8KMLzW9FOxumXMnJLambm9iNJ1xcxQpZK5IqnzDBvpk9pE-8ThR2h4SEfGmR8AgT39sOxUV6wUSCDZYiwnUItYYobwC0iFfyfSM45uOziocdWYiyW4adQ6qwZ2qXjVlpkVpKhkifHRSi8y6oEOxC_Fm2QJUqPcz0gxCVqybI0EdJ5E"/>
+<div class="absolute bottom-0 right-0 bg-secondary text-on-secondary text-[10px] px-1 font-mono-label">P1</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-mono-label text-sm font-bold uppercase text-on-surface">GHOST_LEADER</div>
+<div class="text-[10px] text-secondary uppercase font-mono-label">RANK: COLONEL</div>
+</div>
+<div class="ready-pulse text-[10px] font-mono-label text-secondary flex items-center gap-1">
+<span class="w-2 h-2 bg-secondary rounded-full"></span> READY
+                                        </div>
+</div>
+<div class="mt-4">
+<div class="flex gap-1">
+<div class="w-full h-1 bg-secondary"></div>
+<div class="w-full h-1 bg-secondary"></div>
+<div class="w-full h-1 bg-surface-variant"></div>
+</div>
+<div class="text-[8px] mt-1 text-on-surface-variant font-mono-label">STABILITY: 66%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slot 2: Active -->
+<div class="relative bg-surface-container-highest/40 border border-secondary p-4">
+<div class="flex gap-4">
+<div class="w-20 h-20 bg-surface-container relative overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Grit-filled portrait of a veteran male pilot with short cropped hair and facial scarring. He wears a heavy-duty tactical flight suit with red accented patches. Background shows glowing control panels. Cinematic lighting with deep shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjCBe2JFkXBRhPxIQpiI6ItAVfVJAwTQmiGX6GazxMzimHmRw1C61W70zqg1FR1wcW9oIvO8HrQ6dtVO0tg_qwZ5635Sc5hP8sluRPYikmGlNu3HYUagVdoON0mfIcTCs-CmVkLpGQ4Uj9IaL6gXMA0PtVm_G4y7zhs7dftkPW3rfoAYcY6H-h8h2XK1Xj2sV_uhfUywMoM54EXn-K2AEKiTto63DYdlzNlLF8FfWkP3Jk4OcGUGHQxLe1XbnkDgYkLoW49NhVGhm5"/>
+<div class="absolute bottom-0 right-0 bg-secondary text-on-secondary text-[10px] px-1 font-mono-label">P2</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-mono-label text-sm font-bold uppercase text-on-surface">IRON_WILL</div>
+<div class="text-[10px] text-secondary uppercase font-mono-label">RANK: MAJOR</div>
+</div>
+<div class="ready-pulse text-[10px] font-mono-label text-secondary flex items-center gap-1">
+<span class="w-2 h-2 bg-secondary rounded-full"></span> READY
+                                        </div>
+</div>
+<div class="mt-4">
+<div class="flex gap-1">
+<div class="w-full h-1 bg-secondary"></div>
+<div class="w-full h-1 bg-secondary"></div>
+<div class="w-full h-1 bg-secondary"></div>
+</div>
+<div class="text-[8px] mt-1 text-on-surface-variant font-mono-label">STABILITY: 100%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slot 3: Empty/Searching -->
+<div class="relative bg-surface-container-low border border-dashed border-outline-variant p-4 flex flex-col items-center justify-center group hover:border-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary transition-colors">person_add</span>
+<div class="text-[10px] font-mono-label text-on-surface-variant mt-2 uppercase">AWAITING_PILOT</div>
+</div>
+<!-- Slot 4: You -->
+<div class="relative bg-primary/10 border border-primary p-4 shadow-[0_0_15px_rgba(224,17,95,0.2)]">
+<div class="absolute -top-2 -right-2 bg-primary text-on-primary text-[8px] px-2 py-0.5 font-bold uppercase">YOU</div>
+<div class="flex gap-4">
+<div class="w-20 h-20 bg-surface-container relative overflow-hidden border border-primary">
+<img class="w-full h-full object-cover" data-alt="Modern cyberpunk pilot avatar, gender-neutral with high-tech tactical mask covering the lower face. Glowing data streams reflecting on the goggles. Dark, moody, and sharp aesthetic with crimson and cyan light splashes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJpOAu8Bkr4ztxy7bbgeoKdBO6a1GYsZaX0FuDQUCyQdiC5y6MYoay6jIFT5CEigdfjPNUHTd0qiUDeROr5VIZB9SHw0tEj0zOMDa_q-tbDTZt0_MyZmZtiALi3QsnftY4QNnNQo3OpU1oudOfpAD3Ria2oGeRepnw_6SjugIzg4pLcBjz5ckUW_7ZSP9hhSf9UVnWYR8xUamS90j6oaY4y1TCSjJhk8p36MPuKDlFGNb8oxwNF2y7IicdvhJVpT6IWvpo_whpaknn"/>
+<div class="absolute bottom-0 right-0 bg-primary text-white text-[10px] px-1 font-mono-label">P4</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-mono-label text-sm font-bold uppercase text-on-surface">OPERATOR_01</div>
+<div class="text-[10px] text-primary uppercase font-mono-label">RANK: PILOT_EX</div>
+</div>
+<button class="bg-primary text-on-primary text-[10px] px-3 py-1 font-mono-label hover:bg-white hover:text-primary transition-colors">READY?</button>
+</div>
+<div class="mt-4">
+<div class="flex gap-1">
+<div class="w-full h-1 bg-primary"></div>
+<div class="w-full h-1 bg-surface-variant"></div>
+<div class="w-full h-1 bg-surface-variant"></div>
+</div>
+<div class="text-[8px] mt-1 text-on-surface-variant font-mono-label">STABILITY: 33%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slot 5: Empty -->
+<div class="relative bg-surface-container-low border border-dashed border-outline-variant p-4 flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant">lock</span>
+<div class="text-[10px] font-mono-label text-on-surface-variant mt-2 uppercase">LOCKED_SLOT</div>
+</div>
+<!-- Slot 6: Empty -->
+<div class="relative bg-surface-container-low border border-dashed border-outline-variant p-4 flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant">lock</span>
+<div class="text-[10px] font-mono-label text-on-surface-variant mt-2 uppercase">LOCKED_SLOT</div>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low flex flex-col sm:flex-row gap-6 items-center border-t border-outline-variant">
+<div class="flex-1">
+<div class="text-[10px] text-secondary font-mono-label uppercase mb-1">Squad Synchronicity</div>
+<div class="flex gap-1">
+<div class="h-2 w-full bg-secondary"></div>
+<div class="h-2 w-full bg-secondary"></div>
+<div class="h-2 w-full bg-secondary"></div>
+<div class="h-2 w-full bg-secondary/30"></div>
+<div class="h-2 w-full bg-secondary/30"></div>
+<div class="h-2 w-full bg-secondary/30"></div>
+<div class="h-2 w-full bg-secondary/30"></div>
+<div class="h-2 w-full bg-secondary/30"></div>
+</div>
+</div>
+<button class="w-full sm:w-auto bg-primary text-on-primary-container font-headline-lg text-2xl px-12 py-4 glitch-hover tracking-tight shadow-[0_0_30px_rgba(224,17,95,0.4)]">
+                            SYNCHRONIZE &amp; DEPLOY
+                        </button>
+</div>
+</section>
+</div>
+<!-- COMMS_LOG (Right Column) -->
+<div class="col-span-12 xl:col-span-3">
+<section class="glass-panel h-[600px] xl:h-full flex flex-col">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">forum</span>
+<h2 class="font-mono-label text-mono-label uppercase tracking-widest text-on-surface">COMMS_LOG</h2>
+</div>
+<span class="text-[10px] font-mono-label text-secondary">LIVE</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+<div class="space-y-1">
+<div class="flex justify-between items-center text-[9px] font-mono-label">
+<span class="text-secondary">GHOST_LEADER</span>
+<span class="text-on-surface-variant">14:22:01</span>
+</div>
+<div class="p-2 bg-surface-variant/50 text-xs border-l border-secondary">
+                                "All units, check in. Descent in T-minus 2 minutes."
+                            </div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between items-center text-[9px] font-mono-label">
+<span class="text-on-surface">IRON_WILL</span>
+<span class="text-on-surface-variant">14:22:15</span>
+</div>
+<div class="p-2 bg-surface-variant/50 text-xs border-l border-on-surface">
+                                "Systems green. Weapon platforms hot."
+                            </div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between items-center text-[9px] font-mono-label">
+<span class="text-primary">OPERATOR_01</span>
+<span class="text-on-surface-variant">14:23:04</span>
+</div>
+<div class="p-2 bg-primary/10 text-xs border-l border-primary italic">
+                                "Synchronizing neuro-link. 78%... 85%..."
+                            </div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between items-center text-[9px] font-mono-label text-error">
+<span>SYSTEM_ALERT</span>
+<span>14:23:30</span>
+</div>
+<div class="p-2 bg-error/10 text-xs border-l border-error">
+                                "UNIDENTIFIED TRACE DETECTED IN SECTOR 7. PROCEED WITH CAUTION."
+                            </div>
+</div>
+<div class="space-y-1 opacity-40">
+<div class="flex justify-between items-center text-[9px] font-mono-label">
+<span class="text-secondary">GHOST_LEADER</span>
+<span class="text-on-surface-variant">14:24:00</span>
+</div>
+<div class="p-2 bg-surface-variant/50 text-xs border-l border-secondary">
+                                "Focus. Keep the channel clear for tactical updates."
+                            </div>
+</div>
+</div>
+<div class="p-4 border-t border-outline-variant bg-surface-container-high/50">
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-b border-secondary p-3 text-xs font-mono-label focus:outline-none focus:border-primary transition-colors pr-10" placeholder="TRANSMIT_MESSAGE..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-primary">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer Visual Decor -->
+<div class="mt-section-gap mb-12 flex flex-col md:flex-row justify-between items-center border-t border-dashed border-outline-variant pt-8">
+<div class="flex gap-4">
+<div class="w-24 h-1 bg-primary"></div>
+<div class="w-48 h-1 bg-surface-variant"></div>
+</div>
+<div class="font-mono-label text-[10px] text-on-surface-variant mt-4 md:mt-0">
+                TERMINAL_LINK_ID: KMKZ-9912-X-SQUAD
+            </div>
+<div class="flex gap-4 mt-4 md:mt-0">
+<span class="font-kanji-decorative text-primary opacity-20 text-4xl">神風</span>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-xl flex justify-around items-center z-50 border-t border-outline-variant">
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-[8px] font-mono-label">COCKPIT</span>
+</a>
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="text-[8px] font-mono-label">SQUAD</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[8px] font-mono-label">INTEL</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[8px] font-mono-label">SYS</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions and atmospheric effects
+        document.addEventListener('mousemove', (e) => {
+            const panels = document.querySelectorAll('.glass-panel');
+            panels.forEach(panel => {
+                const rect = panel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Subtle reflection movement
+                if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
+                    panel.style.setProperty('--mouse-x', `${x}px`);
+                    panel.style.setProperty('--mouse-y', `${y}px`);
+                }
+            });
+        });
+
+        // Simple typing effect for tactical feel
+        const transmitInput = document.querySelector('input[type="text"]');
+        if (transmitInput) {
+            transmitInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && transmitInput.value.trim() !== '') {
+                    // Simulating a message send
+                    transmitInput.value = '';
+                    // Normally you'd append to DOM here
+                }
+            });
+        }
+    </script>
+</body></html>

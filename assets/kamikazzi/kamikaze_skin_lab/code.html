@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>KAMIKAZE | Skin Lab</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Epilogue:wght@900&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#5b3f44",
+                        "surface-container-highest": "#353534",
+                        "on-secondary-container": "#005c5c",
+                        "surface-dim": "#131313",
+                        "inverse-primary": "#bc004d",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "inverse-surface": "#e5e2e1",
+                        "on-tertiary-container": "#fafafa",
+                        "on-primary-fixed": "#3f0015",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary-fixed-dim": "#00dddd",
+                        "primary-fixed-dim": "#ffb2be",
+                        "error": "#ffb4ab",
+                        "surface-container": "#201f1f",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#ffd9de",
+                        "primary": "#ffb2be",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "secondary": "#49f9f9",
+                        "on-primary": "#660026",
+                        "surface-variant": "#353534",
+                        "surface-tint": "#ffb2be",
+                        "surface-bright": "#3a3939",
+                        "on-secondary": "#003737",
+                        "surface-container-low": "#1c1b1b",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#900039",
+                        "background": "#131313",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-surface-variant": "#e4bdc2",
+                        "on-tertiary": "#2f3131",
+                        "tertiary-container": "#727373",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-fixed": "#002020",
+                        "primary-container": "#e0115f",
+                        "on-primary-container": "#fff8f8",
+                        "secondary-fixed": "#49f9f9",
+                        "secondary-container": "#00dddd",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface": "#131313",
+                        "outline": "#ab888d",
+                        "tertiary": "#c6c6c7",
+                        "tertiary-fixed-dim": "#c6c6c7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "section-gap": "120px",
+                        "grid-margin": "40px"
+                    },
+                    "fontFamily": {
+                        "display-xl-mobile": ["Anton"],
+                        "headline-lg": ["Anton"],
+                        "headline-lg-mobile": ["Anton"],
+                        "kanji-decorative": ["Epilogue"],
+                        "display-xl": ["Anton"],
+                        "mono-label": ["Space Mono"],
+                        "subheading": ["Geist"],
+                        "body-rt": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "400"}],
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 255, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* Asanoha Background */
+        .bg-asanoha {
+            background-color: #131313;
+            background-image: radial-gradient(#49f9f915 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Corner Brackets */
+        .corner-bracket {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: #49f9f9;
+        }
+        .bracket-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+        .bracket-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+        .bracket-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+        .bracket-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+
+        /* Custom Hover Glitch */
+        .btn-glitch:hover {
+            animation: glitch 0.2s ease infinite;
+            background-color: #49f9f9 !important;
+            color: #131313 !important;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .segment-bar div {
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+        }
+
+        body {
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .lb-panel {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .lb-panel::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background bg-asanoha font-body-rt min-h-screen selection:bg-primary selection:text-on-primary">
+<div class="scanlines"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-secondary/30 flex justify-between items-center px-grid-margin py-unit w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tighter uppercase">KAMIKAZE</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-mono-label text-mono-label text-secondary opacity-70 tracking-widest">STATE: skin-lab</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors" data-icon="settings">settings</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-grid-margin lb-panel overflow-y-auto h-screen max-w-2xl mx-auto">
+<!-- Header Section -->
+<section class="mb-10 relative">
+<div class="flex items-baseline justify-between mb-2">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface flex items-center gap-3">
+<span class="text-3xl">🎨</span> Skin Lab
+                </h2>
+<div class="bg-primary/10 border border-primary/30 px-3 py-1 rounded-sm">
+<span class="font-mono-label text-mono-label text-primary uppercase">SYNCED</span>
+</div>
+</div>
+<div class="h-1 w-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary w-1/3 animate-[shimmer_2s_infinite]"></div>
+</div>
+</section>
+<!-- Plane Skin Section -->
+<section class="mb-gutter relative p-gutter bg-surface-container-low/40 backdrop-blur-md border border-secondary/20">
+<div class="corner-bracket bracket-tl"></div>
+<div class="corner-bracket bracket-tr"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-subheading text-subheading text-secondary uppercase tracking-widest">Plane Skin</h3>
+<p class="font-mono-label text-mono-label text-on-surface-variant mt-1">AIRCRAFT_TEXTURE_OVERRIDE</p>
+</div>
+<span class="font-kanji-decorative text-kanji-decorative opacity-10 absolute right-4 top-4">翼</span>
+</div>
+<div class="space-y-6">
+<!-- Input Field -->
+<div class="relative">
+<input class="w-full bg-transparent border-b border-secondary/30 focus:border-primary focus:ring-0 text-body-rt font-mono-label placeholder:text-secondary/30 transition-all py-3" placeholder="flaming dragon camo" type="text"/>
+<div class="absolute right-0 bottom-3">
+<span class="material-symbols-outlined text-secondary/40" data-icon="auto_fix_high">auto_fix_high</span>
+</div>
+</div>
+<!-- Chips -->
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-1.5 border border-primary bg-primary text-on-primary font-mono-label text-mono-label hover:skew-x-6 transition-transform">KAMIKAZE</button>
+<button class="px-4 py-1.5 border border-secondary/40 text-secondary font-mono-label text-mono-label hover:border-secondary transition-colors">WAVES</button>
+<button class="px-4 py-1.5 border border-secondary/40 text-secondary font-mono-label text-mono-label hover:border-secondary transition-colors">FLAMES</button>
+<button class="px-4 py-1.5 border border-secondary/40 text-secondary font-mono-label text-mono-label hover:border-secondary transition-colors">NIGHT</button>
+</div>
+<!-- Preview Box -->
+<div class="h-48 w-full relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-primary-container to-secondary opacity-80 mix-blend-overlay"></div>
+<div class="absolute inset-0 border border-secondary/30 bg-surface-container-lowest/20"></div>
+<img class="w-full h-full object-cover" data-alt="A high-tech futuristic fighter jet with aggressive angles and sleek metallic surfaces. The aircraft features a vibrant glowing skin with complex digital camouflage patterns in crimson red and electric cyan. The lighting is dramatic and moody, reflecting off the glass cockpit and polished alloy frame. It is centered against a dark, tactical workshop background with floating holographic data panels." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQLsPme_GgOG-phAvfIMZ4-Z9xcr_CJw0Tlw0slkATibZrBTeueoTDWDD6EYwe4vZ5RTNlrbwXAg0ZZDqAjr-lsOjVj-UgWEHYoxn6Kd2ArGifFgzsp9T10d4Vf9JfI7ZS1ZFi84hvDFwpUmn5AROw9HyfkQ5cSAfoYOBkrirFGX5kfWUJMujZqswwXrcaaIj3GJ-_spVnKoWYmHwvx5FXbkvbWpjK7ybr3wvbquW_8Q7M2cx0laLyugvo9OnMdjgK_GiKyRz-4u69"/>
+<div class="absolute bottom-2 left-2 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-mono-label text-[10px] text-primary">PREVIEW_GEN_ID: 9942-X</span>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full py-4 bg-primary-container text-on-primary-container font-headline-lg-mobile text-xl uppercase tracking-tighter btn-glitch flex justify-center items-center gap-3">
+                    Generate Skin
+                    <span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+</div>
+</section>
+<!-- Pilot Portrait Section -->
+<section class="mb-gutter relative p-gutter bg-surface-container-low/40 backdrop-blur-md border border-secondary/20">
+<div class="corner-bracket bracket-tl"></div>
+<div class="corner-bracket bracket-tr"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-subheading text-subheading text-secondary uppercase tracking-widest">Pilot Portrait</h3>
+<p class="font-mono-label text-mono-label text-on-surface-variant mt-1">AVATAR_UNIT_GENERATOR</p>
+</div>
+<span class="font-kanji-decorative text-kanji-decorative opacity-10 absolute right-4 top-4">空</span>
+</div>
+<div class="flex flex-col md:flex-row gap-6">
+<div class="flex-1 space-y-6">
+<input class="w-full bg-transparent border-b border-secondary/30 focus:border-primary focus:ring-0 text-body-rt font-mono-label placeholder:text-secondary/30 transition-all py-3" placeholder="cyberpunk pilot with aviator goggles" type="text"/>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1 border border-secondary/40 text-secondary font-mono-label text-[10px] uppercase">LEGENDARY</button>
+<button class="px-3 py-1 border border-secondary/40 text-secondary font-mono-label text-[10px] uppercase">NOIR</button>
+<button class="px-3 py-1 border border-primary/40 text-primary font-mono-label text-[10px] uppercase">CYBER</button>
+</div>
+<button class="w-full py-3 border-2 border-primary text-primary font-mono-label text-mono-label uppercase tracking-widest hover:bg-primary/10 transition-colors flex items-center justify-center gap-2">
+                        Generate Portrait
+                        <span class="material-symbols-outlined text-sm" data-icon="brush">brush</span>
+</button>
+</div>
+<div class="flex justify-center items-center">
+<div class="relative group">
+<div class="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-full opacity-20 blur group-hover:opacity-40 transition-opacity"></div>
+<div class="w-32 h-32 rounded-full border-4 border-surface-container-highest overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A stylized close-up portrait of a futuristic cyberpunk pilot wearing a high-tech flight helmet and tinted aviator goggles. The character has sharp features and glowing cybernetic implants on their neck. The color palette is dominated by deep obsidian, vibrant crimson, and electric neon cyan, with dramatic high-contrast lighting that emphasizes the metallic textures of their gear. A faint digital grid pattern is visible in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVg1zA53Rs-eQY6oSZakB5-hUrp3nrMwSkNJxoQfMhSZcZf735PO17vRdxflKo9xHGddibYmYJwRtqhSQ5QEShj0ftkjMwg-Uez45N0uWfeQgYb7Jg9NPRIaDLGB_Svat47laEK2Z1BYo-ckCUAJPwMgjnd90mQQFIDabZ-AwJg4eg8nsfGCZohd6nLr4H-m33YCBmuwscMG-eeID5nt7wWJUUaWd4CqyAQ7S03gRQcCh91xUCdtoa2-C5uyvWJ82ZKP6FPILp9PqV"/>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-secondary text-on-secondary px-2 py-0.5 rounded-sm font-mono-label text-[10px] font-bold">
+                            SAVED!
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Building Palette Section -->
+<section class="mb-gutter relative p-gutter bg-surface-container-low/40 backdrop-blur-md border border-secondary/20">
+<div class="corner-bracket bracket-tl"></div>
+<div class="corner-bracket bracket-tr"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-subheading text-subheading text-secondary uppercase tracking-widest">Building Palette</h3>
+<p class="font-mono-label text-mono-label text-on-surface-variant mt-1">ENVIRONMENT_COLOR_ENGINE</p>
+</div>
+<span class="font-kanji-decorative text-kanji-decorative opacity-10 absolute right-4 top-4">街</span>
+</div>
+<div class="space-y-6">
+<input class="w-full bg-transparent border-b border-secondary/30 focus:border-primary focus:ring-0 text-body-rt font-mono-label placeholder:text-secondary/30 transition-all py-3" placeholder="mediterranean seaside town" type="text"/>
+<!-- Multi-segment color bar -->
+<div class="flex gap-1 h-12 segment-bar">
+<div class="flex-1 bg-[#FFB2BE] h-full"></div>
+<div class="flex-1 bg-[#49F9F9] h-full"></div>
+<div class="flex-1 bg-[#E0115F] h-full"></div>
+<div class="flex-1 bg-[#131313] h-full border border-secondary/20"></div>
+<div class="flex-1 bg-[#E2E2E2] h-full"></div>
+</div>
+<div class="flex justify-between items-center text-mono-label text-[10px] font-mono-label uppercase text-secondary/60 px-1">
+<span>DOMINANT: 42%</span>
+<span>ACCENT_A: 18%</span>
+<span>ACCENT_B: 12%</span>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 py-4 bg-primary text-on-primary font-mono-label text-mono-label uppercase font-bold tracking-widest hover:brightness-110 active:scale-95 transition-all">
+                        Apply as Building Skin
+                    </button>
+<div class="w-14 h-14 border border-secondary/30 flex items-center justify-center bg-surface-variant/20">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<p class="text-center font-mono-label text-[10px] text-secondary/40 animate-pulse">APPLIED! RE-DEPLOY TO VIEW CHANGES</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container-lowest/90 dark:bg-surface-container-lowest/90 backdrop-blur-xl border-t border-secondary/30 flex justify-around items-center h-16 pb-safe">
+<a class="flex flex-col items-center justify-center text-secondary/60 pt-2 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="font-mono-label text-mono-label mt-1">HANGAR</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary/60 pt-2 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-mono-label text-mono-label mt-1">MISSIONS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary/60 pt-2 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="military_tech">military_tech</span>
+<span class="font-mono-label text-mono-label mt-1">RANK</span>
+</a>
+<!-- ACTIVE: DEPLOY (Customized for Skin Lab Context as current modification tab) -->
+<a class="flex flex-col items-center justify-center text-primary font-bold border-t-2 border-primary pt-2 skew-x-12" href="#">
+<span class="material-symbols-outlined" data-icon="ads_click">ads_click</span>
+<span class="font-mono-label text-mono-label mt-1">DEPLOY</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Simple placeholder for text input effects
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('.material-symbols-outlined')?.classList.add('text-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('.material-symbols-outlined')?.classList.remove('text-primary');
+            });
+        });
+    </script>
+</body></html>

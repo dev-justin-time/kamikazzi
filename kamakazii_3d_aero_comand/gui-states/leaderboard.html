@@ -1,81 +1,493 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAMIKAZZI 3D — Leaderboard</title>
-<link rel="stylesheet" href="styles.css">
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE // GLOBAL LEADERBOARD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Geist:wght@400;600&amp;family=Epilogue:wght@900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-tertiary": "#2f3131",
+                "on-surface-variant": "#e4bdc2",
+                "on-error-container": "#ffdad6",
+                "primary-fixed-dim": "#ffb2be",
+                "inverse-on-surface": "#313030",
+                "secondary-fixed-dim": "#00dddd",
+                "on-surface": "#e5e2e1",
+                "surface-bright": "#3a3939",
+                "on-error": "#690005",
+                "tertiary-container": "#727373",
+                "inverse-primary": "#bc004d",
+                "outline-variant": "#5b3f44",
+                "on-primary-fixed-variant": "#900039",
+                "surface-container-highest": "#353534",
+                "error-container": "#93000a",
+                "error": "#ffb4ab",
+                "on-tertiary-fixed": "#1a1c1c",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-variant": "#353534",
+                "secondary-fixed": "#49f9f9",
+                "outline": "#ab888d",
+                "surface-dim": "#131313",
+                "primary-container": "#e0115f",
+                "on-primary": "#660026",
+                "on-secondary-fixed-variant": "#004f4f",
+                "on-primary-fixed": "#3f0015",
+                "secondary": "#49f9f9",
+                "primary": "#ffb2be",
+                "primary-fixed": "#ffd9de",
+                "on-secondary-fixed": "#002020",
+                "on-primary-container": "#fff8f8",
+                "inverse-surface": "#e5e2e1",
+                "surface-tint": "#ffb2be",
+                "surface-container": "#201f1f",
+                "on-tertiary-container": "#fafafa",
+                "surface-container-low": "#1c1b1b",
+                "on-secondary": "#003737",
+                "background": "#131313",
+                "on-secondary-container": "#005c5c",
+                "tertiary-fixed": "#e2e2e2",
+                "secondary-container": "#00dddd",
+                "on-background": "#e5e2e1",
+                "surface-container-high": "#2a2a2a",
+                "on-tertiary-fixed-variant": "#454747",
+                "surface": "#131313",
+                "tertiary-fixed-dim": "#c6c6c7",
+                "tertiary": "#c6c6c7"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "gutter": "24px",
+                "section-gap": "120px",
+                "unit": "8px",
+                "grid-margin": "40px"
+            },
+            "fontFamily": {
+                "subheading": ["Geist"],
+                "display-xl-mobile": ["Anton"],
+                "mono-label": ["Space Mono"],
+                "kanji-decorative": ["Epilogue"],
+                "display-xl": ["Anton"],
+                "body-rt": ["Geist"],
+                "headline-lg": ["Anton"]
+            },
+            "fontSize": {
+                "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
 <style>
-  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
-  .leaderboard-data { text-align: left; }
-  .entry { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px; border-bottom: 1px solid rgba(152,203,255,0.1); font-size: 12px; }
-  .entry-left { display: flex; align-items: center; gap: 8px; }
-  .entry-medal { font-size: 14px; }
-  .entry-name { font-weight: 600; color: #98cbff; }
-  .entry-score { font-weight: 800; color: #00dddd; }
-  .entry.self { background: rgba(0,221,221,0.06); margin: 0 -4px; padding: 8px 4px; }
-</style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .asanoha-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(73, 249, 249, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 221, 221, 0.05) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch-effect 0.2s steps(2) infinite;
+        }
+        @keyframes glitch-effect {
+            0% { transform: translate(2px, 0); }
+            50% { transform: translate(-2px, -1px); filter: hue-rotate(90deg); }
+            100% { transform: translate(1px, 1px); }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #e0115f; }
+    </style>
 </head>
-<body>
-<div class="nav-bar">
-  <a href="start.html" class="nav-back">← Start</a>
-  <span class="nav-title">🏆 Leaderboard</span>
-  <a href="start.html" class="nav-close" title="Close">✕</a>
-</div>
-
-<div class="page-content">
-  <div class="lb-panel" style="max-width:480px;">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-    <h3>🏆 Mission Records</h3>
-
-    <div class="lb-tabs">
-      <button class="lb-tab active" style="pointer-events:none;">Week</button>
-      <button class="lb-tab" style="pointer-events:none;">Month</button>
-      <button class="lb-tab" style="pointer-events:none;">All Time</button>
-    </div>
-
-    <div class="lb-body">
-      <div class="leaderboard-data">
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal">🥇</span><span class="entry-name">ACE_PILOT</span></div>
-          <span class="entry-score">42,150 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal">🥈</span><span class="entry-name">KAMIKAZE_KING</span></div>
-          <span class="entry-score">38,720 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal">🥉</span><span class="entry-name">NEON_WING</span></div>
-          <span class="entry-score">31,200 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">4</span></span><span class="entry-name">SKY_FOX</span></div>
-          <span class="entry-score">27,840 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">5</span></span><span class="entry-name">VALLEY_ACE</span></div>
-          <span class="entry-score">24,500 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">6</span></span><span class="entry-name">RATTLETRAP</span></div>
-          <span class="entry-score">21,100 pts</span>
-        </div>
-        <div class="entry self">
-          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">7</span></span><span class="entry-name">YOU ⬅</span></div>
-          <span class="entry-score">18,250 pts</span>
-        </div>
-        <div class="entry">
-          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">8</span></span><span class="entry-name">THUNDER_BIRD</span></div>
-          <span class="entry-score">16,430 pts</span>
-        </div>
+<body class="pt-10 pt-10 bg-background text-on-background font-body-rt overflow-hidden h-screen flex flex-col">
+<!-- === SHARED GUI-STATES NAVIGATION === -->
+<nav class="fixed top-0 left-0 right-0 z-[100] bg-surface-container-lowest/95 backdrop-blur-xl border-b border-secondary/20 flex items-center justify-between px-4 h-10" style="font-family:'Space Mono',monospace">
+  <div class="flex items-center gap-1.5">
+    <a href="index.html" class="material-symbols-outlined text-secondary hover:text-primary transition-colors no-underline" style="font-size:18px" title="GUI States Hub">home</a>
+    <span class="text-secondary/15 select-none mx-1">|</span>
+    <a href="start.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Start</a>
+    <a href="hud.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">HUD</a>
+    <a href="boot.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Boot</a>
+    <a href="settings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary uppercase tracking-wider no-underline px-1.5 py-0.5 rounded hover:bg-secondary/5 transition-colors">Settings</a>
+    <div class="relative group/panel ml-1">
+      <button tabindex="0" class="text-[9px] text-on-surface-variant/60 hover:text-secondary uppercase tracking-wider flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-secondary/5 focus-within:bg-secondary/10 transition-colors cursor-pointer" style="background:none;border:none">
+        More <span class="material-symbols-outlined group-focus-within/panel:rotate-180 transition-transform" style="font-size:12px">expand_more</span>
+      </button>
+      <div class="absolute top-full left-0 mt-1 hidden group-hover/panel:flex group-focus-within/panel:flex flex-col bg-surface-container border border-secondary/20 shadow-xl min-w-[150px] py-1 rounded-sm z-[101] max-h-[70vh] overflow-y-auto">
+        <a href="leaderboard.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Leaderboard</a>
+        <a href="lobby.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Lobby</a>
+        <a href="profile.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Profile</a>
+        <a href="skin-lab.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Skin Lab</a>
+        <a href="marketplace.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Marketplace</a>
+        <a href="powerups.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Powerups</a>
+        <a href="replays.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replays</a>
+        <a href="history.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">History</a>
+        <a href="briefings.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Briefings</a>
+        <a href="shortcuts.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Shortcuts</a>
+        <a href="legal.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Legal</a>
+        <a href="terrain-editor.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terrain</a>
+        <a href="replay-detail.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Replay Detail</a>
+        <a href="crash.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Crash</a>
+        <a href="mission-terminated.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Terminated</a>
+        <a href="mission-success.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Success</a>
+        <a href="final-sector.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Final Sector</a>
+        <a href="model-upgrade.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Upgrade</a>
+        <a href="pause.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Pause</a>
+        <a href="delete-confirm.html" class="text-[9px] text-on-surface-variant/70 hover:text-secondary hover:bg-secondary/5 uppercase tracking-wider no-underline px-3 py-1.5 transition-colors">Delete</a>
       </div>
     </div>
-
-    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
   </div>
+  <div class="flex items-center gap-3">
+    <span class="text-[9px] text-primary/30 uppercase tracking-[0.2em]">GUI STATES</span>
+    <a href="../index.html" class="material-symbols-outlined text-primary/50 hover:text-secondary transition-colors no-underline" style="font-size:18px" title="Back to Game">exit_to_app</a>
+  </div>
+</nav>
+<!-- === /SHARED NAVIGATION === -->
+<!-- TopNavBar Shell Component -->
+<header class="fixed top-0 w-full border-b border-secondary/30 bg-surface/80 backdrop-blur-xl flex justify-between items-center px-grid-margin h-16 w-full z-50">
+<div class="flex items-center gap-8">
+<span class="font-display-xl text-subheading tracking-tighter text-primary">PROJECT_BUSHI_OS</span>
+<nav class="hidden md:flex gap-6">
+<span class="font-mono-label text-mono-label uppercase text-primary font-bold">STATUS: ACTIVE</span>
+<span class="font-mono-label text-mono-label uppercase text-on-surface-variant">SIGNAL: 100%</span>
+<span class="font-mono-label text-mono-label uppercase text-on-surface-variant">LATENCY: 12MS</span>
+</nav>
 </div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary hover:bg-secondary/10 transition-colors p-2 rounded-full scale-95 active:scale-90">settings</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary hover:bg-secondary/10 transition-colors p-2 rounded-full scale-95 active:scale-90">power_settings_new</button>
+</div>
+</header>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar Shell Component -->
+<aside class="fixed left-0 top-16 h-full w-64 border-r border-secondary/20 bg-surface/90 backdrop-blur-md flex flex-col py-gutter h-[calc(100vh-64px)] z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-sm overflow-hidden border border-primary/50">
+<img class="w-full h-full object-cover" data-alt="A stylized portrait of a futuristic cyberpunk fighter pilot wearing a chrome HUD visor, with neon pink and cyan reflections illuminating their face against a deep obsidian background, hyper-detailed digital painting style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDahS2NR3Za6iz9vxITYU2Xw7QPnsut6ULPTlJVCkJh2xOZFyww5lZm9ppXRsrNBNKrIYUmTSF9Pl9PqmBrsKXyKnFJJm2V8KmbiLH-bxTk18ozVszGtU_ghEKgw1Mw-KwAmDXCGNBTFg-Xv1Iv2MNNR9go0CUCt5yvLYk6hYxXxuo-9vArtEI0bU6ii8EzNNNFI93zCXyRMylurwLIQVnpArD9HluMp5-wuQ5oEh0pEU6ga8hml2Uq8GWF-B0IT3HnmWCgtn1VfhC"/>
+</div>
+<div>
+<div class="font-display-xl text-primary leading-none text-xl">KAMIKAZE</div>
+<div class="font-mono-label text-[10px] text-on-surface-variant">OPERATOR: BUSHI_01</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-secondary/5 pl-4 py-3 transition-all active:translate-x-1" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-subheading text-subheading text-sm">Tactical Logs</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-secondary/5 pl-4 py-3 transition-all active:translate-x-1" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-subheading text-subheading text-sm">Armory</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-secondary/5 pl-4 py-3 transition-all active:translate-x-1" href="#">
+<span class="material-symbols-outlined">radar</span>
+<span class="font-subheading text-subheading text-sm">Mission Control</span>
+</a>
+<!-- Active Item for Leaderboard -->
+<a class="flex items-center gap-3 text-primary border-l-4 border-primary bg-primary/10 pl-4 py-3 transition-all active:translate-x-1" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-subheading text-subheading text-sm">Systems</span>
+</a>
+</nav>
+<div class="mt-auto px-4 pb-8">
+<button class="w-full bg-primary-container text-white font-headline-lg text-sm py-4 tracking-widest glitch-hover transition-transform active:scale-95 shadow-[0_0_20px_rgba(224,17,95,0.4)]">
+                    LAUNCH MISSION
+                </button>
+<div class="mt-6 flex flex-col gap-2">
+<a class="flex items-center gap-2 text-on-surface-variant text-xs font-mono-label hover:text-secondary" href="#"><span class="material-symbols-outlined text-sm">help_center</span> Support</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 relative overflow-hidden asanoha-pattern">
+<div class="scanline absolute inset-0 z-0"></div>
+<!-- Large Watermark -->
+<div class="absolute bottom-[-10%] right-[-5%] opacity-5 z-0 select-none pointer-events-none">
+<span class="font-kanji-decorative text-[400px] text-secondary leading-none">神風</span>
+</div>
+<div class="relative z-10 p-grid-margin h-full flex flex-col">
+<!-- Header -->
+<div class="flex justify-between items-end mb-8 border-l-4 border-primary-container pl-6">
+<div>
+<h1 class="font-headline-lg text-headline-lg uppercase text-primary-container leading-none mb-2">KAMIKAZE // GLOBAL LEADERBOARD</h1>
+<p class="font-mono-label text-secondary uppercase tracking-[0.2em] text-xs">Sector Access: Neo-Tokyo / Grid Reference: Bushi-01</p>
+</div>
+<!-- Tactical Filters -->
+<div class="flex gap-4">
+<div class="flex border border-secondary/30 bg-surface-container/50 backdrop-blur p-1 rounded-sm">
+<button class="px-4 py-2 font-mono-label text-xs bg-primary-container text-white">SEASONAL</button>
+<button class="px-4 py-2 font-mono-label text-xs text-on-surface-variant hover:text-secondary transition-colors">ALL-TIME</button>
+<button class="px-4 py-2 font-mono-label text-xs text-on-surface-variant hover:text-secondary transition-colors">REGIONAL</button>
+</div>
+<select class="bg-surface-container-low border border-secondary/30 font-mono-label text-xs text-secondary px-4 focus:ring-0 focus:border-primary">
+<option>NEO-TOKYO SECTOR</option>
+<option>OSAKA SECTOR</option>
+<option>SHIBUYA CORE</option>
+</select>
+</div>
+</div>
+<div class="flex gap-gutter flex-1 min-h-0">
+<!-- Central High-Density Table -->
+<div class="flex-grow flex flex-col min-h-0 bg-surface-container-lowest/60 backdrop-blur-xl border border-secondary/20 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 font-kanji-decorative text-4xl opacity-10">壱</div>
+<!-- Table Head -->
+<div class="flex items-center border-b border-secondary/20 font-mono-label text-[10px] text-secondary uppercase bg-surface-container-high/40 px-6 py-4">
+<div class="w-16">RANK</div>
+<div class="flex-1">SQUADRON_ID</div>
+<div class="w-32">PILOT_COUNT</div>
+<div class="w-40 text-right">TOTAL_SCORE</div>
+<div class="w-32 text-right">STATUS</div>
+</div>
+<!-- Scrollable Body -->
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<div class="divide-y divide-secondary/10">
+<!-- Rank Row 1 -->
+<div class="flex items-center px-6 py-5 hover:bg-primary/5 transition-colors group">
+<div class="w-16 font-display-xl text-2xl text-primary-container">01</div>
+<div class="flex-1 flex items-center gap-3">
+<div class="w-8 h-8 bg-secondary/10 border border-secondary/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary scale-75" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<div class="font-headline-lg text-lg text-on-surface tracking-tight group-hover:text-primary transition-colors">RONIN_VANGUARD</div>
+<div class="text-[10px] font-mono-label text-on-surface-variant uppercase">LEAD: T. AKIRA</div>
+</div>
+</div>
+<div class="w-32 font-mono-label text-sm text-on-surface">1,248</div>
+<div class="w-40 text-right font-mono-label text-secondary text-base">9,420,800</div>
+<div class="w-32 text-right">
+<span class="text-[10px] px-2 py-0.5 border border-primary text-primary font-mono-label bg-primary/5">OVERDRIVE</span>
+</div>
+</div>
+<!-- Rank Row 2 -->
+<div class="flex items-center px-6 py-5 hover:bg-primary/5 transition-colors group">
+<div class="w-16 font-display-xl text-2xl text-on-surface-variant">02</div>
+<div class="flex-1 flex items-center gap-3">
+<div class="w-8 h-8 bg-secondary/10 border border-secondary/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary scale-75" style="font-variation-settings: 'FILL' 1;">tsunami</span>
+</div>
+<div>
+<div class="font-headline-lg text-lg text-on-surface tracking-tight group-hover:text-primary transition-colors">NEON_SUMURAI</div>
+<div class="text-[10px] font-mono-label text-on-surface-variant uppercase">LEAD: K. JIRO</div>
+</div>
+</div>
+<div class="w-32 font-mono-label text-sm text-on-surface">982</div>
+<div class="w-40 text-right font-mono-label text-secondary text-base">8,112,450</div>
+<div class="w-32 text-right">
+<span class="text-[10px] px-2 py-0.5 border border-secondary text-secondary font-mono-label">STEADY</span>
+</div>
+</div>
+<!-- Rank Row 3 -->
+<div class="flex items-center px-6 py-5 hover:bg-primary/5 transition-colors group">
+<div class="w-16 font-display-xl text-2xl text-on-surface-variant">03</div>
+<div class="flex-1 flex items-center gap-3">
+<div class="w-8 h-8 bg-secondary/10 border border-secondary/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary scale-75" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div>
+<div class="font-headline-lg text-lg text-on-surface tracking-tight group-hover:text-primary transition-colors">DRAGON_WING</div>
+<div class="text-[10px] font-mono-label text-on-surface-variant uppercase">LEAD: M. REN</div>
+</div>
+</div>
+<div class="w-32 font-mono-label text-sm text-on-surface">854</div>
+<div class="w-40 text-right font-mono-label text-secondary text-base">7,905,000</div>
+<div class="w-32 text-right">
+<span class="text-[10px] px-2 py-0.5 border border-error text-error font-mono-label">DESCENDING</span>
+</div>
+</div>
+<!-- Standard Rows -->
+<div class="flex items-center px-6 py-4 hover:bg-primary/5 transition-colors group opacity-80">
+<div class="w-16 font-mono-label text-sm">04</div>
+<div class="flex-1 font-headline-lg text-base">VOID_RUNNERS</div>
+<div class="w-32 font-mono-label text-sm">621</div>
+<div class="w-40 text-right font-mono-label text-secondary text-sm">6,432,000</div>
+<div class="w-32 text-right font-mono-label text-[10px] text-on-surface-variant">NOMINAL</div>
+</div>
+<div class="flex items-center px-6 py-4 hover:bg-primary/5 transition-colors group opacity-80">
+<div class="w-16 font-mono-label text-sm">05</div>
+<div class="flex-1 font-headline-lg text-base">CHROME_GHOSTS</div>
+<div class="w-32 font-mono-label text-sm">540</div>
+<div class="w-40 text-right font-mono-label text-secondary text-sm">5,890,110</div>
+<div class="w-32 text-right font-mono-label text-[10px] text-on-surface-variant">NOMINAL</div>
+</div>
+<div class="flex items-center px-6 py-4 hover:bg-primary/5 transition-colors group opacity-80">
+<div class="w-16 font-mono-label text-sm">06</div>
+<div class="flex-1 font-headline-lg text-base">OSAKA_SYNTHS</div>
+<div class="w-32 font-mono-label text-sm">490</div>
+<div class="w-40 text-right font-mono-label text-secondary text-sm">5,110,000</div>
+<div class="w-32 text-right font-mono-label text-[10px] text-on-surface-variant">NOMINAL</div>
+</div>
+</div>
+</div>
+<!-- YOUR STANDING Persistent Bar -->
+<div class="bg-primary-container text-white px-6 py-4 flex items-center justify-between shadow-[0_-10px_30px_rgba(224,17,95,0.3)]">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-mono-label uppercase opacity-80">Your Rank</span>
+<span class="font-display-xl text-2xl leading-none">#1,402</span>
+</div>
+<div class="w-px h-8 bg-white/20"></div>
+<div class="flex flex-col">
+<span class="text-[10px] font-mono-label uppercase opacity-80">Squadron</span>
+<span class="font-headline-lg text-lg leading-none">BUSHI_INTERCEPT</span>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-right">
+<span class="text-[10px] font-mono-label uppercase opacity-80">Total Score</span>
+<div class="font-mono-label text-xl font-bold">1,452,000</div>
+</div>
+<button class="bg-white text-primary-container px-4 py-2 font-mono-label text-xs font-bold hover:scale-105 transition-transform active:scale-95">GO TO RANK</button>
+</div>
+</div>
+</div>
+<!-- Sidebar: TOP ACE PILOTS -->
+<aside class="w-80 flex flex-col gap-gutter">
+<div class="bg-surface-container-high/30 backdrop-blur-md border border-secondary/20 p-6 relative overflow-hidden flex flex-col">
+<div class="absolute top-0 right-0 p-2 font-kanji-decorative text-2xl opacity-10">弐</div>
+<h2 class="font-headline-lg text-xl uppercase text-secondary mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+                                Top Ace Pilots
+                            </h2>
+<div class="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+<!-- Ace 1 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<div class="w-12 h-12 border border-primary p-0.5">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a legendary cyber-pilot named GHOST_LEADER, wearing an advanced matte black flight helmet with jagged glowing red eye lenses, rain streaks on the visor, cinematic noir lighting with cyan rim light, high-octane mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4jQsIwx7OnNcpZC3C0nZVVaS72BsvgGFzBPAsg2HXhIZsaYuUColIF0L2GwjDZ0SozRadU-mIQumJtiZOCAtCtc8L7JJS8E-bCTtL2iRrYcYtMjP46nVRLx1rm0QQsnYQCtiYQ1stEre3G7Cpp0mJOOUNll4UTvmXCE9mwnkAqPxoeQjgIinbAaLgHjsP8pRT9jW7tSF_Rf6hE5Qa6hBaZrQajfg62mGS4Ur1iE8Nxgefhnd8uOzKIe4tOMMF9pQ8fx6hkb59aoH6"/>
+</div>
+<div class="absolute -top-1 -left-1 w-3 h-3 bg-primary-container rotate-45"></div>
+</div>
+<div class="flex-1">
+<div class="font-headline-lg text-on-surface text-base group-hover:text-primary transition-colors">GHOST_LEADER</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-mono-label text-[10px] text-secondary">XF-99 'VOID'</span>
+<span class="font-mono-label text-[10px] text-primary">ACE+++</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest mt-2">
+<div class="h-full bg-primary-container w-[95%]"></div>
+</div>
+</div>
+</div>
+<!-- Ace 2 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<div class="w-12 h-12 border border-secondary/50 p-0.5">
+<img class="w-full h-full object-cover" data-alt="Portrait of a female ace pilot callsign STRIDER-01, featuring neon blue hair and a tactical interface patch over her eye, wearing a high-tech white and teal flight suit, industrial hangar background with soft blue atmospheric fog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-OWgV7zfQVPm5i8Nn9xVhRjEg6JkB7fQw2uK07-xtu9dLsJYHhaBwootwp0B4biz49XRUNhcPVgWxjwzr5usWMtgOKzuGeaM281KvxrGM1MUnwoHmAV05EUYTECs9D1xJftEXatgu9VRylGL1SHnPEtVr8849gJ34dbErWVqJG4NKolG46ln_uw9s4HJelc0uKyrJz8pkx29loP8hx5QqssJrv5o1QjWjhcjQJz_K-Ze32kR-VT3HpyP7KYSBEKaQgs__mUkdQIkz"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="font-headline-lg text-on-surface text-base group-hover:text-secondary transition-colors">STRIDER-01</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-mono-label text-[10px] text-secondary">SU-57K 'STORM'</span>
+<span class="font-mono-label text-[10px] text-secondary">ACE++</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest mt-2">
+<div class="h-full bg-secondary w-[88%]"></div>
+</div>
+</div>
+</div>
+<!-- Ace 3 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<div class="w-12 h-12 border border-secondary/50 p-0.5">
+<img class="w-full h-full object-cover" data-alt="Digital art of pilot ONI_ZERO, wearing a dark metal hannya-style pilot mask with glowing white eyes, tactical gear with orange lighting accents, set against a dark gritty cockpit filled with digital screens and wires." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDWXyrJjVU2Yewm9p2hl2jPfO8uSUfIO4OPvMfSMdVutM8NYtZ_C6xu8N6g_RvQZdloelXKGwO90LoxBKBokVnY142hU7yemOXqrtfJV6UBDbRaJXYb7Lfo-RPYwSQj1pEXHg2mYwIVWldznJlM0T7zNwqjePxQbGGNL7iF5FgkrB1cITSj0SRJ8Ef-0oWJ1q5cQiHBYyupofDh0woGplqOjc8-cqW6RE38WQoGgsPQWp2sXXvCvWK4zXSk7IZdAFgzQdaZ_7ouPRN"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="font-headline-lg text-on-surface text-base group-hover:text-secondary transition-colors">ONI_ZERO</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-mono-label text-[10px] text-secondary">J-20X 'ONI'</span>
+<span class="font-mono-label text-[10px] text-secondary">ACE++</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest mt-2">
+<div class="h-full bg-secondary w-[82%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-6 border border-primary/40 text-primary font-mono-label text-[10px] py-2 uppercase hover:bg-primary/10 transition-colors">
+                                View Pilot Registry
+                            </button>
+</div>
+<!-- System Stats / Mini HUD -->
+<div class="bg-primary/5 border border-primary/20 p-4 font-mono-label">
+<div class="text-[10px] text-primary uppercase mb-2">SYSTEM_INTEGRITY</div>
+<div class="grid grid-cols-2 gap-2 text-on-surface-variant text-[9px]">
+<div class="flex justify-between border-b border-primary/10 pb-1">
+<span>DATABASE:</span>
+<span class="text-secondary">ONLINE</span>
+</div>
+<div class="flex justify-between border-b border-primary/10 pb-1">
+<span>ENCRYPTION:</span>
+<span class="text-secondary">AES-256</span>
+</div>
+<div class="flex justify-between border-b border-primary/10 pb-1">
+<span>UPTIME:</span>
+<span class="text-secondary">99.9%</span>
+</div>
+<div class="flex justify-between border-b border-primary/10 pb-1">
+<span>SYNC:</span>
+<span class="text-secondary">1.2ms</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+</div>
+<!-- Background Atmospheric Effect Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const main = document.querySelector('main');
+            
+            // Random Glitch Effect on Main Header
+            setInterval(() => {
+                const header = document.querySelector('h1');
+                if (Math.random() > 0.95) {
+                    header.style.transform = `translateX(${Math.random() * 4 - 2}px)`;
+                    header.style.textShadow = `2px 0 #00dddd, -2px 0 #e0115f`;
+                    setTimeout(() => {
+                        header.style.transform = 'none';
+                        header.style.textShadow = 'none';
+                    }, 100);
+                }
+            }, 500);
 
-<div class="state-badge">STATE: leaderboard</div>
-</body>
-</html>
+            // Subtle parallax for the watermark
+            main.addEventListener('mousemove', (e) => {
+                const watermark = document.querySelector('.font-kanji-decorative.text-\\[400px\\]');
+                const x = (e.clientX / window.innerWidth - 0.5) * 40;
+                const y = (e.clientY / window.innerHeight - 0.5) * 40;
+                watermark.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAMIKAZE // MISSION SUCCESS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Mono:wght@400;700&amp;family=Epilogue:wght@900&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-effect::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent, rgba(73, 249, 249, 0.05) 50%, transparent);
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.2s steps(2) infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(2px, 0); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+        .shoji-divider {
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, #e0115f, transparent);
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(73, 249, 249, 0.3);
+        }
+        .neon-glow-pink {
+            text-shadow: 0 0 20px rgba(224, 17, 95, 0.8), 0 0 40px rgba(224, 17, 95, 0.4);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#c6c6c7",
+                        "surface-bright": "#3a3939",
+                        "on-tertiary-container": "#fafafa",
+                        "inverse-on-surface": "#313030",
+                        "surface-tint": "#ffb2be",
+                        "on-secondary-fixed": "#002020",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "tertiary-fixed": "#e2e2e2",
+                        "primary-container": "#e0115f",
+                        "outline-variant": "#5b3f44",
+                        "on-tertiary": "#2f3131",
+                        "on-secondary-container": "#005c5c",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary": "#003737",
+                        "primary-fixed-dim": "#ffb2be",
+                        "primary-fixed": "#ffd9de",
+                        "surface": "#131313",
+                        "tertiary-container": "#727373",
+                        "on-primary-container": "#fff8f8",
+                        "on-primary": "#660026",
+                        "surface-container-highest": "#353534",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#353534",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "error-container": "#93000a",
+                        "background": "#131313",
+                        "outline": "#ab888d",
+                        "secondary": "#49f9f9",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary-fixed-dim": "#00dddd",
+                        "inverse-primary": "#bc004d",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-fixed-variant": "#900039",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "primary": "#ffb2be",
+                        "surface-container-high": "#2a2a2a",
+                        "on-primary-fixed": "#3f0015",
+                        "surface-dim": "#131313",
+                        "on-surface-variant": "#e4bdc2",
+                        "surface-container": "#201f1f",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-container-lowest": "#0e0e0e",
+                        "secondary-fixed": "#49f9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "gutter": "24px",
+                        "grid-margin": "40px"
+                    },
+                    "fontFamily": {
+                        "body-rt": ["Geist"],
+                        "kanji-decorative": ["Epilogue"],
+                        "subheading": ["Geist"],
+                        "mono-label": ["Space Mono"],
+                        "headline-lg": ["Anton"],
+                        "display-xl-mobile": ["Anton"],
+                        "display-xl": ["Anton"]
+                    },
+                    "fontSize": {
+                        "body-rt": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "kanji-decorative": ["64px", {"lineHeight": "64px", "fontWeight": "900"}],
+                        "subheading": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "headline-lg": ["48px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "display-xl-mobile": ["56px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "display-xl": ["96px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-rt selection:bg-primary-container selection:text-white overflow-hidden">
+<!-- BG SHADER -->
+
+<!-- TopNavBar -->
+<nav class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl text-primary dark:text-primary font-body-rt flex justify-between items-center w-full px-gutter h-16 sticky top-0 z-50 border-b border-secondary/30 dark:border-secondary/30">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg text-primary-container dark:text-primary-container tracking-tighter">KAMIKAZE</span>
+<div class="hidden md:flex gap-6 ml-8">
+<a class="text-on-surface-variant/70 hover:text-primary transition-colors" href="#">HUD Calibration</a>
+<a class="text-primary font-bold border-b-2 border-primary-container pb-1" href="#">Mission Control</a>
+<a class="text-on-surface-variant/70 hover:text-primary transition-colors" href="#">Fleet Sync</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-secondary/10 transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">security</span>
+</button>
+<button class="p-2 hover:bg-secondary/10 transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">sensors</span>
+</button>
+<button class="p-2 hover:bg-secondary/10 transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-secondary/50">
+<img alt="Pilot Profile" class="w-full h-full object-cover" data-alt="A portrait of a futuristic fighter pilot wearing a sleek matte black helmet with a glowing red visor, set against a backdrop of complex digital interfaces and soft cyan ambient light. The style is cinematic and high-detail cyber-noir." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHtB963u1jW3g1THkAQZhezfcLD8UkKBM50hVhzWrKC2MvOQS_RtEgbzjYAsSCcCgIrFlJmG-PKCZZbKjtR3mS4RhqtCLPm2AznP0V5lrhIEnUgMq8c1pfUCfkgrc28VQpesSzctVl8zQk4bbnGArZjHXwb34FTQ9RI2VlO5UbYHgICaLKJ4IpPBZuvHsG8O55DSbGrdgMJ1M7R3A4VDWLjd8C4D7DhNRHBXHvVLNlH9cpdbZmHP2jvNeU_uZ5B3RTlYsSdEmkP6l8"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] flex flex-col z-40 bg-surface dark:bg-surface text-secondary dark:text-secondary font-mono-label text-mono-label uppercase border-r border-secondary/20 dark:border-secondary/20 w-64 hidden md:flex">
+<div class="p-6 border-b border-secondary/20">
+<div class="font-kanji-decorative text-kanji-decorative text-primary">武士</div>
+<div class="mt-2 text-primary font-bold">BUSHI_OS</div>
+<div class="text-[10px] opacity-60">TERMINAL VELOCITY</div>
+</div>
+<div class="flex-grow py-4 overflow-y-auto">
+<div class="text-primary-container border-l-4 border-primary-container bg-primary-container/10 px-4 py-3 flex items-center gap-3 glitch-hover cursor-pointer">
+<span class="material-symbols-outlined">assignment</span>
+<span>Tactical Logs</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-surface-container-highest transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined">military_tech</span>
+<span>Armory</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-surface-container-highest transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined">memory</span>
+<span>Core Systems</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-surface-container-highest transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined">forum</span>
+<span>Squad Comms</span>
+</div>
+<div class="text-on-tertiary-fixed-variant px-4 py-3 flex items-center gap-3 hover:text-secondary hover:bg-surface-container-highest transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined">map</span>
+<span>Map Gen</span>
+</div>
+</div>
+<div class="p-6 border-t border-secondary/20">
+<button class="w-full bg-primary-container text-on-primary-container py-3 font-bold glitch-hover">
+                INITIATE DESCENT
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-0 md:ml-64 p-gutter h-[calc(100vh-64px)] relative overflow-y-auto scanline-effect">
+<!-- Header Section -->
+<div class="mb-12">
+<h1 class="font-display-xl text-display-xl text-primary-container neon-glow-pink tracking-tight mb-2">MISSION SUCCESSFUL</h1>
+<div class="flex items-center gap-4 text-secondary font-mono-label">
+<span class="px-2 py-0.5 bg-secondary/20 border border-secondary">PHASE_COMPLETE</span>
+<span class="opacity-60">TIMESTAMP: 2024.11.04_14:22:01</span>
+</div>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Telemetry Logs Card -->
+<div class="col-span-12 lg:col-span-7 glass-panel p-8 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 font-kanji-decorative text-[120px] pointer-events-none">成功</div>
+<h2 class="font-mono-label text-secondary mb-8 border-l-2 border-primary-container pl-4">MISSION_SUMMARY // TELEMETRY_LOG</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="space-y-1">
+<div class="text-tertiary-fixed-dim text-[10px] font-mono-label">FINAL SCORE</div>
+<div class="text-4xl font-headline-lg text-primary tracking-wider">24,500 PTS</div>
+</div>
+<div class="space-y-1">
+<div class="text-tertiary-fixed-dim text-[10px] font-mono-label">SECTOR ID</div>
+<div class="text-4xl font-headline-lg text-secondary tracking-wider">SECTOR_08</div>
+</div>
+<div class="space-y-1">
+<div class="text-tertiary-fixed-dim text-[10px] font-mono-label">DISTANCE FLOWN</div>
+<div class="text-4xl font-headline-lg text-on-surface tracking-wider">18.92 KM</div>
+</div>
+</div>
+<div class="mt-12 border-t border-secondary/20 pt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="p-3 bg-surface-container-low border border-secondary/10">
+<div class="text-[10px] text-tertiary-fixed-dim font-mono-label">ALTITUDE</div>
+<div class="text-xl font-bold text-secondary">42,000 FT</div>
+</div>
+<div class="p-3 bg-surface-container-low border border-secondary/10">
+<div class="text-[10px] text-tertiary-fixed-dim font-mono-label">THROTTLE</div>
+<div class="text-xl font-bold text-secondary">88%</div>
+</div>
+<div class="p-3 bg-surface-container-low border border-secondary/10">
+<div class="text-[10px] text-tertiary-fixed-dim font-mono-label">STATUS</div>
+<div class="text-xl font-bold text-primary">NOMINAL</div>
+</div>
+<div class="p-3 bg-surface-container-low border border-secondary/10">
+<div class="text-[10px] text-tertiary-fixed-dim font-mono-label">FLIGHT TIME</div>
+<div class="text-xl font-bold text-secondary">12:44:03</div>
+</div>
+</div>
+<div class="mt-8">
+<div class="flex justify-between items-end mb-2">
+<span class="text-mono-label text-primary-container">CORE INTEGRITY</span>
+<span class="text-mono-label text-secondary">94%</span>
+</div>
+<div class="flex gap-1">
+<!-- Segmented Progress Bar -->
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container"></div>
+<div class="h-4 flex-grow bg-primary-container/20"></div>
+<div class="h-4 flex-grow bg-primary-container/20"></div>
+</div>
+</div>
+</div>
+<!-- Recovery Live Window -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-gutter">
+<div class="glass-panel p-1 flex-grow group relative cursor-pointer overflow-hidden">
+<div class="absolute top-4 left-4 z-10 bg-error-container/80 text-white text-[10px] font-mono-label px-2 py-1 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                        RECOVERY LIVE
+                    </div>
+<div class="w-full h-64 lg:h-full min-h-[300px] bg-surface relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A cinematic, low-angle shot of a sharp, angular fighter jet with neon cyan highlights landing on a rain-slicked runway in a futuristic Neo-Tokyo at night. Massive holographic advertisements and towering skyscrapers in shades of deep obsidian and vibrant pink loom in the background. The mood is high-stakes, sleek, and atmospheric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvt0jnBUsp7-u0KK2TIjxfqt-QL_8SlTIzrQtwHSUelh_tcF4dseMQSw8scj49Q-JB-Rl0krYkutl6kbU_-892hTlTE--xajG4bZSD3kZUXHSo4VqXm_nCUmTRfg606l93pmOJ0qNkQw3uNVsr3mC39Cm8GWpWQI_sfiFq5rwi_7pof3uw1dRvIUs-jYVDJxvUFpOCVQ1mfyThQeInVg_XjlDG5Iphw9r4eDDHO4Wlmwxd4FhrQftNlVghaRjU-hKnVM4E9N9fMxEU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent opacity-60"></div>
+<!-- HUD Elements Overlay -->
+<div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+<div class="text-[10px] font-mono-label text-secondary/70">
+                                CAM_04 // RECOVERY_UNIT_ALPHA<br/>
+                                COORDINATES: 35.6895° N, 139.6917° E
+                            </div>
+<div class="w-12 h-12 border-r border-b border-secondary/50"></div>
+</div>
+<div class="absolute top-4 right-4 w-12 h-12 border-t border-l border-secondary/50"></div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-4">
+<button class="bg-primary-container text-on-primary-container font-headline-lg py-6 text-2xl hover:scale-[1.02] active:scale-95 transition-all glitch-hover shadow-[0_0_30px_rgba(224,17,95,0.4)]">
+                        FLY AGAIN
+                    </button>
+<button class="border border-secondary/40 text-secondary font-subheading py-4 hover:bg-secondary/10 transition-colors uppercase tracking-widest">
+                        RETURN TO COMMAND
+                    </button>
+</div>
+</div>
+</div>
+<!-- System Alerts / Ticker -->
+<div class="mt-gutter flex gap-6 overflow-hidden py-2 border-y border-secondary/10 font-mono-label text-[10px] text-tertiary-fixed-dim whitespace-nowrap">
+<span class="text-primary-container">[ALERT]</span> ENCRYPTION ACTIVE. 
+            <span class="text-secondary">[STATUS]</span> RECOVERY TEAMS DISPATCHED. 
+            <span class="text-primary-container">[ALERT]</span> REFUELING PROTOCOL INITIATED.
+            <span class="text-secondary">[STATUS]</span> SQUADRON 7 REPORTING IN.
+            <span class="text-primary-container">[ALERT]</span> NEURAL LINK STABLE.
+            <span class="text-secondary">[STATUS]</span> VECTOR CALIBRATION COMPLETE.
+            <span class="text-primary-container">[ALERT]</span> ENCRYPTION ACTIVE. 
+        </div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-surface-container-lowest text-tertiary dark:text-tertiary font-mono-label text-mono-label w-full py-4 px-gutter flex flex-col md:flex-row justify-between items-center gap-4 border-t border-primary/20 dark:border-primary/20 z-50 relative">
+<div class="flex items-center gap-4">
+<span class="font-subheading text-subheading text-secondary">PROJECT BUSHI OS</span>
+<span class="hidden md:block opacity-30">|</span>
+<span>© 2024 PROJECT BUSHI OS. ALL RIGHTS RESERVED. ENCRYPTION ACTIVE.</span>
+</div>
+<div class="flex gap-6">
+<a class="text-tertiary-fixed-dim hover:text-secondary transition-colors" href="#">Protocol Alpha</a>
+<a class="text-tertiary-fixed-dim hover:text-secondary transition-colors" href="#">Neural Link</a>
+<a class="text-tertiary-fixed-dim hover:text-secondary transition-colors" href="#">Support</a>
+<a class="text-tertiary-fixed-dim hover:text-secondary transition-colors" href="#">Data Privacy</a>
+</div>
+</footer>
+<script>
+        // Micro-interaction for glitch effect randomness
+        document.querySelectorAll('.glitch-hover').forEach(button => {
+            button.addEventListener('mouseover', () => {
+                const interval = setInterval(() => {
+                    button.style.transform = `translate(${Math.random() * 4 - 2}px, ${Math.random() * 4 - 2}px)`;
+                }, 50);
+                button.dataset.interval = interval;
+            });
+            button.addEventListener('mouseleave', () => {
+                clearInterval(button.dataset.interval);
+                button.style.transform = 'translate(0, 0)';
+            });
+        });
+
+        // Atmospheric ticker scroll simulation
+        const ticker = document.querySelector('.mt-gutter');
+        let scrollPos = 0;
+        function animateTicker() {
+            scrollPos += 0.5;
+            if (scrollPos > 300) scrollPos = 0;
+            ticker.scrollLeft = scrollPos;
+            requestAnimationFrame(animateTicker);
+        }
+        // animateTicker(); // Disabled for CPU efficiency, standard marquee or CSS would be better for production
+    </script>
+</body></html>
