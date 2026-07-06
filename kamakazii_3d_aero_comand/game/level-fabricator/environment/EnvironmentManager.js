@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createPerlin2D } from './terrain/NoiseUtils.js';
+import { createPerlin2D } from '../terrain/NoiseUtils.js';
 
 export class EnvironmentManager {
     constructor(scene) {

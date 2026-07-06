@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Lobby</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
+  .lobby-count { font-size: 10px; color: rgba(152,203,255,0.5); text-align: center; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+  .lobby-footer { display: flex; gap: 8px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">👥 Lobby</span>
+  <a href="start.html" class="nav-close" title="Close">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="lb-panel" style="max-width:520px;max-height:85vh;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>👥 Pilot Lounge</h3>
+    <div class="lobby-count"><span style="color:#00dddd;">3</span> pilots connected</div>
+
+    <div class="lb-body">
+      <!-- Self -->
+      <div class="lobby-card" style="outline:1px solid rgba(0,221,221,0.3);outline-offset:-1px;">
+        <div class="lobby-avatar"><span>👤</span></div>
+        <div class="lobby-info">
+          <div class="lobby-name">YOU <span style="font-size:9px;color:rgba(0,221,221,0.6);font-weight:400;">(you)</span></div>
+          <div class="lobby-meta"><span class="lobby-status lobby">In Lobby</span></div>
+        </div>
+        <div class="lobby-score">18.2k <span style="font-size:9px;font-weight:400;color:rgba(0,221,221,0.5);">pts</span></div>
+      </div>
+
+      <!-- Player 2 -->
+      <div class="lobby-card">
+        <div class="lobby-avatar"><span>🏍️</span></div>
+        <div class="lobby-info">
+          <div class="lobby-name">ACE_PILOT</div>
+          <div class="lobby-meta"><span class="lobby-status lobby">In Lobby</span></div>
+        </div>
+        <div class="lobby-score">42.1k <span style="font-size:9px;font-weight:400;color:rgba(0,221,221,0.5);">pts</span></div>
+      </div>
+
+      <!-- Player 3 -->
+      <div class="lobby-card">
+        <div class="lobby-avatar"><span>🦅</span></div>
+        <div class="lobby-info">
+          <div class="lobby-name">NEON_WING</div>
+          <div class="lobby-meta"><span class="lobby-status game">In Game</span></div>
+        </div>
+        <div class="lobby-score">31.2k <span style="font-size:9px;font-weight:400;color:rgba(0,221,221,0.5);">pts</span></div>
+      </div>
+
+      <!-- Player 4 -->
+      <div class="lobby-card">
+        <div class="lobby-avatar"><span>🎸</span></div>
+        <div class="lobby-info">
+          <div class="lobby-name">SHREDDER_42</div>
+          <div class="lobby-meta"><span class="lobby-status away">Away</span></div>
+        </div>
+        <div class="lobby-score">8.1k <span style="font-size:9px;font-weight:400;color:rgba(0,221,221,0.5);">pts</span></div>
+      </div>
+    </div>
+
+    <div class="lobby-footer">
+      <a href="hud.html" class="lb-close" style="text-decoration:none;display:inline-block;margin:0;flex:1;border-color:rgba(0,221,221,0.4);color:#00dddd;text-align:center;">Quick Match</a>
+      <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;margin:0;text-align:center;">Close</a>
+    </div>
+  </div>
+</div>
+
+<div class="state-badge">STATE: lobby</div>
+</body>
+</html>

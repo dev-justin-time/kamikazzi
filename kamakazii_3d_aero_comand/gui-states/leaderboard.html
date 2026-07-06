@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Leaderboard</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
+  .leaderboard-data { text-align: left; }
+  .entry { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px; border-bottom: 1px solid rgba(152,203,255,0.1); font-size: 12px; }
+  .entry-left { display: flex; align-items: center; gap: 8px; }
+  .entry-medal { font-size: 14px; }
+  .entry-name { font-weight: 600; color: #98cbff; }
+  .entry-score { font-weight: 800; color: #00dddd; }
+  .entry.self { background: rgba(0,221,221,0.06); margin: 0 -4px; padding: 8px 4px; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">🏆 Leaderboard</span>
+  <a href="start.html" class="nav-close" title="Close">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="lb-panel" style="max-width:480px;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>🏆 Mission Records</h3>
+
+    <div class="lb-tabs">
+      <button class="lb-tab active" style="pointer-events:none;">Week</button>
+      <button class="lb-tab" style="pointer-events:none;">Month</button>
+      <button class="lb-tab" style="pointer-events:none;">All Time</button>
+    </div>
+
+    <div class="lb-body">
+      <div class="leaderboard-data">
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal">🥇</span><span class="entry-name">ACE_PILOT</span></div>
+          <span class="entry-score">42,150 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal">🥈</span><span class="entry-name">KAMIKAZE_KING</span></div>
+          <span class="entry-score">38,720 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal">🥉</span><span class="entry-name">NEON_WING</span></div>
+          <span class="entry-score">31,200 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">4</span></span><span class="entry-name">SKY_FOX</span></div>
+          <span class="entry-score">27,840 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">5</span></span><span class="entry-name">VALLEY_ACE</span></div>
+          <span class="entry-score">24,500 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">6</span></span><span class="entry-name">RATTLETRAP</span></div>
+          <span class="entry-score">21,100 pts</span>
+        </div>
+        <div class="entry self">
+          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">7</span></span><span class="entry-name">YOU ⬅</span></div>
+          <span class="entry-score">18,250 pts</span>
+        </div>
+        <div class="entry">
+          <div class="entry-left"><span class="entry-medal"><span style="width:22px;display:inline-block;text-align:center;">8</span></span><span class="entry-name">THUNDER_BIRD</span></div>
+          <span class="entry-score">16,430 pts</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: leaderboard</div>
+</body>
+</html>

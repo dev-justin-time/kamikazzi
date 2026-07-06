@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Delete Confirm</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,0,0,0.7); justify-content: center; backdrop-filter: blur(4px); }
+  .confirm-text { font-size:13px; color:#98cbff; font-family:'JetBrains Mono',monospace; text-align:center; padding:16px 0; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="replay-detail.html" class="nav-back">← Replay Detail</a>
+  <span class="nav-title">⚠️ Confirm Delete</span>
+  <a href="replays.html" class="nav-close" title="Cancel">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="lb-panel" style="max-width:380px;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3 style="color:#ffb4ab;">⚠️ Confirm Delete</h3>
+
+    <div class="confirm-text">
+      <p>This replay will be permanently removed.</p>
+      <p style="color:rgba(152,203,255,0.55);font-size:11px;margin-top:8px;">This action cannot be undone.</p>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <a href="replay-detail.html" class="lb-close" style="text-decoration:none;border-color:rgba(152,203,255,0.3);">Cancel</a>
+      <a href="replays.html" class="lb-close" style="text-decoration:none;border-color:rgba(255,100,100,0.5);color:#ff6464;">Delete Permanently</a>
+    </div>
+  </div>
+</div>
+
+<div class="state-badge">STATE: delete-confirm</div>
+</body>
+</html>

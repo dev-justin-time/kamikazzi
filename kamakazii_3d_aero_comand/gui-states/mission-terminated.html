@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Mission Terminated</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: radial-gradient(ellipse at center, rgba(30,10,10,0.6), rgba(10,5,5,0.9)); justify-content: center; overflow-y: auto; }
+  .nav-links { margin-top: 20px; text-align: center; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .nav-links a { color: rgba(152,203,255,0.3); text-decoration: none; border-bottom: 1px dotted rgba(152,203,255,0.1); transition: color 0.15s; }
+  .nav-links a:hover { color: #98cbff; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="crash.html" class="nav-back">← Crash</a>
+  <span class="nav-title">❌ Mission Terminated</span>
+  <a href="start.html" class="nav-close" title="Quit to menu">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="mission-panel">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+
+    <div class="mission-header">
+      <div class="signal-lost">
+        <span class="warn-icon">!</span>
+        <span>SIGNAL LOST</span>
+      </div>
+      <h1>MISSION TERMINATED</h1>
+      <div class="mission-divider"></div>
+    </div>
+
+    <div class="critical-box">
+      <div class="critical-bar"></div>
+      <div>
+        <div class="critical-label">CRITICAL SYSTEM FAILURE</div>
+        <div class="critical-sub">KERNEL_PANIC: IMPACT_DETECTED</div>
+      </div>
+    </div>
+
+    <div class="telemetry-grid">
+      <div class="telemetry-card">
+        <div class="telemetry-label">FINAL_SCORE</div>
+        <div class="telemetry-value"><span>12,847</span><span class="telemetry-unit">PTS</span></div>
+      </div>
+      <div class="telemetry-card">
+        <div class="telemetry-label">SECTOR_ID</div>
+        <div class="telemetry-value" style="font-size:16px;">SECTOR_04</div>
+      </div>
+      <div class="telemetry-card">
+        <div class="telemetry-label">DISTANCE_FLOWN</div>
+        <div class="telemetry-value"><span>8.42</span><span class="telemetry-unit">KM</span></div>
+      </div>
+    </div>
+
+    <div class="mission-stats">
+      <div>
+        <div>ALT_AT_IMPACT: <span>342.18m</span></div>
+        <div>THROTTLE_STATE: <span>1.3x</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="stats-reason" style="color:#ffb4ab;">REASON: COLLISION_DETECTED</div>
+        <div>TIME_ELAPSED: <span>03:47</span></div>
+      </div>
+    </div>
+
+    <div class="best-score-line">PERSONAL BEST: <span>18,250</span></div>
+
+    <div class="mission-actions">
+      <a href="hud.html" class="mt-btn primary" style="text-decoration:none;">RETRY MISSION</a>
+      <a href="start.html" class="mt-btn secondary" style="text-decoration:none;">ABORT TO COMMAND</a>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <a href="mission-success.html">✅ Next: Success →</a>
+    <a href="crash.html">💥 Back to Crash</a>
+    <a href="pause.html">⏸ Pause</a>
+    <a href="boot.html">🖥️ Boot</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: mission-terminated</div>
+</body>
+</html>

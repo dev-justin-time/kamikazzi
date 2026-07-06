@@ -1851,6 +1851,26 @@ export function setupUI({ world, rendererObj }) {
     }, 2800);
   });
 
+  // ---- Model Upgrade announcement ----
+  // Brief HUD flash when the plane auto-swaps to the BOEING at 15,000 points.
+  // Triggered by the 'modelUpgrade' CustomEvent from world.js.
+  const modelUpgradeScreen = document.getElementById('modelUpgradeScreen');
+  window.addEventListener('modelUpgrade', () => {
+    if (!modelUpgradeScreen) return;
+    modelUpgradeScreen.classList.remove('hidden');
+    modelUpgradeScreen.removeAttribute('aria-hidden');
+    void modelUpgradeScreen.offsetWidth;
+    modelUpgradeScreen.classList.add('active');
+    speak('Aircraft upgraded. Boeing 747 long range bomber.', 'announce.modelUpgrade');
+    setTimeout(() => {
+      modelUpgradeScreen.classList.remove('active');
+      setTimeout(() => {
+        modelUpgradeScreen.classList.add('hidden');
+        modelUpgradeScreen.setAttribute('aria-hidden', 'true');
+      }, 500);
+    }, 2000);
+  });
+
   async function doGenerateSkin() {
     if (!puterAvailable) {
       if (skinStatus) skinStatus.textContent = 'Sign in to Puter to generate images';
@@ -1948,6 +1968,7 @@ export function setupUI({ world, rendererObj }) {
     if (gameOverScreen) gameOverScreen.classList.add('hidden');
     if (missionSuccessScreen) missionSuccessScreen.classList.add('hidden');
     if (finalSectorScreen) { finalSectorScreen.classList.remove('active'); finalSectorScreen.classList.add('hidden'); finalSectorScreen.setAttribute('aria-hidden', 'true'); }
+    if (typeof modelUpgradeScreen !== 'undefined' && modelUpgradeScreen) { modelUpgradeScreen.classList.remove('active'); modelUpgradeScreen.classList.add('hidden'); modelUpgradeScreen.setAttribute('aria-hidden', 'true'); }
     resetExplodeSequence();
     // Clear powerup chips and timestamps so stale buffs don't linger on the menu
     if (chipStrip) chipStrip.innerHTML = '';

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — In-Game HUD</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: #050a14; justify-content: center; padding: 0; }
+  .game-frame { max-width: 900px; padding-bottom: 56.25%; border: none; background: radial-gradient(ellipse at 50% 70%, #0d1b2a, #030712); }
+  .hud-wrapper { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .hud-top { position: absolute; top: 16px; left: 0; right: 0; display: flex; justify-content: center; }
+  .hud-user { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 4px; background: rgba(0,11,26,0.55); backdrop-filter: blur(6px); border: 1px solid rgba(152,203,255,0.25); padding: 5px 12px; border-radius: 999px; font-size: 11px; color: #98cbff; letter-spacing: 0.06em; text-transform: uppercase; }
+  .hud-burger { position: absolute; top: 14px; right: 18px; }
+  .powerup-strip { position: absolute; top: 72px; left: 0; right: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: none; }
+  .pup-chip { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; font-family: 'Stick No Bills', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; backdrop-filter: blur(4px); }
+  .pup-chip.shield { background: rgba(102,255,255,0.2); color: #66ffff; border: 1px solid rgba(102,255,255,0.3); }
+  .pup-chip.boost { background: rgba(255,213,79,0.2); color: #ffd54f; border: 1px solid rgba(255,213,79,0.3); }
+  .pup-chip.magnet { background: rgba(255,138,217,0.2); color: #ff8ad9; border: 1px solid rgba(255,138,217,0.3); }
+  .pup-chip.score2x { background: rgba(142,255,154,0.2); color: #8eff9a; border: 1px solid rgba(142,255,154,0.3); }
+  .pup-chip.slowmo { background: rgba(168,150,255,0.2); color: #a896ff; border: 1px solid rgba(168,150,255,0.3); }
+  .overlay-controls { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
+  .overlay-controls a { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(152,203,255,0.2); background: rgba(0,11,26,0.6); color: rgba(152,203,255,0.6); text-decoration: none; border-radius: 3px; transition: all 0.15s ease; }
+  .overlay-controls a:hover { background: rgba(0,221,221,0.15); border-color: #00dddd; color: #fff; }
+  .scanline-overlay, .grid-overlay { position: absolute; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">📊 In-Game HUD</span>
+  <a href="pause.html" class="nav-close" title="Pause">⏸</a>
+</div>
+
+<div class="page-content">
+  <div class="game-frame">
+    <!-- Scanlines & Grid -->
+    <div class="scanline-overlay"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="hud-wrapper">
+      <!-- HUD Score -->
+      <div class="hud-top">
+        <div id="score">Score: <span style="color:#ffe08a;">12,847</span><span class="speed">Level <span id="levelVal" style="font-weight:800;">4</span> · Speed <span id="speedVal">1.3x</span></span></div>
+      </div>
+
+      <!-- User Badge -->
+      <div class="hud-user">
+        <span style="font-size:14px;">👤</span>
+        <span style="font-weight:700;">PILOT_ACE</span>
+      </div>
+
+      <!-- Burger -->
+      <div class="hud-burger"><span id="burger">🍔</span></div>
+
+      <!-- Active Powerups -->
+      <div class="powerup-strip">
+        <span class="pup-chip shield">🛡 Shield 12s</span>
+        <span class="pup-chip boost">🔥 Boost 8s</span>
+        <span class="pup-chip score2x">✦ 2× Score 15s</span>
+      </div>
+
+      <!-- Nav controls -->
+      <div class="overlay-controls">
+        <a href="pause.html">⏸ Pause</a>
+        <a href="crash.html">💥 Crash</a>
+        <a href="final-sector.html">⚠️ Final Sector</a>
+        <a href="model-upgrade.html">✈️ Upgrade</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="state-badge">STATE: hud</div>
+</body>
+</html>

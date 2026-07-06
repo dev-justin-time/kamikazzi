@@ -337,10 +337,12 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   // HUD-lock refactor) — the propeller is re-parented to `scene` below so
   // its world position is fully decoupled from plane yaw/pitch/bank.
   const placeholder = { x: 0, y: 2, z: 0 };
+  let _currentModelUrl = planeModelUrl;
+  let _boeingSwapped = false;
   let plane = null, propeller = null;
   try {
     if (planeModelUrl && typeof planeModelUrl === 'string') {
-      const built = await loadPlaneFromGLB(planeModelUrl, { scale: 3.0, castShadow: true, receiveShadow: true });
+      const built = await loadPlaneFromGLB(planeModelUrl, { scale: getModelScale(planeModelUrl), castShadow: true, receiveShadow: true });
       plane = built.plane;
       propeller = built.propeller;
     }
@@ -669,6 +671,77 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     } catch (_) { /* CustomEvent missing on legacy browsers; state already mutated */ }
   }
 
+  // ---- model-specific scale constants ----
+  // Each model has its own native unit scale; these factors normalise them
+  // to roughly the same visual width (~131 units = original WW1 plane at 3.0).
+  const MODEL_SCALES = {
+    '/assets/model/rain_1/scene.gltf': 0.5,
+    '/assets/model/BOEING/scene.gltf': 0.0035,
+  };
+  function getModelScale(url) {
+    if (!url) return 3.0;
+    return MODEL_SCALES[url] ?? 3.0;
+  }
+
+  // ---- plane model swap (mid-game model upgrade) ----
+  async function swapPlaneModel(newModelUrl) {
+    if (!newModelUrl || newModelUrl === _currentModelUrl) return;
+    console.log('swapPlaneModel: upgrading from', _currentModelUrl, 'to', newModelUrl);
+    try {
+      // LOAD new model FIRST while old plane is still flying
+      // (if the load fails, the old plane remains intact)
+      const built = await loadPlaneFromGLB(newModelUrl, {
+        scale: getModelScale(newModelUrl),
+        castShadow: true,
+        receiveShadow: true,
+      });
+      const newPlane = built.plane;
+      const newPropeller = built.propeller;
+
+      // NOW swap: save old state and remove old plane
+      const oldPos = plane.position.clone();
+      const oldVisible = plane.visible;
+      stopEngineSound();
+      scene.remove(plane);
+      scene.remove(propeller);
+
+      // Set up new plane
+      newPlane.position.copy(oldPos);
+      newPlane.rotation.set(0, Math.PI, 0);
+      newPlane.visible = oldVisible;
+      newPlane.traverse(n => {
+        if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; }
+      });
+
+      // Add new plane to scene
+      scene.add(newPlane);
+      scene.add(newPropeller);
+
+      // Update closure references
+      plane = newPlane;
+      propeller = newPropeller;
+      _currentModelUrl = newModelUrl;
+
+      // Update PlaneController
+      planeController.plane = newPlane;
+      planeController.propeller = newPropeller;
+      // Clear old propeller refs and add only the new HUD propeller
+      planeController.propellers.length = 0;
+      planeController.propellers.push(newPropeller);
+
+      // Re-parent magnet halo to new plane
+      plane.add(magnetHalo.sprite);
+
+      // Re-attach engine sound
+      attachEngineSoundTo(newPlane);
+      tryStartEngineSound();
+
+      console.log('swapPlaneModel: upgrade complete');
+    } catch (err) {
+      console.warn('swapPlaneModel failed:', err);
+    }
+  }
+
   // ---- loop control ----
   let raf = null;
   let _rendererObj = null;
@@ -764,6 +837,15 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
             const frameDistance = effSpeed * dt;
             state.distanceTraveled += frameDistance;
             state.score += frameDistance * TUNING.SCORE_GAIN * scoreMult;
+
+            // Plane model upgrade at 15,000 points — swap to BOEING
+            if (state.score >= 15000 && !_boeingSwapped) {
+              _boeingSwapped = true;
+              // HUD flash announcement
+              try { window.dispatchEvent(new CustomEvent('modelUpgrade')); } catch (_) {}
+              // Fire-and-forget: swap doesn't block the game loop
+              swapPlaneModel('/assets/model/BOEING/scene.gltf').catch(err => console.warn('Boeing swap failed', err));
+            }
 
             // Level advance: each level requires 10% more score than the previous
             if (state.level < NUM_LEVELS) {
@@ -947,6 +1029,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     state.over = false;
     state.won = false;
     state.score = 0;
+    _boeingSwapped = false;  // allow BOEING swap on next 15k-point run
     state.speed = TUNING.SPEED_PER_LEVEL[0];
     state.spawnTimer = 0;
     state.spawnInterval = TUNING.SPAWN_INTERVAL;

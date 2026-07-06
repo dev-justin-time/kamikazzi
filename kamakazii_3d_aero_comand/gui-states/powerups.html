@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Community Powerups</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
+  .cp-tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid rgba(152,203,255,0.15); padding-bottom: 8px; }
+  .cp-tab { flex: 1; padding: 6px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(152,203,255,0.15); background: rgba(152,203,255,0.04); color: rgba(152,203,255,0.55); transition: all 0.15s ease; border-radius: 3px; }
+  .cp-tab:hover { background: rgba(152,203,255,0.10); color: #98cbff; }
+  .cp-tab.active { background: rgba(201,153,255,0.15); border-color: rgba(201,153,255,0.4); color: #c999ff; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">⚡ Community Powerups</span>
+  <a href="start.html" class="nav-close" title="Close">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="lb-panel" style="max-width:560px;max-height:85vh;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>⚡ Community Powerup Registry</h3>
+
+    <div class="cp-tabs">
+      <button class="cp-tab active" style="pointer-events:none;">Browse</button>
+      <button class="cp-tab" style="pointer-events:none;">Submit</button>
+    </div>
+
+    <div class="lb-body">
+      <div class="cp-card">
+        <div class="cp-color-swatch" style="background:#66ffff;"></div>
+        <div class="cp-info">
+          <div class="cp-name">⬜ Phase Shift</div>
+          <div class="cp-desc">🛡 Shield · Short bursts of intangibility</div>
+          <div class="cp-meta">ACE_PILOT · 4/2/2026</div>
+        </div>
+        <div class="cp-vote-btn" style="pointer-events:none;">
+          <span class="cp-vote-count">12</span>
+          <span class="cp-vote-label">Vote</span>
+        </div>
+      </div>
+
+      <div class="cp-card">
+        <div class="cp-color-swatch" style="background:#ff5dc8;"></div>
+        <div class="cp-info">
+          <div class="cp-name">💎 Sonic Boom</div>
+          <div class="cp-desc">🔥 Boost · Supersonic speed burst + shockwave</div>
+          <div class="cp-meta">NEON_WING · 3/28/2026</div>
+        </div>
+        <div class="cp-vote-btn" style="pointer-events:none;">
+          <span class="cp-vote-count">8</span>
+          <span class="cp-vote-label">Vote</span>
+        </div>
+      </div>
+
+      <div class="cp-card">
+        <div class="cp-color-swatch" style="background:#fff176;"></div>
+        <div class="cp-info">
+          <div class="cp-name">⭕ Gravity Well</div>
+          <div class="cp-desc">🧲 Magnet · Pulls all nearby objects</div>
+          <div class="cp-meta">SHREDDER_42 · 3/15/2026</div>
+        </div>
+        <div class="cp-vote-btn voted" style="pointer-events:none;">
+          <span class="cp-vote-count">15</span>
+          <span class="cp-vote-label">Voted</span>
+        </div>
+      </div>
+
+      <div class="cp-card">
+        <div class="cp-color-swatch" style="background:#6dff8c;"></div>
+        <div class="cp-info">
+          <div class="cp-name">🔻 Time Warp</div>
+          <div class="cp-desc">⏱ Slow-mo · 50% time dilation on activation</div>
+          <div class="cp-meta">VALLEY_ACE · 2/20/2026</div>
+        </div>
+        <div class="cp-vote-btn" style="pointer-events:none;">
+          <span class="cp-vote-count">6</span>
+          <span class="cp-vote-label">Vote</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: powerups</div>
+</body>
+</html>

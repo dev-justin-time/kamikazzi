@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Boot</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: #000b1a; justify-content: center; padding: 0; }
+  .game-frame { max-width: 700px; padding-bottom: 75%; display: flex; align-items: center; justify-content: center; background: #000b1a; border: none; }
+  .boot-panel { width: 90%; max-width: 520px; padding: 40px 32px; border: 1px solid rgba(152,203,255,0.25); background: rgba(0,11,26,0.6); }
+  .boot-seg.on { background: #00dddd; box-shadow: 0 0 8px rgba(0,221,221,0.45); }
+  .fs-link {
+    position: absolute; bottom: 20px; right: 20px;
+    font-size: 10px; color: rgba(152,203,255,0.25);
+    font-family: 'JetBrains Mono', monospace;
+    text-decoration: none; letter-spacing: 0.06em;
+  }
+  .fs-link:hover { color: rgba(152,203,255,0.5); }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="index.html" class="nav-back">← Hub</a>
+  <span class="nav-title">⏳ Boot / System Initializing</span>
+  <a href="start.html" class="nav-close" title="Skip to Start">→</a>
+</div>
+
+<div class="page-content">
+  <div class="game-frame">
+    <div class="boot-grid-overlay"></div>
+    <div class="boot-panel">
+      <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+      <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+      <div class="dev-splash" style="display:flex;align-items:center;justify-content:center;font-size:32px;color:#98cbff;">👨‍✈️</div>
+      <h2>AERO_COMMAND // KAMIKAZZI 3D</h2>
+      <div class="boot-status">Mounting kernel modules...</div>
+      <div class="boot-bar">
+        <div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div>
+        <div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div>
+        <div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg on"></div>
+        <div class="boot-seg on"></div><div class="boot-seg on"></div><div class="boot-seg"></div><div class="boot-seg"></div>
+      </div>
+      <div class="boot-meta">
+        <span>KERNEL: v9.2.1-stable</span>
+        <span class="boot-pct">089%</span>
+      </div>
+    </div>
+    <a href="start.html" class="fs-link">Skip → Start</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: boot</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Settings</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(8px); }
+  .settings-content { padding: 8px 0; }
+  .settings-section-label { margin-top:8px; padding:0 4px; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">⚙️ Settings</span>
+  <a href="start.html" class="nav-close" title="Close">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="lb-panel" style="max-width:400px;">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h3>⚙️ Settings</h3>
+
+    <div class="settings-content">
+      <div class="settings-label" style="padding:0 4px;">Display Options</div>
+      <div class="settings-row" style="padding:10px 4px;">
+        <label for="toggleOverlays">Tactical Overlays</label>
+        <label class="switch" for="toggleOverlays">
+          <input type="checkbox" id="toggleOverlays" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-label settings-section-label">Cloud</div>
+      <div class="settings-row" style="padding:10px 4px;">
+        <label for="toggleCloudSync">Cloud Sync</label>
+        <label class="switch" for="toggleCloudSync">
+          <input type="checkbox" id="toggleCloudSync">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-label settings-section-label">Language</div>
+      <div class="settings-row" style="padding:10px 4px;flex-direction:column;">
+        <select class="gui-input" style="cursor:pointer;">
+          <option>🇺🇸 English</option>
+          <option>🇯🇵 日本語</option>
+          <option>🇫🇷 Français</option>
+          <option>🇩🇪 Deutsch</option>
+          <option>🇪🇸 Español</option>
+        </select>
+      </div>
+    </div>
+
+    <a href="start.html" class="lb-close" style="text-decoration:none;display:inline-block;">Close</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: settings</div>
+</body>
+</html>

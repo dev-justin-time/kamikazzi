@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Mission Success</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: radial-gradient(ellipse at center, rgba(0,30,40,0.6), rgba(0,10,15,0.9)); justify-content: center; overflow-y: auto; }
+  .nav-links { margin-top: 20px; text-align: center; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .nav-links a { color: rgba(152,203,255,0.3); text-decoration: none; border-bottom: 1px dotted rgba(152,203,255,0.1); transition: color 0.15s; }
+  .nav-links a:hover { color: #98cbff; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="hud.html" class="nav-back">← HUD</a>
+  <span class="nav-title">✅ Mission Success</span>
+  <a href="start.html" class="nav-close" title="Return to menu">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="success-panel">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+
+    <div class="success-header">
+      <div class="sequence-complete">SEQUENCE COMPLETE</div>
+      <h1>MISSION SUCCESSFUL</h1>
+      <div class="mission-divider"></div>
+    </div>
+
+    <div class="success-grade">
+      <div class="grade-label">PERFORMANCE GRADE</div>
+      <div class="grade-letter">S</div>
+    </div>
+
+    <div class="telemetry-grid">
+      <div class="telemetry-card">
+        <div class="telemetry-label">FINAL_SCORE</div>
+        <div class="telemetry-value"><span>24,500</span><span class="telemetry-unit">PTS</span></div>
+      </div>
+      <div class="telemetry-card">
+        <div class="telemetry-label">SECTOR_ID</div>
+        <div class="telemetry-value" style="font-size:16px;">SECTOR_08</div>
+      </div>
+      <div class="telemetry-card">
+        <div class="telemetry-label">DISTANCE_FLOWN</div>
+        <div class="telemetry-value"><span>18.92</span><span class="telemetry-unit">KM</span></div>
+      </div>
+    </div>
+
+    <div class="mission-stats">
+      <div>
+        <div>ALTITUDE: <span>1,245.60m</span></div>
+        <div>THROTTLE_STATE: <span>100%</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:#00dddd;">STATUS: NOMINAL</div>
+        <div>TIME_ELAPSED: <span>08:22</span></div>
+      </div>
+    </div>
+
+    <div class="best-score-line">PERSONAL BEST: <span>24,500</span> 🎉 NEW!</div>
+
+    <div class="mission-actions">
+      <a href="hud.html" class="mt-btn primary" style="text-decoration:none;">FLY AGAIN</a>
+      <a href="start.html" class="mt-btn secondary" style="text-decoration:none;">RETURN TO COMMAND</a>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <a href="mission-terminated.html">❌ Previous: Terminated</a>
+    <a href="hud.html">📊 Back to HUD</a>
+    <a href="final-sector.html">⚠️ Final Sector</a>
+    <a href="model-upgrade.html">✈️ Model Upgrade</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: mission-success</div>
+</body>
+</html>

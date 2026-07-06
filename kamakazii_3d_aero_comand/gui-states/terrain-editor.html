@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Terrain Editor</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: #050505; justify-content: center; padding: 0; }
+  .game-frame { max-width: 1000px; padding-bottom: 56.25%; border: none; background: #0a0a0f; }
+  .editor-overlay-screen { position: absolute; inset: 0; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: #eee; }
+  .editor-close { position: absolute; top: 10px; right: 10px; z-index: 31; width: 36px; height: 36px; background: rgba(255,50,50,0.25); border: 1px solid rgba(255,100,100,0.4); border-radius: 50%; color: #ff6464; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.15s ease; }
+  .editor-close:hover { background: rgba(255,50,50,0.45); color: #fff; }
+  .editor-controls { position: absolute; top: 10px; left: 10px; z-index: 29; pointer-events: auto; background: rgba(15,15,20,0.9); backdrop-filter: blur(12px); padding: 10px; border-radius: 12px; width: 200px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .editor-controls .drag-handle { display: flex; justify-content: center; align-items: center; cursor: move; background: rgba(255,255,255,0.1); border-radius: 5px; height: 20px; margin-bottom: 5px; }
+  .editor-controls .dot-grid { width: 12px; height: 8px; background-image: radial-gradient(circle, #888 1.5px, transparent 1.5px); background-size: 4px 4px; }
+  .editor-controls .ec-label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #aaa; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .editor-controls select, .editor-controls input[type="range"] { width: 100%; background: #222; color: white; border: 1px solid #444; padding: 4px; border-radius: 4px; font-size: 12px; }
+  .editor-controls .control-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+  .editor-controls .tabs { display: flex; gap: 2px; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .editor-controls .tab-btn { flex: 1; font-size: 10px; padding: 5px 0; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0; border: none; color: #aaa; cursor: pointer; }
+  .editor-controls .tab-btn.active { background: #3498db; color: #fff; }
+  .editor-controls .tab-content { display: none; }
+  .editor-controls .tab-content.active { display: flex; flex-direction: column; gap: 6px; }
+  .editor-controls .checkbox-group { flex-direction: row; align-items: center; gap: 8px; }
+  .editor-stats { position: absolute; top: 10px; right: 60px; z-index: 29; pointer-events: none; padding: 6px 10px; font-size: 14px; font-family: Arial, sans-serif; font-weight: bold; color: #00ff00; display: flex; flex-direction: column; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+  .editor-minimap { position: absolute; bottom: 15px; right: 15px; z-index: 29; width: 120px; height: 120px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+  .editor-minimap .mm-handle { height: 20px; font-size: 14px; line-height: 20px; cursor: move; background: rgba(255,255,255,0.05); text-align: center; color: #aaa; }
+  .editor-minimap .mm-content { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 10px; }
+  .editor-btn { background: #3498db; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; text-transform: uppercase; font-size: 11px; text-align: center; text-decoration: none; }
+  .editor-btn:hover { background: #2980b9; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="start.html" class="nav-back">← Start</a>
+  <span class="nav-title">🌍 Terrain Editor</span>
+  <a href="start.html" class="nav-close" title="Close editor">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="game-frame">
+    <div class="editor-overlay-screen">
+      <!-- Close button -->
+      <a href="start.html" class="editor-close">✕</a>
+
+      <!-- Stats -->
+      <div class="editor-stats">
+        <span>FPS: 60</span>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="editor-controls">
+        <div class="drag-handle"><div class="dot-grid"></div></div>
+
+        <div class="tabs">
+          <button class="tab-btn active" style="pointer-events:none;">Gen</button>
+          <button class="tab-btn" style="pointer-events:none;">Player</button>
+          <button class="tab-btn" style="pointer-events:none;">Edit</button>
+        </div>
+
+        <div class="tab-content active">
+          <div class="control-group">
+            <div class="ec-label">Preset</div>
+            <select><option selected>Default</option><option>Circle Island</option><option>Canyon</option><option>Alpine</option></select>
+          </div>
+          <div class="control-group">
+            <div class="ec-label">Quality</div>
+            <select><option>Medium</option></select>
+          </div>
+          <div class="control-group">
+            <div class="ec-label">Size: <span>256</span></div>
+            <input type="range" min="64" max="1024" value="256">
+          </div>
+          <div class="control-group">
+            <div class="ec-label">Height: <span>25</span></div>
+            <input type="range" min="5" max="100" value="25">
+          </div>
+          <div class="control-group">
+            <div class="ec-label">Octaves: <span>4</span></div>
+            <input type="range" min="1" max="8" value="4">
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" checked> <label>Show Water</label>
+          </div>
+          <button class="editor-btn" style="pointer-events:none;">GENERATE TERRAIN</button>
+        </div>
+      </div>
+
+      <!-- Minimap -->
+      <div class="editor-minimap">
+        <div class="mm-handle">🗺</div>
+        <div class="mm-content">Terrain Preview</div>
+      </div>
+
+      <!-- Canvas placeholder -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:rgba(255,255,255,0.08);letter-spacing:0.2em;text-transform:uppercase;">3D TERRAIN VIEWPORT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="state-badge">STATE: terrain-editor</div>
+</body>
+</html>

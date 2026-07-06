@@ -72,7 +72,16 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.4);
     backdrop-filter: blur(4px);
   }
-  #score .speed { font-size: 13px; opacity: 0.85; font-weight: 400; margin-left: 12px; }
+  #score .speed {
+    font-size: 13px; opacity: 0.85; font-weight: 400; margin-left: 12px;
+    position: relative; padding-left: 12px;
+  }
+  #score .speed::before {
+    content: ''; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 1px; height: 18px;
+    background: rgba(255,255,255,0.25);
+  }
   .overlay {
     position: fixed; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; z-index: 20;
@@ -95,12 +104,137 @@
     letter-spacing: 2px; text-transform: uppercase;
     border: none; border-radius: 999px; cursor: pointer; color: #16233f;
     background: linear-gradient(135deg, #ffe08a, #ff9ec4);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35); transition: transform 0.12s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35); transition: transform 0.15s ease, box-shadow 0.15s ease;
     -webkit-tap-highlight-color: transparent;
+    position: relative; overflow: hidden;
   }
-  .btn:hover { transform: translateY(-2px) scale(1.03); }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+  .btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+  .btn:hover::after { transform: translateX(100%); }
   .btn:active { transform: scale(0.97); }
   .hint { margin-top: 18px; font-size: 14px; opacity: 0.75; line-height: 1.6; }
+
+  /* ---- Start screen menu button grid ---- */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 540px;
+    margin-top: 14px;
+  }
+  .menu-grid .menu-btn {
+    padding: 10px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid rgba(152,203,255,0.18);
+    background: rgba(152,203,255,0.05);
+    color: #98cbff;
+    transition: all 0.15s ease;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-btn .menu-btn-icon { font-size: 16px; display: block; margin-bottom: 3px; }
+  .menu-btn:hover {
+    background: rgba(0,221,221,0.12);
+    border-color: rgba(0,221,221,0.35);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .menu-btn:active { transform: translateY(0) scale(0.97); }
+  .menu-btn.highlight {
+    border-color: rgba(0,221,221,0.35);
+    background: rgba(0,221,221,0.08);
+    color: #00dddd;
+  }
+  .menu-btn.highlight:hover {
+    background: rgba(0,221,221,0.18);
+    color: #fff;
+  }
+  .menu-btn.powerup {
+    border-color: rgba(201,153,255,0.25);
+    background: rgba(201,153,255,0.06);
+    color: #c999ff;
+  }
+  .menu-btn.powerup:hover {
+    background: rgba(201,153,255,0.15);
+    border-color: rgba(201,153,255,0.35);
+    color: #fff;
+  }
+  .menu-btn.danger {
+    border-color: rgba(255,100,100,0.2);
+    background: rgba(255,100,100,0.04);
+    color: #ffb4ab;
+  }
+  .menu-btn.danger:hover {
+    background: rgba(255,100,100,0.12);
+    border-color: rgba(255,100,100,0.35);
+    color: #fff;
+  }
+  .menu-btn.gold {
+    border-color: rgba(255,200,50,0.3);
+    background: rgba(255,200,50,0.07);
+    color: #ffe08a;
+  }
+  .menu-btn.gold:hover {
+    background: rgba(255,200,50,0.16);
+    border-color: rgba(255,200,50,0.4);
+    color: #fff;
+  }
+  /* Resume run button — full-width above the grid */
+  #resumeRunBtn {
+    display: block;
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto 8px;
+    padding: 10px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid rgba(255,200,50,0.4);
+    background: rgba(255,200,50,0.08);
+    color: #ffe08a;
+    transition: all 0.15s ease;
+    border-radius: 4px;
+  }
+  #resumeRunBtn:hover {
+    background: rgba(255,200,50,0.18);
+    border-color: rgba(255,200,50,0.55);
+    color: #fff;
+  }
+  #resumeRunBtn.hidden { display: none !important; }
+
+  /* ---- HUD decorative side rails ---- */
+  #hud::before, #hud::after {
+    content: '';
+    position: fixed;
+    top: 24px;
+    height: 2px;
+    width: clamp(20px, 6vw, 80px);
+    background: linear-gradient(90deg, transparent, rgba(152,203,255,0.3), transparent);
+    pointer-events: none;
+    z-index: 10;
+  }
+  #hud::before { left: 0; }
+  #hud::after { right: 0; }
+
+
   /* Level indicator inside .speed (uses same dim text treatment) */
   .speed #levelVal { font-weight: 800; letter-spacing: 1px; }
 
@@ -201,7 +335,6 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: #98cbff; font-family: 'JetBrains Mono', monospace;
     backdrop-filter: blur(6px);
-    transition: opacity 0.25s ease;
   }
   #pauseScreen .pause-panel {
     position: relative; width: 90%; max-width: 420px; padding: 36px 28px;
@@ -469,15 +602,32 @@
   }
   #leaderboardPanel .lb-close:hover { background: rgba(0,221,221,0.15); border-color: #00dddd; color: #fff; }
 
-  /* Leaderboard button on start screen */
-  #leaderboardBtn {
-    margin-top: 10px; padding: 10px 28px;
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
-    border: 1px solid rgba(0,221,221,0.35); background: rgba(0,221,221,0.08);
-    color: #00dddd; transition: all 0.15s ease;
+  /* ---- Start screen scrollable on small screens ---- */
+  @media (max-height: 700px) {
+    #startScreen {
+      overflow-y: auto;
+      justify-content: flex-start;
+      padding-top: 24px;
+      padding-bottom: 24px;
+    }
+    #startScreen h1 { font-size: clamp(32px, 8vw, 48px); }
+    #startScreen p { font-size: clamp(12px, 2.5vw, 14px); }
+    .menu-grid { gap: 6px; }
+    .menu-grid .menu-btn { padding: 8px 6px; font-size: 9px; }
+    .menu-btn .menu-btn-icon { font-size: 14px; }
   }
-  #leaderboardBtn:hover { background: rgba(0,221,221,0.18); color: #fff; }
+  @media (max-height: 520px) {
+    #startScreen p { display: none; }
+    .subtitle .kanji { font-size: clamp(20px, 4vw, 28px); }
+  }
+  @media (max-width: 480px) {
+    .menu-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 360px) {
+    .menu-grid { gap: 5px; }
+    .menu-grid .menu-btn { padding: 6px 4px; font-size: 8px; }
+    .menu-btn .menu-btn-icon { font-size: 12px; margin-bottom: 2px; }
+  }
 
   /* Leaderboard tab bar */
   .lb-tabs {
@@ -495,16 +645,6 @@
   }
   .lb-tab:hover { background: rgba(152,203,255,0.10); color: #98cbff; }
   .lb-tab.active { background: rgba(0,221,221,0.12); border-color: rgba(0,221,221,0.4); color: #00ffff; }
-
-  /* Replay Gallery button */
-  #replayGalleryBtn {
-    margin-top: 10px; padding: 10px 28px;
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
-    border: 1px solid rgba(152,203,255,0.35); background: rgba(152,203,255,0.08);
-    color: #98cbff; transition: all 0.15s ease;
-  }
-  #replayGalleryBtn:hover { background: rgba(152,203,255,0.18); color: #fff; }
 
   /* Replay card hover */
   .replay-card:hover { background: rgba(152,203,255,0.08); border-color: rgba(152,203,255,0.25) !important; }
@@ -599,7 +739,7 @@
     border-radius: 2px 2px 0 0;
   }
   .profile-level-bar:hover { opacity: 0.8; }
-  #profileBtn:hover { background: rgba(0,221,221,0.18); color: #fff; }
+
 
   /* ---- Legal & Compliance panel accordion styles ---- */
   .legal-section {
@@ -692,8 +832,6 @@
   .skin-style-chip:hover { background: rgba(152,203,255,0.10); color: #98cbff; border-color: rgba(152,203,255,0.3); }
   .skin-style-chip.active { background: rgba(0,221,221,0.12); border-color: rgba(0,221,221,0.4); color: #00ffff; }
   .skin-style-chip .chip-emoji { font-size: 12px; line-height: 1; }
-  #lobbyBtn:hover { background: rgba(0,221,221,0.18); color: #fff; }
-  #lobbyQuickMatch:hover { background: rgba(0,221,221,0.15); border-color: #00dddd; color: #fff; }
   /* Lobby card — connected pilot in the lobby panel */
   .lobby-card {
     display: flex; align-items: center; gap: 10px;
@@ -731,8 +869,6 @@
     outline: 1px solid rgba(0,221,221,0.3);
     outline-offset: -1px;
   }
-  #legalBtn:hover { background: rgba(152,203,255,0.18); color: #fff; }
-
   /* ---- Consent bar inside legal panel ---- */
   .legal-consent-bar {
     padding: 10px 14px;
@@ -782,7 +918,6 @@
   }
 
   /* ---- Community Powerup Registry styles ---- */
-  #communityPowerupBtn:hover { background: rgba(201,153,255,0.18); color: #fff; }
   .cp-tab {
     flex: 1; padding: 6px 10px;
     font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
@@ -873,6 +1008,47 @@
   @keyframes finalSectorPulse {
     0%, 100% { text-shadow: 0 0 30px rgba(255, 30, 30, 0.75), 0 0 80px rgba(255, 0, 0, 0.35); }
     50% { text-shadow: 0 0 50px rgba(255, 30, 30, 0.95), 0 0 120px rgba(255, 0, 0, 0.55); }
+  }
+
+  /* ---- Model Upgrade flash announcement ----
+     Triggered when the player reaches 15,000 points and the plane auto-swaps
+     to the BOEING model. Shows "AIRCRAFT UPGRADED — BOEING 747" with a subtle
+     gold pulse, then fades out over 1s. Smaller than the finalSector overlay;
+     sits in the middle of the screen as a compact HUD flash. */
+  #modelUpgradeScreen {
+    position: fixed; inset: 0; z-index: 17;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    background: radial-gradient(ellipse at center, rgba(80,60,0,0.25), transparent 70%);
+  }
+  #modelUpgradeScreen.active { opacity: 1; }
+  #modelUpgradeScreen .mu-text {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    color: #ffe08a;
+    text-shadow: 0 0 20px rgba(255, 200, 50, 0.5), 0 0 60px rgba(255, 160, 0, 0.25);
+    transform: scale(0.9);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #modelUpgradeScreen.active .mu-text {
+    transform: scale(1);
+  }
+  #modelUpgradeScreen .mu-title {
+    font-size: clamp(24px, 5vw, 42px);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  #modelUpgradeScreen .mu-sub {
+    font-size: clamp(12px, 2.5vw, 20px);
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    color: #ffe08a;
+    opacity: 0.85;
   }
 
   /* Crash overlay FX — fired 3× in sync with each explode.gif screen play
@@ -1026,13 +1202,13 @@
     filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
     cursor: pointer; user-select: none;
     animation: burgerBob 2.2s ease-in-out infinite;
+  }
   #burger:hover { transform: scale(1.15); filter: drop-shadow(0 4px 10px rgba(255,200,50,0.5)); }
   #burger:active { transform: scale(0.92); }
   #burger.burger-flash { animation: burgerFlash 0.4s ease-out; }
   @keyframes burgerFlash {
     0% { transform: scale(1) rotate(-4deg); filter: drop-shadow(0 0 20px rgba(255,200,50,0.9)); }
     100% { transform: scale(1) rotate(4deg); filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); }
-  }
   }
   @keyframes burgerBob {
     0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -1198,14 +1374,7 @@
     transition: all 0.15s ease;
   }
   #sg-lv-fab-close:hover { background: rgba(255,50,50,0.45); color: #fff; }
-  #sg-lv-fab-btn {
-    margin-top: 10px; padding: 10px 28px;
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
-    border: 1px solid rgba(0,221,221,0.35); background: rgba(0,221,221,0.08);
-    color: #00dddd; transition: all 0.15s ease;
-  }
-  #sg-lv-fab-btn:hover { background: rgba(0,221,221,0.18); color: #fff; }
+
 
 </style>
 <script type="importmap">
@@ -1232,6 +1401,14 @@
   </div>
 </div>
 
+<!-- Model Upgrade announcement overlay (compact HUD flash at 15,000 pts) -->
+<div id="modelUpgradeScreen" class="hidden" aria-hidden="true" role="alert" aria-live="assertive">
+  <div class="mu-text">
+    <div class="mu-title">AIRCRAFT UPGRADED</div>
+    <div class="mu-sub">BOEING 747 — LONG-RANGE BOMBER</div>
+  </div>
+</div>
+
 <!-- Tactical overlays -->
 <div class="scanline-overlay" aria-hidden="true"></div>
 <div class="grid-overlay" aria-hidden="true"></div>
@@ -1239,7 +1416,7 @@
 <!-- Boot screen -->
 <div id="bootScreen" role="region" aria-label="System boot sequence">
   <div class="boot-grid" aria-hidden="true"></div>
-  <div class="boot-panel"
+  <div class="boot-panel">
     <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
     <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
     <img class="dev-splash" src="./assets/image/jt.png" alt="Developer" />
@@ -1273,23 +1450,27 @@
     <span class="kanji" aria-hidden="true">神風</span>
     <span class="romaji" data-i18n="subtitle">shin kaze</span>
   </div>
-  <p data-i18n-html="startScreen.description">Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>    <div style="display:flex;gap:10px;align-items:center;flex-direction:column;" role="group" aria-label="Game actions">
+  <p data-i18n-html="startScreen.description">Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>
+    <!-- Resume Run — appears when a snapshot is available (hidden by default) -->
+    <button id="resumeRunBtn" class="hidden" aria-label="Resume saved run">▶ Resume Run</button>
+    <!-- Primary action -->
     <button id="startBtn" class="btn" aria-label="Start flying game" data-i18n="btn.startFlying">Start Flying</button>
-    <button id="leaderboardBtn" aria-label="View leaderboard scores" data-i18n="btn.leaderboard">🏆 Leaderboard</button>
-    <button id="skinLabBtn" aria-label="Customize plane skin and pilot portrait" data-i18n="btn.customize">🎨 Customize</button>
-    <button id="replayGalleryBtn" aria-label="View saved replays" data-i18n="btn.replays">📼 Replays</button>
-    <button id="runHistoryBtn" aria-label="View run history" data-i18n="btn.history">📜 History</button>
-    <button id="briefingsBtn" aria-label="Open pilot briefings" data-i18n="btn.briefings">📡 Briefings</button>
-    <button id="marketplaceBtn" aria-label="Browse building skins marketplace" data-i18n="btn.skins">🏙️ Skins</button>
-    <button id="resumeRunBtn" class="hidden" aria-label="Resume saved run" style="margin-top:0;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(255,200,50,0.4);background:rgba(255,200,50,0.08);color:#ffe08a;transition:all 0.15s ease;">▶ Resume Run</button>
-    <button id="profileBtn" aria-label="View pilot profile" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(0,221,221,0.35);background:rgba(0,221,221,0.06);color:#00dddd;transition:all 0.15s ease;">👤 Profile</button>
-    <button id="communityPowerupBtn" aria-label="Browse community powerups" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(201,153,255,0.35);background:rgba(201,153,255,0.06);color:#c999ff;transition:all 0.15s ease;">⚡ Powerups</button>
-    <button id="lobbyBtn" aria-label="Open multiplayer lobby" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(0,221,221,0.35);background:rgba(0,221,221,0.08);color:#00dddd;transition:all 0.15s ease;">👥 Lobby</button>
-    <button id="legalBtn" aria-label="View legal and compliance information" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(152,203,255,0.35);background:rgba(152,203,255,0.08);color:#98cbff;transition:all 0.15s ease;">⚖️ Legal</button>
-    <button id="sg-lv-fab-btn" aria-label="Open Level Fabricator" style="margin-top:10px;padding:10px 28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(0,221,221,0.35);background:rgba(0,221,221,0.08);color:#00dddd;transition:all 0.15s ease;">🌍 Level Fabricator</button>
-    <button id="settingsBtn" aria-label="Open settings" data-i18n="btn.settings">⚙️ Settings</button>
+    <!-- Grid of secondary menu actions -->
+    <div class="menu-grid" role="group" aria-label="Secondary actions">
+      <button id="leaderboardBtn" class="menu-btn highlight" aria-label="View leaderboard scores" data-i18n="btn.leaderboard"><span class="menu-btn-icon">🏆</span>Leaderboard</button>
+      <button id="lobbyBtn" class="menu-btn highlight" aria-label="Open multiplayer lobby" data-i18n="btn.lobby"><span class="menu-btn-icon">👥</span>Lobby</button>
+      <button id="profileBtn" class="menu-btn highlight" aria-label="View pilot profile"><span class="menu-btn-icon">👤</span>Profile</button>
+      <button id="skinLabBtn" class="menu-btn" aria-label="Customize plane skin and pilot portrait" data-i18n="btn.customize"><span class="menu-btn-icon">🎨</span>Customize</button>
+      <button id="marketplaceBtn" class="menu-btn" aria-label="Browse building skins marketplace" data-i18n="btn.skins"><span class="menu-btn-icon">🏙️</span>Skins</button>
+      <button id="communityPowerupBtn" class="menu-btn powerup" aria-label="Browse community powerups"><span class="menu-btn-icon">⚡</span>Powerups</button>
+      <button id="replayGalleryBtn" class="menu-btn" aria-label="View saved replays" data-i18n="btn.replays"><span class="menu-btn-icon">📼</span>Replays</button>
+      <button id="runHistoryBtn" class="menu-btn" aria-label="View run history" data-i18n="btn.history"><span class="menu-btn-icon">📜</span>History</button>
+      <button id="briefingsBtn" class="menu-btn" aria-label="Open pilot briefings" data-i18n="btn.briefings"><span class="menu-btn-icon">📡</span>Briefings</button>
+      <button id="sg-lv-fab-btn" class="menu-btn highlight" aria-label="Open Level Fabricator"><span class="menu-btn-icon">🌍</span>Terrain Editor</button>
+      <button id="settingsBtn" class="menu-btn" aria-label="Open settings" data-i18n="btn.settings"><span class="menu-btn-icon">⚙️</span>Settings</button>
+      <button id="legalBtn" class="menu-btn" aria-label="View legal and compliance information"><span class="menu-btn-icon">⚖️</span>Legal</button>
+    </div>
     <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint">⌨️ Arrow Keys / WASD to steer<br>📱 Tilt your device or drag the screen<br>🕹️ Use joystick (bottom-left) for touch<br>❓ Press <strong>?</strong> for keyboard shortcuts</div>
-  </div>
 </div>
 
 <div id="explodeScreen" class="hidden" aria-hidden="true" role="region" aria-label="Crash explosion animation">

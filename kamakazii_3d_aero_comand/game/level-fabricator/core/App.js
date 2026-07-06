@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { createTerrain } from '../terrain/TerrainGenerator.js';
 import { getBiomeColor } from '../terrain/BiomeUtils.js';
 import { SetupControls } from '../input/Controls.js';
-import { Minimap } from './minimap.js';
+import { Minimap } from '../ui/Minimap.js';
 import { SceneManager } from './SceneManager.js';
 import { EnvironmentManager } from '../environment/EnvironmentManager.js';
 import { UIManager } from '../ui/UIManager.js';

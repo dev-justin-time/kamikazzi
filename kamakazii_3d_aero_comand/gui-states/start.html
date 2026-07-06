@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Start Menu</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content {
+    background: radial-gradient(ellipse at center, rgba(20,30,60,0.55), rgba(10,15,35,0.8));
+    justify-content: center; padding: 24px; overflow-y: auto;
+  }
+  .start-container { display: flex; flex-direction: column; align-items: center; max-width: 600px; width: 100%; }
+  .nav-back { color: rgba(152,203,255,0.5); }
+  .kanji-sub { text-align: center; margin-bottom: 14px; padding: 0 24px; }
+  .kanji-sub .kanji {
+    font-family: 'Noto Sans JP', serif;
+    font-size: clamp(28px, 6vw, 44px); font-weight: 700; letter-spacing: 4px;
+    color: #ff9352; opacity: 0.92; display: block;
+    text-shadow: 0 4px 14px rgba(255,80,50,0.35); line-height: 1.1;
+  }
+  .kanji-sub .romaji {
+    font-family: 'Stick No Bills', sans-serif;
+    font-size: clamp(11px, 2.4vw, 14px); font-weight: 400; letter-spacing: 5px;
+    text-transform: uppercase; opacity: 0.55; display: block; margin-top: 6px;
+  }
+  .start-desc { font-size: clamp(12px, 2.5vw, 14px); opacity: 0.75; line-height: 1.5; max-width: 520px; text-align: center; color: #98cbff; }
+  .nav-links { margin-top: 24px; text-align: center; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .nav-links a { color: rgba(152,203,255,0.3); text-decoration: none; border-bottom: 1px dotted rgba(152,203,255,0.15); padding-bottom: 2px; transition: color 0.15s; }
+  .nav-links a:hover { color: #98cbff; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="index.html" class="nav-back">← Hub</a>
+  <span class="nav-title">🏠 Start Menu</span>
+  <a href="hud.html" class="nav-close" title="Start game → HUD">▶</a>
+</div>
+
+<div class="page-content">
+  <div class="start-container">
+    <h1 style="font-size:clamp(48px,11vw,96px);margin-bottom:8px;font-weight:800;letter-spacing:4px;text-transform:uppercase;text-shadow:0 6px 24px rgba(0,0,0,0.55),0 0 32px rgba(255,80,80,0.18);background:linear-gradient(180deg,#ffffff 0%,#ff6a3d 50%,#c01818 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Stick No Bills',sans-serif;text-align:center;">KAMIKAZZI 3D</h1>
+    <div class="kanji-sub">
+      <span class="kanji">神風</span>
+      <span class="romaji">shin kaze</span>
+    </div>
+    <p class="start-desc">Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette.</p>
+
+    <!-- Resume Run -->
+    <button class="resume-run-btn" onclick="window.location.href='hud.html'">▶ Resume Sector 03 · 12,400 pts</button>
+
+    <!-- Primary CTA -->
+    <a href="hud.html" class="btn" style="text-decoration:none;display:inline-block;">Start Flying</a>
+
+    <!-- Menu Grid -->
+    <div class="menu-grid">
+      <a href="leaderboard.html" class="menu-btn highlight"><span class="menu-btn-icon">🏆</span>Leaderboard</a>
+      <a href="lobby.html" class="menu-btn highlight"><span class="menu-btn-icon">👥</span>Lobby</a>
+      <a href="profile.html" class="menu-btn highlight"><span class="menu-btn-icon">👤</span>Profile</a>
+      <a href="skin-lab.html" class="menu-btn"><span class="menu-btn-icon">🎨</span>Customize</a>
+      <a href="marketplace.html" class="menu-btn"><span class="menu-btn-icon">🏙️</span>Skins</a>
+      <a href="powerups.html" class="menu-btn powerup"><span class="menu-btn-icon">⚡</span>Powerups</a>
+      <a href="replays.html" class="menu-btn"><span class="menu-btn-icon">📼</span>Replays</a>
+      <a href="history.html" class="menu-btn"><span class="menu-btn-icon">📜</span>History</a>
+      <a href="briefings.html" class="menu-btn"><span class="menu-btn-icon">📡</span>Briefings</a>
+      <a href="terrain-editor.html" class="menu-btn highlight"><span class="menu-btn-icon">🌍</span>Terrain</a>
+      <a href="settings.html" class="menu-btn"><span class="menu-btn-icon">⚙️</span>Settings</a>
+      <a href="legal.html" class="menu-btn"><span class="menu-btn-icon">⚖️</span>Legal</a>
+    </div>
+
+    <div class="nav-links">
+      <a href="boot.html">← Boot</a>
+      <a href="pause.html">Pause →</a>
+      <a href="crash.html">💥 Crash</a>
+      <a href="mission-terminated.html">❌ Terminated</a>
+      <a href="mission-success.html">✅ Success</a>
+      <a href="shortcuts.html">⌨️ Shortcuts</a>
+    </div>
+  </div>
+</div>
+
+<div class="state-badge">STATE: start</div>
+</body>
+</html>

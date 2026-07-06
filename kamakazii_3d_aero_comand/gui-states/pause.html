@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAMIKAZZI 3D — Pause</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-content { background: rgba(0,11,26,0.92); justify-content: center; backdrop-filter: blur(6px); }
+  .nav-links { margin-top: 24px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .nav-links a { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(152,203,255,0.35); text-decoration: none; border-bottom: 1px dotted rgba(152,203,255,0.1); transition: color 0.15s; }
+  .nav-links a:hover { color: #98cbff; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="hud.html" class="nav-back">← HUD</a>
+  <span class="nav-title">⏸ Pause / System Suspended</span>
+  <a href="start.html" class="nav-close" title="Quit to menu">✕</a>
+</div>
+
+<div class="page-content">
+  <div class="pause-panel">
+    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
+    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+    <h2 style="animation:flicker 2.5s infinite;color:#00ffff;font-size:22px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;text-shadow:0 0 18px rgba(0,255,255,0.35);margin-bottom:6px;">System Suspended</h2>
+    <div class="pause-sub">Kernel pause signal active</div>
+
+    <a href="hud.html" class="pause-btn" style="text-decoration:none;display:block;text-align:center;">Resume Flight</a>
+    <a href="hud.html" class="pause-btn" style="text-decoration:none;display:block;text-align:center;">Restart Mission</a>
+    <a href="start.html" class="pause-btn danger" style="text-decoration:none;display:block;text-align:center;">Quit to Main Menu</a>
+
+    <div class="pause-hint">Press ESC to resume</div>
+  </div>
+
+  <div class="nav-links">
+    <a href="crash.html">💥 Crash</a>
+    <a href="mission-terminated.html">❌ Terminated</a>
+    <a href="mission-success.html">✅ Success</a>
+    <a href="boot.html">🖥️ Boot</a>
+    <a href="index.html">📋 Hub</a>
+  </div>
+</div>
+
+<div class="state-badge">STATE: pause</div>
+</body>
+</html>

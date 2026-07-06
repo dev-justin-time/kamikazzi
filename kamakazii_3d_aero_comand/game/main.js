@@ -22,7 +22,7 @@ async function boot() {
     scene: rendererObj.scene,
     camera: rendererObj.camera,
     domElement: rendererObj.domElement,
-    planeModelUrl: '/assets/model/stylized_ww1_plane.glb',
+    planeModelUrl: '/assets/model/rain_1/scene.gltf',
   });
 
   // 3) Input — keep game/state.plane reference for planeController bridge inside world.js
