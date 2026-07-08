@@ -19,7 +19,10 @@ try {
 let _puter = null;
 let _sdkReady = false;
 
-async function resolvePuter() {
+// Export the AI module reference so ai.js doesn't duplicate the SDK import
+export const getAiExport = () => _aiExport;
+
+export async function resolvePuter() {
   if (_sdkReady) return _puter;
   // 1) Pre-probed ESM named export
   if (_puterExport && typeof _puterExport === 'object') {
