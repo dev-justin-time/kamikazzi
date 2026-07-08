@@ -17,9 +17,10 @@ export class SetupControls {
         this.joystickData = { x: 0, y: 0 };
         this.targetFov = 60;
         
-        window.addEventListener('keydown', (e) => this.keys[e.code] = true);
-        window.addEventListener('keyup', (e) => this.keys[e.code] = false);
-        window.addEventListener('wheel', (e) => {
+        // Store bound handler references for proper cleanup in dispose()
+        this._onKeyDown = (e) => { this.keys[e.code] = true; };
+        this._onKeyUp = (e) => { this.keys[e.code] = false; };
+        this._onWheel = (e) => {
             // Prevent zoom/scroll when hovering over interactive UI elements
             if (e.target.closest('#controls-panel') || e.target.closest('#minimap-container') || e.target.closest('#fullscreen-btn')) {
                 return;
@@ -35,7 +36,10 @@ export class SetupControls {
             } else {
                 this.targetFov = Math.max(10, Math.min(100, this.targetFov + e.deltaY * 0.05));
             }
-        }, { passive: true });
+        };
+        window.addEventListener('keydown', this._onKeyDown);
+        window.addEventListener('keyup', this._onKeyUp);
+        window.addEventListener('wheel', this._onWheel, { passive: true });
         
         this.initJoystick();
         this.initMouseLook(domElement);
@@ -44,34 +48,35 @@ export class SetupControls {
     initJoystick() {
         const zone = document.getElementById('sg-joystick-zone');
         if (!zone) return;
-        const manager = nipplejs.create({
+        this._joystickManager = nipplejs.create({
             zone: zone,
             mode: 'static',
             position: { left: '50px', bottom: '50px' },
             color: 'white',
             size: 80
         });
-        manager.on('move', (evt, data) => {
+        this._joystickManager.on('move', (evt, data) => {
             this.joystickData.x = data.vector.x;
             this.joystickData.y = data.vector.y;
         });
-        manager.on('end', () => {
+        this._joystickManager.on('end', () => {
             this.joystickData.x = 0;
             this.joystickData.y = 0;
         });
     }
 
     initMouseLook(domElement) {
+        this._domElement = domElement;
         let isPanning = false;
-        domElement.addEventListener('mousedown', (e) => {
+
+        this._onMouseDown = (e) => {
             const viewModeSelector = document.getElementById('sg-view-mode-select');
             const viewMode = viewModeSelector ? viewModeSelector.value : 'player';
-            // Only block rotation if in Fly mode
             if (viewMode === 'fly') return;
             if (e.button === 0) isPanning = true;
-        });
-        window.addEventListener('mouseup', () => isPanning = false);
-        window.addEventListener('mousemove', (e) => {
+        };
+        this._onMouseUp = () => { isPanning = false; };
+        this._onMouseMove = (e) => {
             const viewModeSelector = document.getElementById('sg-view-mode-select');
             const viewMode = viewModeSelector ? viewModeSelector.value : 'player';
             if (!isPanning || viewMode === 'fly') return;
@@ -80,18 +85,22 @@ export class SetupControls {
             this.rotation.x -= e.movementY * sensitivity;
             this.rotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, this.rotation.x));
             this.camera.quaternion.setFromEuler(this.rotation);
-        });
+        };
+
+        domElement.addEventListener('mousedown', this._onMouseDown);
+        window.addEventListener('mouseup', this._onMouseUp);
+        window.addEventListener('mousemove', this._onMouseMove);
 
         // Touch support for rotation
         let lastTouchX = 0, lastTouchY = 0;
-        domElement.addEventListener('touchstart', (e) => {
+        this._onTouchStart = (e) => {
             const viewModeSelector = document.getElementById('sg-view-mode-select');
             const viewMode = viewModeSelector ? viewModeSelector.value : 'player';
             if (viewMode === 'fly') return;
             lastTouchX = e.touches[0].pageX;
             lastTouchY = e.touches[0].pageY;
-        });
-        domElement.addEventListener('touchmove', (e) => {
+        };
+        this._onTouchMove = (e) => {
             const editModeSelector = document.getElementById('sg-edit-view-mode');
             const editViewMode = editModeSelector ? editModeSelector.value : 'fly';
             if (this.app.uiManager.isEditTabActive() && editViewMode === 'fly') return;
@@ -107,7 +116,10 @@ export class SetupControls {
             this.rotation.x -= dy * sensitivity;
             this.rotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, this.rotation.x));
             this.camera.quaternion.setFromEuler(this.rotation);
-        });
+        };
+
+        domElement.addEventListener('touchstart', this._onTouchStart);
+        domElement.addEventListener('touchmove', this._onTouchMove);
     }
 
     update(dt) {
@@ -176,12 +188,50 @@ export class SetupControls {
     }
 
     dispose() {
-        window.removeEventListener('keydown', this._keyHandler);
-        window.removeEventListener('keyup', this._keyUpHandler);
-    }
+        // Remove keyboard listeners
+        if (this._onKeyDown) {
+            window.removeEventListener('keydown', this._onKeyDown);
+            this._onKeyDown = null;
+        }
+        if (this._onKeyUp) {
+            window.removeEventListener('keyup', this._onKeyUp);
+            this._onKeyUp = null;
+        }
+        if (this._onWheel) {
+            window.removeEventListener('wheel', this._onWheel);
+            this._onWheel = null;
+        }
 
+        // Remove mouse listeners
+        if (this._onMouseDown && this._domElement) {
+            this._domElement.removeEventListener('mousedown', this._onMouseDown);
+            this._onMouseDown = null;
+        }
+        if (this._onMouseUp) {
+            window.removeEventListener('mouseup', this._onMouseUp);
+            this._onMouseUp = null;
+        }
+        if (this._onMouseMove) {
+            window.removeEventListener('mousemove', this._onMouseMove);
+            this._onMouseMove = null;
+        }
 
-    dispose() {
-        // No-op for now - event listeners use anonymous functions
+        // Remove touch listeners
+        if (this._onTouchStart && this._domElement) {
+            this._domElement.removeEventListener('touchstart', this._onTouchStart);
+            this._onTouchStart = null;
+        }
+        if (this._onTouchMove && this._domElement) {
+            this._domElement.removeEventListener('touchmove', this._onTouchMove);
+            this._onTouchMove = null;
+        }
+
+        // Destroy nipplejs joystick instance
+        if (this._joystickManager) {
+            this._joystickManager.destroy();
+            this._joystickManager = null;
+        }
+
+        this._domElement = null;
     }
 }

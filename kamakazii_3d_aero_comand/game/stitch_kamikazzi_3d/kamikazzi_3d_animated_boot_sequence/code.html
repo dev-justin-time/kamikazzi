@@ -2,6 +2,7 @@
 
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://ajax.googleapis.com https://js.puter.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://lh3.googleusercontent.com https://www.transparenttextures.com; connect-src 'self' https://api.puter.com wss: ws:; media-src 'self' https://www.soundjay.com;">
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>KAMIKAZZI_3D // TACTICAL_HUD</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -413,10 +414,26 @@
             menu.style.transform = 'scale(1.2)';
             setTimeout(() => menu.style.display = 'none', 500);
             
-            // Mock gameplay ending for success screen demo
-            setTimeout(() => {
-                showSuccess();
-            }, 10000);
+            // Real gameplay ending — listen for game state events from the engine
+            const _onGameState = (e) => {
+                if (e.detail?.state === 'mission-complete') {
+                    window.removeEventListener('kamikazzi:game-state', _onGameState);
+                    clearInterval(_scoreCheck);
+                    showSuccess();
+                }
+            };
+            window.addEventListener('kamikazzi:game-state', _onGameState);
+            const _scoreCheck = setInterval(() => {
+                const scoreEl = document.querySelector('[class*="data-lg"]');
+                if (scoreEl) {
+                    const score = parseInt(scoreEl.textContent.replace(/[^0-9]/g, ''), 10);
+                    if (score >= 1000000) {
+                        clearInterval(_scoreCheck);
+                        window.removeEventListener('kamikazzi:game-state', _onGameState);
+                        showSuccess();
+                    }
+                }
+            }, 2000);
         }
 
         function showSuccess() {
