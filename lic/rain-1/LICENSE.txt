@@ -1,0 +1,20 @@
+Rain 1
+======
+
+Verbatim copy from upstream license.txt (preserved exactly).
+Source file: kamakazii_3d_aero_comand/assets/model/rain_1/license.txt
+
+Title    : Rain 1
+Author   : Paxar095
+License  : Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Required attribution text (verbatim from upstream):
+
+  Title: Rain 1
+  Author: Paxar095
+  License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+License URL : https://creativecommons.org/licenses/by/4.0/
+
+This asset may be redistributed and modified (including commercial use)
+provided the author and license above are credited.

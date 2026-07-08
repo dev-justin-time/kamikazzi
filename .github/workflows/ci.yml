@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+# Cancel stale runs for the same branch/PR
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Rust / Wasm: cargo check ──────────────────────────────────────────
+  rust-check:
+    name: Rust · cargo check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kamasazii_vecter_omega3d
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-${{ runner.os }}-${{ hashFiles('kamasazii_vecter_omega3d/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+
+      - name: cargo check (wasm32)
+        run: cargo check --target wasm32-unknown-unknown
+
+  # ── Go: vet + build ──────────────────────────────────────────────────
+  go-vet:
+    name: Go · vet + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kamasazii_vecter_omega3d/server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go build
+        run: go build -o /dev/null .
+
+  # ── Node: syntax check + tests ───────────────────────────────────────
+  node-test:
+    name: Node · check + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Syntax-check key JS files (catches parse errors early)
+      - name: JS syntax check
+        run: |
+          node --check kamasazii_vecter_omega3d/star_sparrow_builder.js
+          node --check kamakazii_3d_aero_comand/game/main.js
+          node --check kamakazii_3d_aero_comand/game/renderer.js
+          node --check kamakazii_3d_aero_comand/game/world.js
+          node --check kamakazii_3d_aero_comand/game/ui.js
+
+      # Install three.js for import-normalize tests (version pinned in package.json)
+      - name: Install test dependencies
+        working-directory: kamakazii_studio3D
+        run: npm install
+
+      # Unit tests (Node.js built-in test runner)
+      - name: Unit tests
+        run: node --test kamakazii_studio3D/tests/import-normalize.test.mjs

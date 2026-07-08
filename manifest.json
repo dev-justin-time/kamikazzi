@@ -16,18 +16,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -36,14 +24,14 @@
       "short_name": "Fly",
       "description": "Jump straight into a new mission",
       "url": "/?start=1",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "assets/icons/icon.svg", "sizes": "any" }]
     },
     {
       "name": "Leaderboard",
       "short_name": "Scores",
       "description": "View global mission records",
       "url": "/?leaderboard=1",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "assets/icons/icon.svg", "sizes": "any" }]
     }
   ]
 }

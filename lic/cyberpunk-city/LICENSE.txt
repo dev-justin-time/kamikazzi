@@ -1,0 +1,20 @@
+Cyberpunk city
+==============
+
+Verbatim copy from upstream license.txt (preserved exactly).
+Source file: kamasazii_vecter_omega3d/assets/models/cyberpunk_city/license.txt
+
+Title    : Cyberpunk city
+Author   : Pasha
+License  : Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Required attribution text (verbatim from upstream):
+
+  Title: Cyberpunk city
+  Author: Pasha
+  License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+License URL : https://creativecommons.org/licenses/by/4.0/
+
+This asset may be redistributed and modified (including commercial use)
+provided the author and license above are credited.

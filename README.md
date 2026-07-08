@@ -11,7 +11,7 @@
 |-----|-----------|-------------|
 | 🎮 **KAMIKAZZI 3D — Aero Command** | `kamakazii_3d_aero_comand/` | Endless flyer — dodge buildings, collect powerups, chase the high score across 8 sectors. AI skins, replays, leaderboard, multiplayer. |
 | 🛠️ **KAMAKAZII STUDIO 3D** | `kamakazii_studio3D/` | Browser-based 3D model editor and game content studio. Sculpting, texture painting, animation, node editor, physics, marketplace. |
-| ⚡ **VECTOR STRIKE: OMNI** | `kamasazii_vecter_omega3d/` | Air-to-air combat — Rust + Lua + Go + Puter.js. 6DOF physics, wireframe rendering, multiplayer, Puter AI briefings, cloud replays. |
+| ⚡ **VECTOR STRIKE: OMNI** | `kamasazii_vecter_omega3d/` | Air-to-air combat — Rust + Rhai + Go + Puter.js. 6DOF physics, wireframe rendering, multiplayer, Puter AI briefings, cloud replays. |
 
 Each app is a **standalone repository** deployable independently on the Puter App Store. See each app's README for details.
 
@@ -56,8 +56,8 @@ kamikazzi/
 │
 ├── kamasazii_vecter_omega3d/   # ⚡ VECTOR STRIKE: OMNI (standalone repo)
 │   ├── Cargo.toml              # Rust crate → Wasm
-│   ├── src/lib.rs              # Engine: 6DOF physics, Lua VM, WebGL2
-│   ├── scripts/                # Lua AI behavior + weapon definitions
+│   ├── src/lib.rs              # Engine: 6DOF physics, Rhai VM, WebGL2
+│   ├── scripts/                # Rhai AI behavior + weapon definitions
 │   ├── server/                 # Go authoritative multiplayer server
 │   ├── index.html              # Frontend + Puter.js
 │   ├── style.css               # Cyberpunk HUD

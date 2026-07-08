@@ -1,9 +1,10 @@
 // /game.js — application bootstrap.
-// index.html loads this as <script type="module">. Missing previously and was a silent boot breaker.
+// index.html loads this as <script type="module">.
 import { createRenderer } from './renderer.js';
 import { createWorld } from './world.js';
 import { setupInput } from './controls/index.js';
 import { setupUI } from './ui.js';
+import { screenLoader } from './screen-loader.js';
 
 async function boot() {
   const container = document.getElementById('game');
@@ -12,12 +13,15 @@ async function boot() {
     return;
   }
 
+  // 0) Initialize screen-loader: loads gui-states styles + starts auto-inject
+  // MutationObserver. Overlays are automatically injected with their
+  // gui-states Tailwind designs when they become visible.
+  screenLoader.init().catch(() => {});
+
   // 1) WebGL renderer + scene/camera
   const rendererObj = createRenderer(container);
 
   // 2) World: lighting, ground, clouds, plane, managers, state
-  // Pass `planeModelUrl` so the GLB at /assets/model/stylized_ww1_plane.glb is
-  // attempted first; createWorld falls back to the procedural plane on failure.
   const worldObj = await createWorld({
     scene: rendererObj.scene,
     camera: rendererObj.camera,
@@ -25,16 +29,16 @@ async function boot() {
     planeModelUrl: '/assets/model/rain_1/scene.gltf',
   });
 
-  // 3) Input — keep game/state.plane reference for planeController bridge inside world.js
+  // 3) Input
   setupInput({ domElement: rendererObj.domElement, world: worldObj });
 
-  // 4) UI overlay wiring (start, retry, score, crash image)
+  // 4) UI overlay wiring
   setupUI({ world: worldObj, rendererObj });
 
-  // Resize hook — keep the canvas in sync with the viewport
+  // Resize hook
   window.addEventListener('resize', () => rendererObj.onResize());
 
-  // Expose for debugging / experimentation
+  // Expose for debugging
   window.__missionLog = { rendererObj, worldObj };
 }
 

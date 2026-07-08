@@ -19,7 +19,7 @@ import { t, setLocale, getAvailableLocales } from './locale.js';
 import {
   isPuterAvailable, getUsername, getAvatarUrl, getLeaderboard,
   setCloudSyncEnabled, generateImage, getReplays, deleteReplay,
-  getRunHistory, syncSettings, getSettings, speak,
+  getRunHistory, syncSettings, getSettings, speak, refreshUser,
   loadGameSnapshot, submitCommunityPowerup, getCommunityPowerups, voteCommunityPowerup,
   startLobbyPresence,
   buildSkinPrompt, getSkinStylePresets, generateBuildingPalette,
@@ -258,6 +258,8 @@ export function setupUI({ world, rendererObj }) {
 
   // ---- Puter cloud integration UI ----
   const userBadge = document.getElementById('userBadge');
+  const puterLoginBtn = document.getElementById('puterLoginBtn');
+  let _puterLoginInFlight = false;
   const leaderboardBtn = document.getElementById('leaderboardBtn');
   const leaderboardPanel = document.getElementById('leaderboardPanel');
   const leaderboardClose = document.getElementById('leaderboardClose');
@@ -1022,7 +1024,101 @@ export function setupUI({ world, rendererObj }) {
     return str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
   }
   refreshUserBadge();
-  window.addEventListener('puterUserReady', () => refreshUserBadge());
+  window.addEventListener('puterUserReady', () => {
+    refreshUserBadge();
+    // Update the Puter login button to show connected state
+    if (puterLoginBtn) {
+      getUsername().then(name => {
+        if (name) {
+          puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
+          puterLoginBtn.classList.remove('highlight');
+          puterLoginBtn.style.borderColor = 'rgba(0,221,221,0.4)';
+          puterLoginBtn.style.color = '#00dddd';
+          puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + name + '. Click to disconnect.');
+        }
+      });
+    }
+  });
+
+  // Wire the Puter login button
+  if (puterLoginBtn) {
+    puterLoginBtn.addEventListener('click', async () => {
+      if (_puterLoginInFlight) return;
+      _puterLoginInFlight = true;
+
+      // Check if already connected — offer disconnect
+      const existingUser = await getUsername();
+      if (existingUser) {
+        // Logout: clear local credentials without triggering OAuth
+        puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_off</span>Disconnecting...';
+        puterLoginBtn.disabled = true;
+        try {
+          localStorage.removeItem('puterApiKey');
+          // Clear cached user and re-check if Puter session persists
+          await refreshUser();
+          const stillUser = await getUsername();
+          if (!stillUser) {
+            // No Puter session — show disconnected
+            if (userBadge) userBadge.classList.add('hidden');
+            puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
+            puterLoginBtn.classList.add('highlight');
+            puterLoginBtn.style.borderColor = '';
+            puterLoginBtn.style.color = '';
+            puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
+          } else {
+            // Session persists (Puter auto-authenticated) — stay connected
+            puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
+          }
+        } catch (_) {}
+        puterLoginBtn.disabled = false;
+        _puterLoginInFlight = false;
+        return;
+      }
+
+      // Not connected — trigger Puter OAuth sign-in
+      puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_upload</span>Connecting...';
+      puterLoginBtn.disabled = true;
+      try {
+        const user = await window.setPuterApiKey();
+        if (user) {
+          puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
+          puterLoginBtn.classList.remove('highlight');
+          puterLoginBtn.style.borderColor = 'rgba(0,221,221,0.4)';
+          puterLoginBtn.style.color = '#00dddd';
+          puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + (user.username || user.name || 'Pilot') + '. Click to disconnect.');
+          refreshUserBadge();
+        } else {
+          // Sign-in failed or was cancelled
+          puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
+          puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
+        }
+      } catch (e) {
+        console.warn('Puter login failed:', e);
+        puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_off</span>Sync Failed';
+        setTimeout(() => {
+          puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
+          puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
+        }, 2500);
+      }
+      puterLoginBtn.disabled = false;
+      _puterLoginInFlight = false;
+    });
+  }
+
+  // Also wire the userBadge click to provide Puter account info
+  if (userBadge) {
+    userBadge.addEventListener('click', async () => {
+      const username = await getUsername();
+      if (username) {
+        // Brief flash to show account status
+        userBadge.style.opacity = '0.7';
+        setTimeout(() => { userBadge.style.opacity = ''; }, 200);
+        // Could open a mini profile or Puter account page here
+        console.log('[Kamikazzi] Puter account: ' + username);
+      }
+    });
+    userBadge.style.cursor = 'pointer';
+  }
 
   // ---- Leaderboard ----
   // Leaderboard period state

@@ -7,7 +7,6 @@ const CACHE_NAME = 'kamikazzi-v1';
 const SHELL_URLS = [
   '/',
   '/index.html',
-  '/game.js',
   '/game/renderer.js',
   '/game/ui.js',
   '/game/world.js',

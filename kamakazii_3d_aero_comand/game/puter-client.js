@@ -402,7 +402,7 @@ export async function getLeaderboard(limit = 10, period = 'all') {
 }
 
 // ---------------------------------------------------------------------------
-// Legacy API-key client (preserved for backward compatibility)
+// Legacy API-key client (preserved for backward compatibility via setPuterApiKey)
 // ---------------------------------------------------------------------------
 let legacyClient = null;
 let legacyKey = null;
@@ -431,77 +431,124 @@ async function createLegacyClient(key) {
   } catch (_) { return null; }
 }
 
-(async function initLegacy() {
-  try {
-    legacyKey = localStorage.getItem('puterApiKey') || null;
-    if (legacyKey) legacyClient = await createLegacyClient(legacyKey);
-  } catch (_) { legacyKey = null; legacyClient = null; }
-})();
-
+/**
+ * Wire into Puter login flow.
+ * - If key is provided (non-empty string): use legacy API-key auth (backward compat).
+ * - If key is null/undefined/empty: trigger Puter OAuth sign-in via puter.auth.signIn().
+ * - If Puter auth is unavailable, silently return null (game works offline).
+ *
+ * world.js calls this via `window.__puterSendIdeas` and `window.fetchCommentsFromPuter`,
+ * which are updated below to use the modern save()/load() KV patterns instead of legacyClient.
+ */
 window.setPuterApiKey = async function(key) {
   try {
-    if (!key) {
-      localStorage.removeItem('puterApiKey');
-      legacyClient = null; legacyKey = null;
-      return;
+    if (key && typeof key === 'string' && key.length > 0) {
+      // Legacy API-key flow — kept for backward compat
+      localStorage.setItem('puterApiKey', key);
+      legacyKey = key;
+      legacyClient = await createLegacyClient(key);
+      return legacyClient ? { source: 'legacy', key } : null;
     }
-    localStorage.setItem('puterApiKey', key);
-    legacyKey = key;
-    legacyClient = await createLegacyClient(key);
-  } catch (_) {}
+
+    // Modern Puter OAuth flow — trigger sign-in
+    localStorage.removeItem('puterApiKey');
+    legacyClient = null; legacyKey = null;
+
+    const p = await resolvePuter();
+    if (p && p.auth && typeof p.auth.signIn === 'function') {
+      await p.auth.signIn();
+      await refreshUser();
+      return await getUser();
+    }
+
+    // Puter available but no signIn method — just try to get user
+    const user = await getUser();
+    return user || null;
+  } catch (_) {
+    return null;
+  }
 };
 
-// ---------------------------------------------------------------------------
-// Legacy send ideas (kept for compatibility)
-// ---------------------------------------------------------------------------
+/**
+ * Send ideas/briefings via modern KV storage (save/load).
+ * Called by world.js sendIdeasToPuter().
+ * Stores in the 'Briefings' KV key which syncs across devices.
+ */
 window.__puterSendIdeas = async function(payload) {
-  if (!legacyClient || typeof legacyClient.create !== 'function') return;
   try {
-    await legacyClient.create({
-      type: 'run_feedback',
-      data: { score: payload.score, ts: payload.timestamp, ideas: payload.ideas }
-    });
-  } catch (_) {}
-};
-
-window.addSkyIdea = function(text, author) {
-  try {
-    const key = 'kamikazziBriefings';
-    const stored = localStorage.getItem(key);
-    const list = stored ? JSON.parse(stored) : [];
-    list.push({ from: author || 'player', idea: text, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    if (!payload) return;
+    const ideaList = await load('Briefings', []);
+    const user = await getUser();
+    const author = payload.author || (user ? (user.username || user.name) : null) || 'Pilot';
+    const ideas = Array.isArray(payload.ideas) ? payload.ideas : [payload.ideas || payload.text || ''];
+    for (const idea of ideas) {
+      if (idea && idea.trim()) {
+        ideaList.push({
+          from: author,
+          idea: idea.trim(),
+          ts: payload.timestamp || Date.now(),
+          score: payload.score || 0,
+        });
+      }
+    }
+    // Keep last 200 briefings
+    const trimmed = ideaList.slice(-200);
+    await save('Briefings', trimmed);
+    // Also update localStorage for legacy reads
+    try {
+      const key = 'kamikazziBriefings';
+      const local = JSON.parse(localStorage.getItem(key) || '[]');
+      const existing = new Set(local.map(i => (i.idea || '').trim()));
+      trimmed.forEach(n => { if (!existing.has((n.idea || '').trim())) local.push(n); });
+      localStorage.setItem(key, JSON.stringify(local.slice(-200)));
+    } catch (_) {}
     try { window.dispatchEvent(new Event('ideasUpdated')); } catch (_) {}
   } catch (_) {}
 };
 
-window.fetchCommentsFromPuter = async function() {
-  if (!legacyClient) return;
+/**
+ * Add a sky idea via modern KV storage.
+ * Called locally — stores briefings with cloud sync via save().
+ */
+window.addSkyIdea = function(text, author) {
   try {
-    let items = [];
-    if (typeof legacyClient.list === 'function') {
-      items = await legacyClient.list({ limit: 50 });
-      if (Array.isArray(items) && items.length && items[0].data) {
-        items = items.map(i => ({ from: i.id || 'remote', idea: (i.data && (i.data.idea || i.data.text || i.data.ideas)) || JSON.stringify(i.data), ts: i.created_at || Date.now() }));
-      }
-    } else if (typeof legacyClient.query === 'function') {
-      const res = await legacyClient.query({ type: 'run_feedback', limit: 50 });
-      items = Array.isArray(res) ? res : (res && res.items) || [];
-    }
-    if (Array.isArray(items) && items.length) {
-      const normalized = items.map(it => {
-        if (typeof it === 'string') return { from: 'remote', idea: it, ts: Date.now() };
-        if (it && it.idea) return it;
-        if (it && it.data && typeof it.data === 'string') return { from: it.id || 'remote', idea: it.data, ts: it.created_at || Date.now() };
-        if (it && it.data && it.data.ideas) return { from: it.id || 'remote', idea: Array.isArray(it.data.ideas) ? it.data.ideas.join(' | ') : String(it.data.ideas), ts: it.created_at || Date.now() };
-        return { from: it.id || 'remote', idea: JSON.stringify(it), ts: Date.now() };
-      });
+    if (!text) return;
+    const key = 'kamikazziBriefings';
+    const stored = localStorage.getItem(key);
+    const list = stored ? JSON.parse(stored) : [];
+    list.push({ from: author || 'Pilot', idea: text, ts: Date.now() });
+    localStorage.setItem(key, JSON.stringify(list));
+    // Fire-and-forget cloud sync via save()
+    save('Briefings', list).catch(() => {});
+    try { window.dispatchEvent(new Event('ideasUpdated')); } catch (_) {}
+  } catch (_) {}
+};
+
+/**
+ * Fetch briefings from cloud KV storage.
+ * Called by world.js and ui.js to sync remote briefings locally.
+ * Uses the 'Briefings' KV key instead of legacyClient.
+ */
+window.fetchCommentsFromPuter = async function() {
+  try {
+    const cloud = await load('Briefings', []);
+    if (cloud.length > 0) {
+      // Merge remote briefings into localStorage (for legacy reads / UI)
       const key = 'kamikazziBriefings';
       const local = JSON.parse(localStorage.getItem(key) || '[]');
       const existing = new Set(local.map(i => (i.idea || '').trim()));
-      normalized.forEach(n => { if (!existing.has((n.idea || '').trim())) local.push(n); });
-      localStorage.setItem(key, JSON.stringify(local));
-      try { window.dispatchEvent(new Event('ideasUpdated')); } catch (_) {}
+      let changed = false;
+      cloud.forEach(n => {
+        if (!existing.has((n.idea || '').trim())) {
+          local.push(n);
+          changed = true;
+        }
+      });
+      if (changed) {
+        local.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        localStorage.setItem(key, JSON.stringify(local.slice(-200)));
+        try { window.dispatchEvent(new Event('ideasUpdated')); } catch (_) {}
+      }
     }
   } catch (_) {}
 };
