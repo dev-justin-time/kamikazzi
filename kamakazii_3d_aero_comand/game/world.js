@@ -36,7 +36,6 @@ import {
   IMPACT_SOUND_URL, POWERUP_SFX_URLS, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS,
   EXPLOSION_PALETTES,
   FLOOR_ASSETS,
-  preloadExplodeGif,
 } from './world/shared.js';
 
 import {
@@ -89,14 +88,16 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
   const bg = createBackgroundScene();
 
-  // ── Preload all assets in parallel ──
+  // ── Preload all assets in parallel with per-promise timeouts ──
   const bgUrls = LEVEL_BACKGROUNDS.map(entry => typeof entry === 'string' ? entry : entry.url);
   const [bgTextures, impactBufferData, floorTextures, pickupSfxBuffers] = await Promise.all([
-    Promise.all(bgUrls.map(url => loadTexture(url))),
-    loadImpactBuffer(THREE),
-    Promise.all(FLOOR_ASSETS.map(url => loadTexture(url))),
-    loadPickupSfxBuffers(THREE),
+    Promise.all(bgUrls.map(url => loadTexture(url).catch(e => { console.warn('bg texture load failed', url, e); return null; }))),
+    loadImpactBuffer(THREE).catch(e => { console.warn('impact buffer load failed', e); return null; }),
+    Promise.all(FLOOR_ASSETS.map(url => loadTexture(url).catch(e => { console.warn('floor texture load failed', url, e); return null; }))),
+    loadPickupSfxBuffers(THREE).catch(e => { console.warn('pickup sfx load failed', e); return {}; }),
   ]);
+  // Filter out failed loads so downstream code gets clean arrays
+  const bgTexturesFiltered = bgTextures.filter(t => t !== null);
 
   // ── Background aspect sync ──
   const syncBgAspect = () => {
@@ -120,7 +121,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
 
   const applyLevelBackground = idx => {
     const entry = LEVEL_BACKGROUNDS[idx];
-    const tex = bgTextures[idx];
+    const tex = bgTexturesFiltered[idx % bgTexturesFiltered.length];
     if (!tex) return;
     bg.setTexture(tex);
     bg.updateCoverFit(tex);
@@ -158,12 +159,17 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   ground.receiveShadow = true;
   scene.add(ground);
 
-  const groundTex = floorTextures[Math.floor(Math.random() * floorTextures.length)];
-  groundTex.wrapS = THREE.RepeatWrapping;
-  groundTex.wrapT = THREE.RepeatWrapping;
-  groundTex.repeat.set(6, 14);
-  groundMat.map = groundTex;
-  groundMat.needsUpdate = true;
+  const validFloorTex = floorTextures.filter(t => t !== null);
+  const groundTex = validFloorTex.length > 0
+    ? validFloorTex[Math.floor(Math.random() * validFloorTex.length)]
+    : null;
+  if (groundTex) {
+    groundTex.wrapS = THREE.RepeatWrapping;
+    groundTex.wrapT = THREE.RepeatWrapping;
+    groundTex.repeat.set(6, 14);
+    groundMat.map = groundTex;
+    groundMat.needsUpdate = true;
+  }
 
   const stripMat = new THREE.MeshLambertMaterial({ color: TUNING.STRIP_COLOR });
   const strips = [];
@@ -405,7 +411,6 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     buildings.clear();
     explosion.clear();
     powerups.clear();
-    preloadExplodeGif();
 
     state.levelOrder = shuffle(Array.from({ length: NUM_LEVELS }, (_, i) => i));
     state.level = 1;

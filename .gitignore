@@ -41,6 +41,11 @@ ehthumbs.db
 screen.jpg
 screen.png
 
+# Playwright test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
 # Windows reserved device name (artifact from curl output redirection)
 nul
 NUL

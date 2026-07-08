@@ -16,7 +16,17 @@
   "scripts": {
     "start": "python -m http.server 8765",
     "serve": "python -m http.server 8765",
-    "dev": "python -m http.server 8765"
+    "dev": "python -m http.server 8765",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "vitest run && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "jsdom": "^26.0.0",
+    "vitest": "^3.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

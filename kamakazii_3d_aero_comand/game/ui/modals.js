@@ -4,7 +4,8 @@
    delete confirmation, start/retry/resume functions, computeGrade.
    Extracted from the original monolithic game/ui.js.
 */
-import { EXPLODE_GIF_URL, CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS } from '../world/shared.js';
+import { CRASH_KEYFRAMES, CRASH_TOTAL_PLAYS } from '../world/shared.js';
+import { getCrashSplashUrl, getExplosionFrame } from '../crash-assets.js';
 import { t } from '../locale.js';
 import { loadGameSnapshot, speak } from '../puter-client.js';
 
@@ -234,6 +235,9 @@ export function wireModals({ world }) {
     if (_isExploding) return;
     _isExploding = true;
     _explodeStep = 0;
+    // Set the procedural splash background (replaces deleted /assets/image/1.webp)
+    const splashImg = document.querySelector('.crash-splash-bg');
+    if (splashImg && !splashImg.src) splashImg.src = getCrashSplashUrl();
     playExplodeStep();
   }
 
@@ -245,9 +249,8 @@ export function wireModals({ world }) {
       return;
     }
     if (!explodeScreen || !explodeImg) return;
-    // Cache-bust the GIF src so each play restarts from frame 0
-    const gifUrl = EXPLODE_GIF_URL + '?t=' + Date.now() + '_' + _explodeStep;
-    explodeImg.src = gifUrl;
+    // Use procedural canvas-generated explosion frame (no GIF file needed)
+    explodeImg.src = getExplosionFrame(_explodeStep);
     explodeScreen.classList.remove('hidden');
     void explodeScreen.offsetWidth;
     explodeScreen.classList.add('active');

@@ -9,6 +9,7 @@ import {
   isPuterAvailable, getUsername, getAvatarUrl, setCloudSyncEnabled,
   syncSettings, getSettings, speak, refreshUser,
 } from '../puter-client.js';
+import { setCloudStatus, initCloudRecheck, CloudState } from '../../../shared/cloud-status.js';
 
 /**
  * wireSettings — wires settings panel, overlays, cloud sync, Puter auth,
@@ -21,44 +22,28 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
   const OVERLAYS_KEY = 'kamikazzi_overlays_enabled';
   const CLOUD_SYNC_KEY = 'kamikazzi_cloud_sync_enabled';
 
-  // ---- Cloud status indicator ----
-  /** Update the cloud connection status pill in the start screen. */
-  function _setCloudStatus(state, label) {
-    const el = document.getElementById('cloudStatusPill');
-    if (!el) return;
-    el.className = 'cloud-status-pill cloud-' + state;
-    el.title = label || '';
-    // Show on first update (initially display:none to avoid flash)
-    if (el.style.display === 'none') {
-      el.style.display = '';
-    }
-  }
+  // ---- Cloud status indicator (uses shared/cloud-status.js) ----
   if (puterAvailable) {
-    _setCloudStatus('checking', 'Connecting to Puter...');
+    setCloudStatus('cloudStatusPill', CloudState.CHECKING, 'Connecting to Puter...');
+    // Reveal the element on first update (initially display:none to avoid flash)
+    const el = document.getElementById('cloudStatusPill');
+    if (el && el.style.display === 'none') el.style.display = '';
   }
 
   // Wire click-to-recheck on the cloud status pill
-  let _cloudCheckInFlight = false;
-  const cloudPill = document.getElementById('cloudStatusPill');
-  if (cloudPill) {
-    cloudPill.addEventListener('click', async () => {
-      if (!puterAvailable || _cloudCheckInFlight) return;
-      _cloudCheckInFlight = true;
-      _setCloudStatus('checking', 'Rechecking Puter connection...');
-      try {
-        const username = await getUsername();
-        if (username) {
-          _setCloudStatus('connected', 'Puter connected — cloud sync active');
-        } else {
-          _setCloudStatus('disconnected', 'Puter not available — sign in to sync');
-        }
-      } catch (_) {
-        _setCloudStatus('disconnected', 'Puter unavailable — using local storage');
-      } finally {
-        _cloudCheckInFlight = false;
+  initCloudRecheck('cloudStatusPill', async () => {
+    if (!puterAvailable) return;
+    try {
+      const username = await getUsername();
+      if (username) {
+        setCloudStatus('cloudStatusPill', CloudState.CONNECTED, 'Puter connected — cloud sync active');
+      } else {
+        setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter not available — sign in to sync');
       }
-    });
-  }
+    } catch (_) {
+      setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter unavailable — using local storage');
+    }
+  });
 
   function escapeHtml(str) {
     return str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
@@ -168,7 +153,7 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
           puterLoginBtn.classList.add('puter-btn-synced');
           puterLoginBtn.classList.remove('puter-btn-disconnected');
           puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + name + '. Click to disconnect.');
-          _setCloudStatus('connected', 'Puter connected — cloud sync active');
+          setCloudStatus('cloudStatusPill', CloudState.CONNECTED, 'Puter connected — cloud sync active');
         }
       });
     }
@@ -193,7 +178,7 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
             puterLoginBtn.classList.add('highlight', 'puter-btn-disconnected');
             puterLoginBtn.classList.remove('puter-btn-synced');
             puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
-            _setCloudStatus('disconnected', 'Signed out of Puter — using local storage');
+            setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Signed out of Puter — using local storage');
           } else {
             puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
           }
@@ -213,16 +198,16 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
           puterLoginBtn.classList.remove('puter-btn-disconnected');
           puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + (user.username || user.name || 'Pilot') + '. Click to disconnect.');
           refreshUserBadge();
-          _setCloudStatus('connected', 'Puter connected — cloud sync active');
+          setCloudStatus('cloudStatusPill', CloudState.CONNECTED, 'Puter connected — cloud sync active');
         } else {
           puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
           puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
-          _setCloudStatus('disconnected', 'Puter not available — using local storage');
+          setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter not available — using local storage');
         }
       } catch (e) {
         console.warn('Puter login failed:', e);
         puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_off</span>Sync Failed';
-        _setCloudStatus('disconnected', 'Puter sync failed — try again');
+        setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter sync failed — try again');
         setTimeout(() => {
           puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
           puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');

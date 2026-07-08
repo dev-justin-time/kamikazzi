@@ -100,8 +100,16 @@ export function buildPlane() {
  */
 export async function loadPlaneFromGLB(url, options = {}) {
   const loader = new GLTFLoader();
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    reject(new Error(`GLTF load timed out for ${url}`));
+  }, 15000);
   return new Promise((resolve, reject) => {
+    const cleanup = () => clearTimeout(timeout);
     loader.load(url, gltf => {
+      if (timedOut) return;
+      cleanup();
       const wrapper = new THREE.Group();
       wrapper.name = 'plane';
       const model = gltf.scene || (gltf.scenes && gltf.scenes[0]) || gltf;
@@ -131,8 +139,9 @@ export async function loadPlaneFromGLB(url, options = {}) {
       // touches the HUD-locked one.
       const hudPropeller = makePropeller();
 
+      cleanup();
       resolve({ plane: wrapper, propeller: hudPropeller });
     }, progress => { if (options.onProgress) options.onProgress(progress); },
-       err => { console.warn('loadPlaneFromGLB failed', err); reject(err); });
+       err => { if (!timedOut) { cleanup(); reject(err); } });
   });
 }
