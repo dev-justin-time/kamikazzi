@@ -448,7 +448,7 @@ All 5 primary entry points now have Content-Security-Policy meta tags:
 | **Tailwind CSS CDN** (`cdn.tailwindcss.com`) | ❌ No | Dynamic JS runtime — content changes based on page content and Tailwind config. |
 | **Google Fonts** (`fonts.googleapis.com`) | ❌ No | CSS is dynamically generated based on user-agent sniffing. Different browsers get different CSS. |
 | **Puter.js SDK** (`js.puter.com/v2/`) | ❌ No | No published SRI hashes. The `/v2/` endpoint may be updated at any time by the Puter team. |
-| **Font Awesome** (`cdnjs.cloudflare.com`) | ✅ Yes | Versioned, static file on a CDN that publishes SRI hashes. |
+ 
 
 ### `crossorigin` attributes added
 
