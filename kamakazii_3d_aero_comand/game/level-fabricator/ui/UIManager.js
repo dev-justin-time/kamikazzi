@@ -1,9 +1,11 @@
 import { setupDragging, processHeightmapToData } from './UIUtils.js';
+import { saveMap, loadMap, listMaps, deleteMap, exportMap, importMapFromFile, buildMapSnapshot, applyMapSnapshot } from '../mapStorage.js';
 
 export class UIManager {
     constructor(app) {
         this.app = app;
         this.init();
+        this.setupSaveLoadEvents();
     }
 
     init() {
@@ -318,4 +320,94 @@ export class UIManager {
     }
 
     // removed setupDragging() {}
+
+    // ── Save / Load Maps ──────────────────────────────────────────────────
+    setupSaveLoadEvents() {
+        const app = this.app;
+        const status = (msg) => {
+            const el = document.getElementById('sg-map-save-status');
+            if (el) { el.textContent = msg; setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000); }
+        };
+
+        // Save
+        document.getElementById('sg-save-map-btn')?.addEventListener('click', async () => {
+            const nameInput = document.getElementById('sg-map-name-input');
+            const name = (nameInput?.value || '').trim() || ('Map ' + new Date().toLocaleTimeString());
+            try {
+                const snap = buildMapSnapshot(name, app);
+                await saveMap(snap);
+                status('✅ Saved: ' + name);
+            } catch (e) { status('❌ Save failed: ' + e.message); }
+        });
+
+        // Export
+        document.getElementById('sg-export-map-btn')?.addEventListener('click', () => {
+            const nameInput = document.getElementById('sg-map-name-input');
+            const name = (nameInput?.value || '').trim() || 'map';
+            const snap = buildMapSnapshot(name, app);
+            exportMap(snap);
+            status('📤 Exported: ' + name);
+        });
+
+        // Load (toggle library panel)
+        document.getElementById('sg-load-map-btn')?.addEventListener('click', async () => {
+            const panel = document.getElementById('sg-map-library-panel');
+            if (!panel) return;
+            if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+            panel.style.display = 'block';
+            panel.innerHTML = '<div style="color:#666;font-size:10px;padding:4px;">Loading...</div>';
+            const maps = await listMaps();
+            if (maps.length === 0) { panel.innerHTML = '<div style="color:#666;font-size:10px;padding:4px;">No saved maps</div>'; return; }
+            panel.innerHTML = '';
+            for (const entry of maps) {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 4px;border-bottom:1px solid #1a1a2e;cursor:pointer;';
+                row.innerHTML = `
+                    <span style="flex:1;font-size:10px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.name}</span>
+                    <span style="font-size:9px;color:#555;">${new Date(entry.timestamp).toLocaleDateString()}</span>
+                    <button data-action="load" style="background:#3b82f6;padding:1px 5px;font-size:9px;border:none;border-radius:2px;color:#fff;cursor:pointer;">▶</button>
+                    <button data-action="delete" style="background:#ef4444;padding:1px 5px;font-size:9px;border:none;border-radius:2px;color:#fff;cursor:pointer;">✕</button>
+                `;
+                row.querySelector('[data-action="load"]').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try {
+                        const snap = await loadMap(entry.id);
+                        if (snap) {
+                            applyMapSnapshot(app, snap);
+                            const nameInput = document.getElementById('sg-map-name-input');
+                            if (nameInput) nameInput.value = snap.name;
+                            status('✅ Loaded: ' + snap.name);
+                            panel.style.display = 'none';
+                        } else { status('❌ Map not found'); }
+                    } catch (err) { status('❌ Load failed'); }
+                });
+                row.querySelector('[data-action="delete"]').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await deleteMap(entry.id);
+                    row.remove();
+                    status('🗑️ Deleted: ' + entry.name);
+                });
+                panel.appendChild(row);
+            }
+        });
+
+        // Import
+        document.getElementById('sg-import-map-btn')?.addEventListener('click', () => {
+            document.getElementById('sg-import-map-file')?.click();
+        });
+        document.getElementById('sg-import-map-file')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const snap = await importMapFromFile(file);
+                if (snap) {
+                    applyMapSnapshot(app, snap);
+                    const nameInput = document.getElementById('sg-map-name-input');
+                    if (nameInput) nameInput.value = snap.name;
+                    status('📥 Imported: ' + snap.name);
+                } else { status('❌ Invalid map file'); }
+            } catch (err) { status('❌ Import failed'); }
+            e.target.value = '';
+        });
+    }
 }

@@ -82,7 +82,7 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | 4 | **Medium** | `index.html` is 114,647 characters | Single-file architecture with all CSS + HTML + Tailwind config inline. Hard to navigate, easy to regress. |
 | 5 | **Medium** | Tailwind loaded from CDN at runtime | `<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">` — adds ~300KB download on every page load. Should be pre-compiled for production. |
 | 6 | **Medium** | Three.js 0.128.0 (2021) | Missing 3+ years of renderer improvements, glTF animation fixes, and security patches. |
-| 7 | **Medium** | No SRI on any CDN script | Puter.js, Three.js, esm.sh, Google Fonts, Material Symbols — all loaded without integrity hashes. |
+| 7 | ~~**Medium**~~ | ~~No SRI on CDN scripts~~ | ✅ Resolved — CDN resources in aero_comand (Tailwind CDN, esm.sh import maps, Google Fonts) cannot use SRI (Appendix B). No Font Awesome in this app (uses Material Symbols). |
 | 8 | **Low** | `#bootScreen` references deleted dev photo | `<img class="dev-splash" src="./assets/image/jt.png">` — file deleted. |
 | 9 | **Low** | `console.log` throughout production code | 126 matches across the suite. Should be gated behind a debug flag or stripped for production. |
 
@@ -111,7 +111,7 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 |---|----------|-------|--------|
 | 1 | **High** | `manifest.json` references icons that may not exist | `../assets/icons/icon.svg`, `icon-192.png`, `icon-512.png` — verify these exist in the submodule. |
 | 2 | **Medium** | Three.js version mismatch with aero_comand | Studio uses 0.158.0 (via unpkg.com), aero_comand uses 0.128.0 (via esm.sh). Different CDN providers, different versions. |
-| 3 | **Medium** | No SRI on CDN scripts | `unpkg.com/three@0.158.0`, `dat.gui`, `nipplejs`, `cannon-es`, `jszip` — all without integrity hashes. |
+| 3 | ~~**Medium**~~ | ~~No SRI on CDN scripts~~ | ✅ Font Awesome has SRI. Other CDN resources are import map entries (cannot have SRI) — see Appendix B. |
 | 4 | **Medium** | `engine.js` imports from wrong paths | `import { ProceduralSystem } from './modules/ProceduralSystem.js'` — the actual file is at `systems/ProceduralSystem.js` (confirmed on disk). This will fail at runtime unless there's an import map alias. Same issue for `InputManager`, `AudioSystem`, `CloudSystem`, and marketplace imports. |
 | 5 | ~~**Medium**~~ | ~~Many feature pages are stubs~~ | ✅ **Partially resolved** — 51 of 56 feature pages now use shared `_shared/actionMap.js` + `_shared/renderControls.js` modules (eliminated ~5,000 lines of duplicated boilerplate). 5 pages with custom canvas-based UIs (biome-painter, scenery-scatter, terrain-analytics, terrain-export, terrain-presets) retained their own implementations. Each page now imports shared action handlers + control renderer instead of duplicating 80+ lines of `_actionMap`/`_renderControls`/`_status` per file. |
 | 6 | **Medium** | Duplicate code between `tools/blender/` and `engine.js` | Both implement scene management, object manipulation, and rendering. The `tools/blender/script.js` is ~2,300 lines. |
@@ -148,7 +148,7 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | 3 | ~~**Medium**~~ | ~~`mathRand()` is biased and predictable~~ | ✅ Fixed — crypto/rand seeded math/rand |
 | 4 | ~~**Medium**~~ | ~~Go server `applyTorque()` is a no-op~~ | ✅ Fixed — real ZYX Euler rotation with ROTATION_SPEED=3.0 rad/s |
 | 5 | **Medium** | `saveLoadout()` has a missing closing brace | The function has `{` after `try` but the `catch` block closes without matching. The `loadLoadout()` and `saveReplay()` functions are nested inside `saveLoadout()` due to a brace mismatch. |
-| 6 | **Medium** | No SRI on Puter.js SDK | `<script src="https://js.puter.com/v2/"></script>` — no integrity hash, no crossorigin attribute. |
+| 6 | ~~**Medium**~~ | ~~No SRI on Puter.js SDK~~ | ✅ Verified — Puter.js has no published SRI hashes (Appendix B). `crossorigin="anonymous"` is present. |
 | 7 | **Medium** | `Cargo.toml` uses `rhai` but README says Lua | The dependency is correct (`rhai = "1.19"`) but the documentation is stale. |
 | 8 | **Medium** | `index.html.audit_backup` still in tree | Leftover backup file from previous audit work. Should be removed. |
 | 9 | **Verified** | `heavy_spaceship` filename in SHIPS paths | `'./assets/heavy_spaceship (1).glb'` — filename on disk matches; no typo (was previously suspected). ✅ |
@@ -299,8 +299,8 @@ Mixed CRLF/LF persists. The vecter_omega3d `index.html` was CRLF, `lib.rs` is LF
 | ~~**P0**~~ | ~~S~~ | ~~Add `.gitattributes`~~ | ✅ Done |
 | ~~**P1**~~ | ~~S~~ | ~~Set up minimal GitHub Actions CI~~ | ✅ Done — `.github/workflows/ci.yml` with cargo check, go vet, node --check, node --test |
 | ~~**P1**~~ | ~~S~~ | ~~Fix Go server `mathRand()` and `applyTorque()` stub~~ | ✅ Done |
-| **P1** | S | Add SRI hashes to all CDN scripts | Defense-in-depth against CDN compromise. |
-| **P1** | M | Add CSP meta tags to all three app entry points | Defense-in-depth for public deployment. |
+| ~~**P1**~~ | ~~S~~ | ~~Add SRI hashes to CDN scripts~~ | ✅ Done — Font Awesome 6.4.0 (sha512) and 6.5.0 (sha384) on studio3D entry points. Other CDN resources (import maps, Tailwind CDN, Google Fonts, Puter.js) cannot use SRI — see Appendix B. |
+| ~~**P1**~~ | ~~M~~ | ~~Add CSP meta tags to all entry points~~ | ✅ Done — All 8 CDN-loading entry points now have CSP meta tags (5 primary + 3 tools/test). |
 | ~~**P1**~~ | ~~M~~ | ~~Resolve Bogotá Skyline CC-BY-NC-4.0 license~~ | ✅ Done — asset removed entirely |
 | **P2** | M | Refactor aero_comand `index.html` (114K chars) into modules | Too large for safe iteration. |
 | **P2** | M | Fix studio3D `engine.js` import paths | `./modules/` should be `../systems/` — will fail at runtime. |
