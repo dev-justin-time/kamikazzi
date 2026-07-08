@@ -1,0 +1,30 @@
+/* game/ui/styles/hud.css
+   HUD styles — active powerup chip strip.
+   Replaces inline styles from game/ui/hud.js.
+*/
+
+/* Active powerup HUD strip — centered above the viewport */
+#activePowerups {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  z-index: 11;
+  pointer-events: none;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: "Stick No Bills", "Anton", sans-serif;
+}
+
+/* Powerup chip pulse animation on pickup */
+@keyframes powerupPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+#activePowerups > div.pulse {
+  animation: powerupPulse 240ms ease-out;
+}

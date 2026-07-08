@@ -31,7 +31,7 @@ export function wireLobby({ world }) {
     if (!lobbyPanel) return;
     lobbyPanel.classList.remove('hidden');
     if (!_lobbyPresence) {
-      lobbyBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Connecting to lobby...</div>';
+      lobbyBody.innerHTML = '<div class="lobby-message">Connecting to lobby...</div>';
       try {
         _lobbyPresence = await startLobbyPresence();
         if (_lobbyPresence) {
@@ -39,10 +39,10 @@ export function wireLobby({ world }) {
           const hs = Number(localStorage.getItem('kamikazziHiScore') || 0);
           _lobbyPresence.setScore(hs);
         } else {
-          lobbyBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Unable to connect to lobby. Puter KV unavailable.</div>';
+          lobbyBody.innerHTML = '<div class="lobby-message">Unable to connect to lobby. Puter KV unavailable.</div>';
         }
       } catch (_) {
-        lobbyBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Unable to connect to lobby.</div>';
+        lobbyBody.innerHTML = '<div class="lobby-message">Unable to connect to lobby.</div>';
       }
     }
   }
@@ -59,7 +59,7 @@ export function wireLobby({ world }) {
     if (lobbyCount) lobbyCount.textContent = _lobbyOnlineCount;
     if (!lobbyBody) return;
     if (!entries.length) {
-      lobbyBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">No other pilots connected yet.</div>';
+      lobbyBody.innerHTML = '<div class="lobby-message">No other pilots connected yet.</div>';
       return;
     }
     entries.sort((a, b) => {
@@ -72,10 +72,10 @@ export function wireLobby({ world }) {
       const isSelf = player.clientId === selfId;
       const avatarHtml = player.avatar
         ? `<img src="${escapeHtml(player.avatar)}" alt="${escapeHtml(player.username || 'Pilot')} avatar" />`
-        : `<span style="font-size:16px;">👤</span>`;
+        : `<span class="lobby-avatar-emoji">👤</span>`;
       const statusClass = player.status === 'In Game' ? 'game' : player.status === 'Away' ? 'away' : 'lobby';
       const statusLabel = player.status === 'In Game' ? 'In Game' : player.status === 'Away' ? 'Away' : 'In Lobby';
-      const selfBadge = isSelf ? `<span style="font-size:9px;color:rgba(0,221,221,0.6);font-weight:400;margin-left:4px;">(you)</span>` : '';
+      const selfBadge = isSelf ? `<span class="lobby-self-badge">(you)</span>` : '';
       const scoreStr = (player.score || 0) >= 1000 ? (player.score / 1000).toFixed(1) + 'k' : String(player.score || 0);
       html += `<div class="lobby-card${isSelf ? ' lobby-self' : ''}" role="listitem" aria-label="${escapeHtml(player.username || 'Pilot')} — ${statusLabel}">
         <div class="lobby-avatar">${avatarHtml}</div>
@@ -83,7 +83,7 @@ export function wireLobby({ world }) {
           <div class="lobby-name">${escapeHtml(player.username || 'Pilot')}${selfBadge}</div>
           <div class="lobby-meta"><span class="lobby-status ${statusClass}">${statusLabel}</span></div>
         </div>
-        <div class="lobby-score">${scoreStr} <span style="font-size:9px;font-weight:400;color:rgba(0,221,221,0.5);">pts</span></div>
+        <div class="lobby-score">${scoreStr} <span class="lobby-score-unit">pts</span></div>
       </div>`;
     }
     lobbyBody.innerHTML = html;
@@ -103,18 +103,18 @@ export function wireLobby({ world }) {
       );
       if (inLobby.length > 0) {
         lobbyQuickMatch.textContent = inLobby.length + ' pilot' + (inLobby.length > 1 ? 's' : '') + ' ready — Start Flying!';
-        lobbyQuickMatch.style.borderColor = '#ffe08a';
-        lobbyQuickMatch.style.color = '#ffe08a';
+        lobbyQuickMatch.classList.add('lobby-qm-found');
+        lobbyQuickMatch.classList.remove('lobby-qm-idle');
         if (startBtn) {
-          startBtn.style.boxShadow = '0 0 20px rgba(255,200,50,0.5)';
-          setTimeout(() => { startBtn.style.boxShadow = ''; }, 3000);
+          startBtn.classList.add('start-btn-glow');
+          setTimeout(() => { startBtn.classList.remove('start-btn-glow'); }, 3000);
         }
       } else {
         lobbyQuickMatch.textContent = 'No opponents found';
         setTimeout(() => {
           lobbyQuickMatch.textContent = 'Quick Match';
-          lobbyQuickMatch.style.borderColor = '';
-          lobbyQuickMatch.style.color = '';
+          lobbyQuickMatch.classList.remove('lobby-qm-found');
+          lobbyQuickMatch.classList.add('lobby-qm-idle');
         }, 2000);
       }
     });

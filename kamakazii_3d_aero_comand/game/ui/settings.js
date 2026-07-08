@@ -62,8 +62,8 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
     try { localStorage.setItem(OVERLAYS_KEY, String(enabled)); } catch (_) {}
   }
   function setOverlaysVisible(visible) {
-    if (scanlineOverlay) scanlineOverlay.style.display = visible ? '' : 'none';
-    if (gridOverlay) gridOverlay.style.display = visible ? '' : 'none';
+    if (scanlineOverlay) { scanlineOverlay.classList.toggle('overlay-visible', visible); scanlineOverlay.classList.toggle('overlay-hidden', !visible); }
+    if (gridOverlay) { gridOverlay.classList.toggle('overlay-visible', visible); gridOverlay.classList.toggle('overlay-hidden', !visible); }
   }
   const overlaysEnabled = loadOverlaySetting();
   setOverlaysVisible(overlaysEnabled);
@@ -126,8 +126,8 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
         if (name) {
           puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
           puterLoginBtn.classList.remove('highlight');
-          puterLoginBtn.style.borderColor = 'rgba(0,221,221,0.4)';
-          puterLoginBtn.style.color = '#00dddd';
+          puterLoginBtn.classList.add('puter-btn-synced');
+          puterLoginBtn.classList.remove('puter-btn-disconnected');
           puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + name + '. Click to disconnect.');
         }
       });
@@ -150,9 +150,8 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
           if (!stillUser) {
             if (userBadge) userBadge.classList.add('hidden');
             puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync';
-            puterLoginBtn.classList.add('highlight');
-            puterLoginBtn.style.borderColor = '';
-            puterLoginBtn.style.color = '';
+            puterLoginBtn.classList.add('highlight', 'puter-btn-disconnected');
+            puterLoginBtn.classList.remove('puter-btn-synced');
             puterLoginBtn.setAttribute('aria-label', 'Sign in with Puter for cloud sync');
           } else {
             puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
@@ -169,8 +168,8 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
         if (user) {
           puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_done</span>Cloud Synced';
           puterLoginBtn.classList.remove('highlight');
-          puterLoginBtn.style.borderColor = 'rgba(0,221,221,0.4)';
-          puterLoginBtn.style.color = '#00dddd';
+          puterLoginBtn.classList.add('puter-btn-synced');
+          puterLoginBtn.classList.remove('puter-btn-disconnected');
           puterLoginBtn.setAttribute('aria-label', 'Connected to Puter as ' + (user.username || user.name || 'Pilot') + '. Click to disconnect.');
           refreshUserBadge();
         } else {
@@ -194,9 +193,9 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
   if (userBadge) {
     userBadge.addEventListener('click', async () => {
       const username = await getUsername();
-      if (username) { userBadge.style.opacity = '0.7'; setTimeout(() => { userBadge.style.opacity = ''; }, 200); }
+      if (username) { userBadge.classList.add('user-badge-fade'); setTimeout(() => { userBadge.classList.remove('user-badge-fade'); }, 200); }
     });
-    userBadge.style.cursor = 'pointer';
+    userBadge.classList.add('interactive');
   }
 
   // ---- Legal & Compliance panel ----

@@ -1,0 +1,50 @@
+/* game/ui/styles/lobby.css
+   Lobby styles — replacing inline styles from game/ui/lobby.js.
+   Covers lobby presence cards, quick match button states.
+*/
+
+/* ── Lobby loading/empty states ── */
+.lobby-message {
+  text-align: center;
+  padding: 30px 0;
+  color: rgba(152,203,255,0.6);
+  font-size: 12px;
+}
+
+.lobby-avatar-emoji {
+  font-size: 16px;
+}
+
+.lobby-self-badge {
+  font-size: 9px;
+  color: rgba(0,221,221,0.6);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.lobby-score-unit {
+  font-size: 9px;
+  font-weight: 400;
+  color: rgba(0,221,221,0.5);
+}
+
+/* ── Quick Match button found state ── */
+.lobby-qm-found {
+  border-color: #ffe08a !important;
+  color: #ffe08a !important;
+}
+
+.lobby-qm-idle {
+  border-color: transparent !important;
+  color: inherit !important;
+}
+
+/* ── Start button highlight when opponents found ── */
+.start-btn-glow {
+  box-shadow: 0 0 20px rgba(255,200,50,0.5);
+}
+
+/* ── Lobby avatar fallback ── */
+.lobby-avatar-fallback {
+  font-size: 16px;
+}

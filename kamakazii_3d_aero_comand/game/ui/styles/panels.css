@@ -1,0 +1,283 @@
+/* game/ui/styles/panels.css
+   Panel component styles — replaces inline styles in game/ui/panels.js.
+   Covers leaderboard, briefings, run history, profile, replay gallery.
+*/
+
+/* ── Shared panel text utilities ── */
+.panel-mono {
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+.panel-center-text {
+  text-align: center;
+  padding: 12px 0;
+  color: rgba(152,203,255,0.6);
+}
+
+/* ── Leaderboard ── */
+.lb-entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(152,203,255,0.1);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+.lb-entry-rank {
+  font-size: 14px;
+}
+
+.lb-entry-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lb-entry-name {
+  font-weight: 600;
+  color: #98cbff;
+}
+
+.lb-entry-score {
+  font-weight: 800;
+  color: #00dddd;
+}
+
+/* ── Briefings ── */
+.briefing-card {
+  padding: 10px 12px;
+  border: 1px solid rgba(152,203,255,0.12);
+  border-radius: 3px;
+  text-align: left;
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+.briefing-author {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00dddd;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.briefing-text {
+  font-size: 12px;
+  color: #98cbff;
+  line-height: 1.45;
+}
+
+.briefing-date {
+  font-size: 10px;
+  color: rgba(152,203,255,0.45);
+  margin-top: 4px;
+}
+
+/* ── Run History ── */
+.run-history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(152,203,255,0.1);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+.run-history-left {
+  text-align: left;
+}
+
+.run-history-score {
+  font-weight: 700;
+  color: #98cbff;
+}
+
+.run-history-date {
+  font-size: 10px;
+  color: rgba(152,203,255,0.55);
+  margin-top: 2px;
+}
+
+.run-history-badge {
+  font-size: 10px;
+}
+
+.run-history-badge.success {
+  color: #00dddd;
+  font-weight: 700;
+}
+
+.run-history-badge.crash {
+  color: #ffb4ab;
+  font-weight: 700;
+}
+
+/* ── Replay Gallery ── */
+.replay-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(152,203,255,0.12);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+.replay-card-thumb {
+  width: 64px;
+  height: 40px;
+  border-radius: 3px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(152,203,255,0.15);
+}
+
+.replay-card-info {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.replay-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #98cbff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.replay-card-meta {
+  font-size: 10px;
+  color: rgba(152,203,255,0.55);
+  margin-top: 2px;
+}
+
+.replay-card-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00dddd;
+  white-space: nowrap;
+}
+
+.replay-card-thumb-placeholder {
+  background: rgba(0,0,0,0.3);
+}
+
+/* ── Replay Detail ── */
+.replay-detail-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.replay-detail-label {
+  color: rgba(152,203,255,0.55);
+}
+
+.replay-detail-item {
+  display: inline-block;
+}
+
+.replay-detail-footer-label {
+  color: rgba(152,203,255,0.55);
+  margin-right: 2px;
+}
+
+.replay-detail-value-score {
+  color: #00dddd;
+}
+
+.replay-detail-value-grade {
+  color: #ffe08a;
+}
+
+.replay-detail-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(152,203,255,0.1);
+  font-size: 12px;
+  color: rgba(152,203,255,0.75);
+}
+
+/* ── Replay detail no-screenshot placeholder ── */
+.replay-detail-no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(152,203,255,0.4);
+}
+
+/* ── Profile ── */
+.profile-loading {
+  text-align: center;
+  padding: 30px 0;
+  color: rgba(152,203,255,0.6);
+  font-size: 12px;
+}
+
+.profile-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: rgba(152,203,255,0.6);
+  font-size: 12px;
+}
+
+/* ── Community Powerups ── */
+.cp-loading {
+  text-align: center;
+  padding: 30px 0;
+  color: rgba(152,203,255,0.6);
+  font-size: 12px;
+}
+
+.cp-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: rgba(152,203,255,0.6);
+  font-size: 12px;
+}
+
+/* ── Marketplace ── */
+/* ── Shared loading/empty states ── */
+.panel-loading {
+  text-align: center;
+  padding: 12px 0;
+  color: rgba(152,203,255,0.6);
+}
+
+.panel-empty {
+  text-align: center;
+  padding: 12px 0;
+  color: rgba(152,203,255,0.6);
+}
+
+.marketplace-error {
+  text-align: center;
+  padding: 12px 0;
+  color: rgba(152,203,255,0.6);
+}
+
+.profile-grade-letter {
+  letter-spacing: 0.06em;
+}
+
+/* ── Profile score chart bars ── */
+.profile-chart-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.profile-chart-bar-label {
+  font-size: 9px;
+  color: rgba(152,203,255,0.45);
+  margin-top: 2px;
+}

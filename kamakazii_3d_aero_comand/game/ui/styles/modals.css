@@ -1,0 +1,10 @@
+/* game/ui/styles/modals.css
+   Modal overlay styles — replacing inline styles from game/ui/modals.js.
+   Covers boot screen, explosion, final sector, model upgrade transitions.
+*/
+
+/* ── Boot screen transition ── */
+#bootScreen.boot-fade {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}

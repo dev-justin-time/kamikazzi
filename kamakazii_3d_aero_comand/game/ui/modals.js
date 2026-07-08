@@ -123,8 +123,10 @@ export function wireModals({ world }) {
         if (bootScreen) bootScreen.classList.add('boot-done');
         setTimeout(() => {
           if (bootScreen) {
-            bootScreen.style.opacity = '0';
-            setTimeout(() => bootScreen.classList.add('hidden'), 600);
+            bootScreen.classList.remove('boot-fade');
+            void bootScreen.offsetWidth;
+            bootScreen.classList.add('boot-fade');
+            setTimeout(() => { bootScreen.classList.add('hidden'); bootScreen.classList.remove('boot-fade'); }, 600);
           }
         }, 400);
       }

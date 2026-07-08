@@ -78,7 +78,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         });
       });
     }).catch(() => {
-      marketplaceBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Error loading skins.</div>';
+      marketplaceBody.innerHTML = '<div class="marketplace-error">Error loading skins.</div>';
     });
   }
   if (marketplaceBtn) marketplaceBtn.addEventListener('click', openMarketplace);
@@ -107,27 +107,27 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         tab.setAttribute('aria-selected', String(isActive));
       });
     }
-    leaderboardBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading...</div>';
+    leaderboardBody.innerHTML = '<div class="panel-loading">Loading...</div>';
     try {
       const board = await getLeaderboard(10, p);
       if (!board || !board.length) {
-        leaderboardBody.innerHTML = `<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">${p !== 'all' ? 'No scores for this period.' : 'No scores yet. Be the first!'}</div>`;
+        leaderboardBody.innerHTML = `<div class="panel-empty">${p !== 'all' ? 'No scores for this period.' : 'No scores yet. Be the first!'}</div>`;
         return;
       }
       let html = '';
       board.forEach((entry, idx) => {
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span style="display:inline-block;width:22px;text-align:center;">${idx + 1}</span>`;
-        html += `<div role="listitem" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;font-family:'JetBrains Mono','Space Mono',monospace;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:14px;" aria-hidden="true">${medal}</span>
-            <span style="font-weight:600;color:#98cbff;">${escapeHtml(entry.username || 'Pilot')}</span>
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span class="lb-entry-rank">${idx + 1}</span>`;
+        html += `<div role="listitem" class="lb-entry-row">
+          <div class="lb-entry-left">
+            <span class="lb-entry-rank" aria-hidden="true">${medal}</span>
+            <span class="lb-entry-name">${escapeHtml(entry.username || 'Pilot')}</span>
           </div>
-          <span style="font-weight:800;color:#00dddd;">${Number(entry.score).toLocaleString()} pts</span>
+          <span class="lb-entry-score">${Number(entry.score).toLocaleString()} pts</span>
         </div>`;
       });
       leaderboardBody.innerHTML = html;
     } catch (_) {
-      leaderboardBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load leaderboard.</div>';
+      leaderboardBody.innerHTML = '<div class="panel-empty">Unable to load leaderboard.</div>';
     }
   }
   if (leaderboardBtn && leaderboardPanel) {
@@ -173,11 +173,11 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
   }
   async function renderCommunityPowerups() {
     if (!communityPowerupBody) return;
-    communityPowerupBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Loading powerups...</div>';
+    communityPowerupBody.innerHTML = '<div class="cp-loading">Loading powerups...</div>';
     try {
       const items = await getCommunityPowerups();
       if (!items || !items.length) {
-        communityPowerupBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">No powerups yet. Submit the first design!</div>';
+        communityPowerupBody.innerHTML = '<div class="cp-empty">No powerups yet. Submit the first design!</div>';
         return;
       }
       const username = await getUsername();
@@ -223,7 +223,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         });
       });
     } catch (_) {
-      communityPowerupBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Unable to load community powerups.</div>';
+      communityPowerupBody.innerHTML = '<div class="cp-loading">Unable to load community powerups.</div>';
     }
   }
   // Tab switching
@@ -298,7 +298,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
       const stored = localStorage.getItem('kamikazziBriefings');
       const list = stored ? JSON.parse(stored) : [];
       if (!list.length) {
-        briefingsBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No briefings yet. Submit ideas and they appear here.</div>';
+        briefingsBody.innerHTML = '<div class="panel-empty">No briefings yet. Submit ideas and they appear here.</div>';
         return;
       }
       let html = '';
@@ -306,15 +306,15 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         const from = escapeHtml(b.from || 'Pilot');
         const idea = escapeHtml(b.idea || b.text || '');
         const date = b.ts ? new Date(b.ts).toLocaleString() : '';
-        html += `<div role="article" aria-label="Briefing by ${from}" style="padding:10px 12px;border:1px solid rgba(152,203,255,0.12);border-radius:3px;text-align:left;font-family:'JetBrains Mono','Space Mono',monospace;">
-          <div style="font-size:10px;font-weight:700;color:#00dddd;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${from}</div>
-          <div style="font-size:12px;color:#98cbff;line-height:1.45;">${idea}</div>
-          <div style="font-size:10px;color:rgba(152,203,255,0.45);margin-top:4px;">${date}</div>
+        html += `<div class="briefing-card" role="article" aria-label="Briefing by ${from}">
+          <div class="briefing-author">${from}</div>
+          <div class="briefing-text">${idea}</div>
+          <div class="briefing-date">${date}</div>
         </div>`;
       });
       briefingsBody.innerHTML = html;
     } catch (_) {
-      briefingsBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Error loading briefings.</div>';
+      briefingsBody.innerHTML = '<div class="panel-loading">Error loading briefings.</div>';
     }
   }
   async function sendBriefing() {
@@ -348,28 +348,28 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
   async function openRunHistory() {
     if (runHistoryPanel) runHistoryPanel.classList.remove('hidden');
     if (!runHistoryBody) return;
-    runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading history...</div>';
+    runHistoryBody.innerHTML = '<div class="panel-loading">Loading history...</div>';
     try {
       const history = await getRunHistory();
       if (!history || !history.length) {
-        runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No runs yet. Fly a mission and your history will appear here.</div>';
+        runHistoryBody.innerHTML = '<div class="panel-empty">No runs yet. Fly a mission and your history will appear here.</div>';
         return;
       }
       let html = '';
       history.forEach(run => {
         const date = new Date(run.timestamp || Date.now()).toLocaleString();
-        const wonBadge = run.won ? '<span style="color:#00dddd;font-weight:700;">✅ SUCCESS</span>' : '<span style="color:#ffb4ab;font-weight:700;">💥 CRASH</span>';
-        html += `<div role="listitem" style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px solid rgba(152,203,255,0.1);font-size:12px;font-family:'JetBrains Mono','Space Mono',monospace;">
-          <div style="text-align:left;">
-            <div style="font-weight:700;color:#98cbff;">${Number(run.score).toLocaleString()} pts · Level ${run.level || 1}</div>
-            <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">${date}</div>
+        const wonBadge = run.won ? '<span class="run-history-badge success">✅ SUCCESS</span>' : '<span class="run-history-badge crash">💥 CRASH</span>';
+        html += `<div role="listitem" class="run-history-row">
+          <div class="run-history-left">
+            <div class="run-history-score">${Number(run.score).toLocaleString()} pts · Level ${run.level || 1}</div>
+            <div class="run-history-date">${date}</div>
           </div>
-          <div style="font-size:10px;">${wonBadge}</div>
+          <div class="run-history-badge">${wonBadge}</div>
         </div>`;
       });
       runHistoryBody.innerHTML = html;
     } catch (_) {
-      runHistoryBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load run history.</div>';
+      runHistoryBody.innerHTML = '<div class="panel-loading">Unable to load run history.</div>';
     }
   }
   function closeRunHistory() { if (runHistoryPanel) runHistoryPanel.classList.add('hidden'); }
@@ -392,7 +392,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
 
   function buildProfileHtml(history, username, avatarUrl, computeGrade) {
     const totalRuns = history.length;
-    if (!totalRuns) return '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">No runs yet. Fly a mission to build your pilot profile.</div>';
+    if (!totalRuns) return '<div class="profile-empty">No runs yet. Fly a mission to build your pilot profile.</div>';
     let bestScore = 0, sumScore = 0, totalDistance = 0, wins = 0, totalTimeMs = 0, longestRunMs = 0, longestRunScore = 0;
     const gradeCounts = { S: 0, A: 0, B: 0, C: 0, D: 0 };
     const levelReached = {};
@@ -444,25 +444,25 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
     html += `<div class="profile-stat-row"><span class="profile-stat-label">Avg Grade</span><span class="profile-stat-value highlight">${avgGrade}</span></div>`;
     html += `<div class="profile-stat-row"><span class="profile-stat-label">Perfect Streak</span><span class="profile-stat-value">${maxStreak} win${maxStreak !== 1 ? 's' : ''}</span></div>`;
     html += `<div class="profile-stat-row"><span class="profile-stat-label">Most Common Sector</span><span class="profile-stat-value">SECTOR_${String(mostCommonLevel).padStart(2, '0')}</span></div></div>`;
-    html += `<div class="profile-section"><div class="profile-section-title">Grade Distribution</div><div class="profile-grades">${gradeOrder.map(g => `<div class="profile-grade-pill profile-grade-${g}"><span class="profile-grade-count">${gradeCounts[g] || 0}</span><span style="letter-spacing:0.06em;">${g}</span></div>`).join('')}</div></div>`;
+    html += `<div class="profile-section"><div class="profile-section-title">Grade Distribution</div><div class="profile-grades">${gradeOrder.map(g => `<div class="profile-grade-pill profile-grade-${g}"><span class="profile-grade-count">${gradeCounts[g] || 0}</span><span class="profile-grade-letter">${g}</span></div>`).join('')}</div></div>`;
     if (recentScores.length > 0) {
-      html += `<div class="profile-section"><div class="profile-section-title">Score Trend (Last ${recentScores.length})</div><div class="profile-chart">${recentScores.map((s, i) => { const pct = Math.max(3, (s.score / maxRecent) * 100); const cls = s.isBest ? 'profile-bar new-best' : s.won ? 'profile-bar win' : 'profile-bar'; return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div class="${cls}" style="height:${pct}%;" title="${s.score.toLocaleString()} pts${s.won ? ' · SUCCESS' : ''}"></div><div class="profile-bar-label">#${recentScores.length - i}</div></div>`; }).join('')}</div></div>`;
+      html += `<div class="profile-section"><div class="profile-section-title">Score Trend (Last ${recentScores.length})</div><div class="profile-chart">${recentScores.map((s, i) => { const pct = Math.max(3, (s.score / maxRecent) * 100); const cls = s.isBest ? 'profile-bar new-best' : s.won ? 'profile-bar win' : 'profile-bar'; return `<div class="profile-chart-item"><div class="${cls}" style="height:${pct}%;" title="${s.score.toLocaleString()} pts${s.won ? ' · SUCCESS' : ''}"></div><div class="profile-chart-bar-label">#${recentScores.length - i}</div></div>`; }).join('')}</div></div>`;
     }
     const levelEntries = sortedLevels.slice(0, 7);
     const maxLevelCount = Math.max(...levelEntries.map(([_, c]) => c), 1);
-    html += `<div class="profile-section"><div class="profile-section-title">Level Reached</div><div class="profile-level-bars">${levelEntries.map(([lv, count]) => { const pct = Math.max(3, (count / maxLevelCount) * 100); return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div class="profile-level-bar" style="height:${pct}%;" title="Level ${lv}: ${count}×"></div><div class="profile-level-bar-label">Lv${lv}</div></div>`; }).join('')}</div></div>`;
+    html += `<div class="profile-section"><div class="profile-section-title">Level Reached</div><div class="profile-level-bars">${levelEntries.map(([lv, count]) => { const pct = Math.max(3, (count / maxLevelCount) * 100); return `<div class="profile-chart-item"><div class="profile-level-bar" style="height:${pct}%;" title="Level ${lv}: ${count}×"></div><div class="profile-level-bar-label">Lv${lv}</div></div>`; }).join('')}</div></div>`;
     return html;
   }
 
   async function openProfile(computeGrade) {
     if (profilePanel) profilePanel.classList.remove('hidden');
     if (!profileBody) return;
-    profileBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Loading profile...</div>';
+    profileBody.innerHTML = '<div class="profile-loading">Loading profile...</div>';
     try {
       const [history, username, avatarUrl] = await Promise.all([getRunHistory(), getUsername(), getAvatarUrl()]);
       profileBody.innerHTML = buildProfileHtml(history || [], username || 'Guest Pilot', avatarUrl, computeGrade);
     } catch (_) {
-      profileBody.innerHTML = '<div style="text-align:center;padding:30px 0;color:rgba(152,203,255,0.6);font-size:12px;">Unable to load profile.</div>';
+      profileBody.innerHTML = '<div class="profile-loading">Unable to load profile.</div>';
     }
   }
   function closeProfile() { if (profilePanel) profilePanel.classList.add('hidden'); }
@@ -514,37 +514,34 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
       } else {
         replayDetailImage.style.backgroundImage = 'none';
         replayDetailImage.textContent = 'No screenshot';
-        replayDetailImage.style.display = 'flex';
-        replayDetailImage.style.alignItems = 'center';
-        replayDetailImage.style.justifyContent = 'center';
-        replayDetailImage.style.color = 'rgba(152,203,255,0.4)';
+        replayDetailImage.classList.add('replay-detail-no-image');
       }
     }
     if (replayDetailMeta) {
       const date = new Date(replay.timestamp).toLocaleString();
       replayDetailMeta.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;" role="list" aria-label="Replay statistics">
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">SCORE</span> <strong style="color:#00dddd">${Number(replay.score).toLocaleString()}</strong></div>
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">GRADE</span> <strong style="color:#ffe08a">${replay.grade || '?'}</strong></div>
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">LEVEL</span> ${replay.level || 1}</div>
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">DIST</span> ${((replay.distance || 0) / 1000).toFixed(2)} km</div>
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">ALT</span> ${(replay.altitude || 0).toFixed(1)}m</div>
-          <div role="listitem"><span style="color:rgba(152,203,255,0.55)">THROTTLE</span> ${replay.throttle || '1.0'}x</div>
+        <div class="replay-detail-meta-grid" role="list" aria-label="Replay statistics">
+          <div role="listitem"><span class="replay-detail-label">SCORE</span> <strong class="replay-detail-value-score">${Number(replay.score).toLocaleString()}</strong></div>
+          <div role="listitem"><span class="replay-detail-label">GRADE</span> <strong class="replay-detail-value-grade">${replay.grade || '?'}</strong></div>
+          <div role="listitem"><span class="replay-detail-label">LEVEL</span> ${replay.level || 1}</div>
+          <div role="listitem"><span class="replay-detail-label">DIST</span> ${((replay.distance || 0) / 1000).toFixed(2)} km</div>
+          <div role="listitem"><span class="replay-detail-label">ALT</span> ${(replay.altitude || 0).toFixed(1)}m</div>
+          <div role="listitem"><span class="replay-detail-label">THROTTLE</span> ${replay.throttle || '1.0'}x</div>
         </div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(152,203,255,0.1);">
-          <span style="color:rgba(152,203,255,0.55)">PILOT</span> ${escapeHtml(replay.username || 'Pilot')} ·
-          <span style="color:rgba(152,203,255,0.55)">DATE</span> ${date} ·
-          <span style="color:rgba(152,203,255,0.55)">SOURCE</span> ${replay._source === 'cloud' ? '☁️ Cloud' : '💾 Local'}
+        <div class="replay-detail-footer">
+          <span class="replay-detail-label">PILOT</span> ${escapeHtml(replay.username || 'Pilot')} ·
+          <span class="replay-detail-label">DATE</span> ${date} ·
+          <span class="replay-detail-label">SOURCE</span> ${replay._source === 'cloud' ? '☁️ Cloud' : '💾 Local'}
         </div>`;
     }
   }
   async function renderReplays() {
     if (!replayBody) return;
-    replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Loading replays...</div>';
+    replayBody.innerHTML = '<div class="panel-loading">Loading replays...</div>';
     try {
       currentReplays = await getReplays();
       if (!currentReplays.length) {
-        replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">No replays yet. Notable runs (new best, mission success, or score ≥ 3000) are saved automatically.</div>';
+        replayBody.innerHTML = '<div class="panel-empty">No replays yet. Notable runs (new best, mission success, or score ≥ 3000) are saved automatically.</div>';
         return;
       }
       let html = '';
@@ -552,13 +549,13 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         const date = new Date(r.timestamp).toLocaleDateString();
         const badge = r.notableReason === 'new-best' ? '⭐ NEW BEST' : r.won ? '✅ SUCCESS' : r.notableReason === 'high-score' ? '🔥 HIGH SCORE' : '';
         const thumb = r._screenshotDataUrl ? `background-image:url(${r._screenshotDataUrl});` : 'background:rgba(0,0,0,0.3);';
-        html += `<div class="replay-card" data-id="${r.id}" role="button" tabindex="0" aria-label="Replay: ${Number(r.score).toLocaleString()} pts, Grade ${r.grade || '?'}" style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid rgba(152,203,255,0.12);border-radius:4px;cursor:pointer;transition:background 0.15s;font-family:'JetBrains Mono','Space Mono',monospace;">
-          <div style="width:64px;height:40px;border-radius:3px;${thumb}background-size:cover;background-position:center;flex-shrink:0;border:1px solid rgba(152,203,255,0.15);" aria-hidden="true"></div>
-          <div style="flex:1;text-align:left;min-width:0;">
-            <div style="font-size:13px;font-weight:700;color:#98cbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${Number(r.score).toLocaleString()} pts · Grade ${r.grade || '?'}</div>
-            <div style="font-size:10px;color:rgba(152,203,255,0.55);margin-top:2px;">${escapeHtml(r.username || 'Pilot')} · ${date} · Level ${r.level || 1}</div>
+        html += `<div class="replay-card" data-id="${r.id}" role="button" tabindex="0" aria-label="Replay: ${Number(r.score).toLocaleString()} pts, Grade ${r.grade || '?'}">
+          <div class="replay-card-thumb" style="${thumb}" aria-hidden="true"></div>
+          <div class="replay-card-info">
+            <div class="replay-card-title">${Number(r.score).toLocaleString()} pts · Grade ${r.grade || '?'}</div>
+            <div class="replay-card-meta">${escapeHtml(r.username || 'Pilot')} · ${date} · Level ${r.level || 1}</div>
           </div>
-          <div style="font-size:10px;font-weight:700;color:#00dddd;white-space:nowrap;">${badge}</div>
+          <div class="replay-card-badge">${badge}</div>
         </div>`;
       });
       replayBody.innerHTML = html;
@@ -570,7 +567,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
         });
       });
     } catch (_) {
-      replayBody.innerHTML = '<div style="text-align:center;padding:12px 0;color:rgba(152,203,255,0.6);">Unable to load replays.</div>';
+      replayBody.innerHTML = '<div class="panel-loading">Unable to load replays.</div>';
     }
   }
   async function doDeleteReplay() {

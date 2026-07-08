@@ -1,0 +1,49 @@
+/* game/ui/styles/skin-lab.css
+   Skin Lab styles — replacing inline styles from game/ui/skin-lab.js.
+   Covers color swatches, preview panels, palette strip, style chips.
+*/
+
+/* ── Skin preview ── */
+.skin-preview-image {
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.3s ease;
+}
+
+.portrait-preview-image {
+  background-size: cover;
+  background-position: center 20%;
+  transition: background-image 0.3s ease;
+}
+
+/* ── Building palette strip ── */
+.palette-strip {
+  display: flex;
+  height: 24px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.palette-swatch {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Apply palette button visibility ── */
+.btn-inline {
+  display: inline-block;
+}
+
+.btn-hidden {
+  display: none;
+}
+
+/* ── Building palette preview text ── */
+.build-palette-preview {
+  font-size: 11px;
+  color: rgba(152,203,255,0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

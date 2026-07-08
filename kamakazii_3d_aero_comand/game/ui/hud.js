@@ -112,10 +112,7 @@ export function wireHUD({ world }) {
   chipStrip.setAttribute('role', 'status');
   chipStrip.setAttribute('aria-live', 'polite');
   chipStrip.setAttribute('aria-atomic', 'true');
-  chipStrip.style.cssText =
-    'position:fixed;top:72px;left:0;right:0;z-index:11;pointer-events:none;' +
-    'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;' +
-    'font-family:"Stick No Bills","Anton",sans-serif;';
+  // Styles handled by game/ui/styles/hud.css via #activePowerups
   document.body.appendChild(chipStrip);
   const chipEls = new Map();
 
@@ -126,8 +123,8 @@ export function wireHUD({ world }) {
     pulseStyleInjected = true;
     const s = document.createElement('style');
     s.setAttribute('aria-hidden', 'true');
-    s.textContent = '@keyframes powerupPulse{0%{transform:scale(1);}40%{transform:scale(1.22);}100%{transform:scale(1);}}' +
-      '#activePowerups > div.pulse{animation:powerupPulse 240ms ease-out;}';
+    // Pulse keyframes live in game/ui/styles/hud.css — just set the style element as a fallback guard
+    s.textContent = '#activePowerups > div.pulse{animation:powerupPulse 240ms ease-out;}';
     document.head.appendChild(s);
   }
 

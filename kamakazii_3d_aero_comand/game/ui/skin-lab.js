@@ -145,8 +145,7 @@ export function wireSkinLab({ world }) {
     const raw = buildPrompt.value.trim();
     if (!raw) { if (buildStatus) buildStatus.textContent = 'Enter a prompt'; return; }
     if (buildStatus) buildStatus.textContent = 'Generating palette...';
-    if (generateBuildBtn) generateBuildBtn.disabled = true;
-    if (applyBuildPaletteBtn) applyBuildPaletteBtn.style.display = 'none';
+    if (generateBuildBtn) generateBuildBtn.disabled = true;      if (applyBuildPaletteBtn) { applyBuildPaletteBtn.classList.remove('btn-inline'); applyBuildPaletteBtn.classList.add('btn-hidden'); }
     const { generateBuildingPalette } = await import('../puter-client.js');
     try {
       const result = await generateBuildingPalette(raw, _buildActivePresetId);
@@ -156,13 +155,14 @@ export function wireSkinLab({ world }) {
         buildPaletteStrip.innerHTML = '';
         for (const hex of result.palette) {
           const swatch = document.createElement('div');
-          swatch.style.cssText = `flex:1;background:#${hex.toString(16).padStart(6, '0')};`;
+          swatch.className = 'palette-swatch';
+          swatch.style.background = '#' + hex.toString(16).padStart(6, '0');
           swatch.title = '#' + hex.toString(16).padStart(6, '0');
           buildPaletteStrip.appendChild(swatch);
         }
       }
       if (buildStatus) buildStatus.textContent = 'Palette generated! Apply it as a building skin.';
-      if (applyBuildPaletteBtn) applyBuildPaletteBtn.style.display = 'inline-block';
+      if (applyBuildPaletteBtn) { applyBuildPaletteBtn.classList.remove('btn-hidden'); applyBuildPaletteBtn.classList.add('btn-inline'); }
     } catch (e) {
       console.warn('doGenerateBuildPalette failed', e);
       if (buildStatus) buildStatus.textContent = 'Failed. Try again.';
@@ -182,7 +182,7 @@ export function wireSkinLab({ world }) {
       try { localStorage.setItem('kamikazzi_building_custom_skin', JSON.stringify(customSkin)); } catch (_) {}
       try { localStorage.setItem('kamikazzi_building_skin', 'custom_generated'); } catch (_) {}
       if (buildStatus) buildStatus.textContent = 'Palette applied! Start a new run to see it. Open the Skins panel to select it.';
-      if (applyBuildPaletteBtn) applyBuildPaletteBtn.style.display = 'none';
+      if (applyBuildPaletteBtn) { applyBuildPaletteBtn.classList.remove('btn-inline'); applyBuildPaletteBtn.classList.add('btn-hidden'); }
     } catch (e) { console.warn('doApplyBuildPalette failed', e); if (buildStatus) buildStatus.textContent = 'Failed to apply. Try again.'; }
   }
 

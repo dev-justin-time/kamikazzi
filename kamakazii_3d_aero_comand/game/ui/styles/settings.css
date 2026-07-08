@@ -1,0 +1,54 @@
+/* game/ui/styles/settings.css
+   Settings panel styles — replacing inline styles from game/ui/settings.js.
+   Covers Puter login button states, user badge, overlay toggles.
+*/
+
+/* ── Puter login button states ── */
+.puter-btn-synced {
+  border-color: rgba(0,221,221,0.4) !important;
+  color: #00dddd !important;
+}
+
+.puter-btn-disconnected {
+  border-color: transparent !important;
+  color: inherit !important;
+}
+
+.puter-btn-highlight {
+  border-color: rgba(0,221,221,0.35) !important;
+  background: rgba(0,221,221,0.08) !important;
+  color: #00dddd !important;
+}
+
+/* ── User badge ── */
+#userBadge.interactive {
+  cursor: pointer;
+}
+
+.user-badge-fade {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.user-badge-restore {
+  opacity: 1;
+}
+
+/* ── Overlay visibility ── */
+.overlay-visible {
+  display: block;
+}
+
+.overlay-hidden {
+  display: none;
+}
+
+/* ── Boot screen transition ── */
+.boot-fade-out {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.boot-fade-in {
+  opacity: 1;
+}
