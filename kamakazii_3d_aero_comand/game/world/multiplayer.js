@@ -17,13 +17,22 @@ const PEER_SCORE_DIVISOR = 200;
  * @param {THREE.Object3D} deps.plane
  * @param {Function} deps.createMultiplayerRoom - from puter-client.js
  * @param {THREE} deps.THREE - Three.js module
- * @returns {{ initMultiplayer: Function, pushPresence: Function, dispose: Function, peersMeshes: object, room: object|null }}
+ * @returns {{ initMultiplayer: Function, pushPresence: Function, dispose: Function, peersMeshes: object, room: object|null, presenceAccumulator: number }}
  */
 export function createMultiplayerManager(deps) {
   const { scene, state, plane, createMultiplayerRoom, THREE } = deps;
-  let room = null;
-  const peersMeshes = {};
-  let presenceAccumulator = 0;
+
+  // Use a plain object so that `room` is a live mutable property
+  // (returned by reference, not copied by value at construction time).
+  const mgr = {
+    room: null,
+    peersMeshes: {},
+    presenceAccumulator: 0,
+
+    initMultiplayer: null,
+    pushPresence: null,
+    dispose: null,
+  };
 
   function makePeerMarker() {
     const g = new THREE.Group();
@@ -37,31 +46,31 @@ export function createMultiplayerManager(deps) {
     return g;
   }
 
-  function pushPresence(force = false) {
-    if (!room || typeof room.updatePresence !== 'function') return;
-    room.updatePresence({
+  mgr.pushPresence = function pushPresence(force = false) {
+    if (!mgr.room || typeof mgr.room.updatePresence !== 'function') return;
+    mgr.room.updatePresence({
       x: plane.position.x, y: plane.position.y, z: plane.position.z,
       score: Math.floor(state.score), running: !!state.running,
     }).then(() => {
-      presenceAccumulator = 0;
+      mgr.presenceAccumulator = 0;
     }).catch(e => {
       if (force) console.warn('pushPresence failed', e);
     });
-  }
+  };
 
-  async function initMultiplayer() {
+  mgr.initMultiplayer = async function initMultiplayer() {
     try {
-      room = await createMultiplayerRoom('kamikazzi-lobby');
-      if (!room) return;
-      pushPresence(true);
-      room.startHeartbeat();
+      mgr.room = await createMultiplayerRoom('kamikazzi-lobby');
+      if (!mgr.room) return;
+      mgr.pushPresence(true);
+      mgr.room.startHeartbeat();
 
-      room.subscribePresence(currentPresence => {
+      mgr.room.subscribePresence(currentPresence => {
         Object.keys(currentPresence).forEach(clientId => {
-          if (clientId === room.clientId) return;
+          if (clientId === mgr.room.clientId) return;
           const p = currentPresence[clientId];
           if (!p) return;
-          if (!peersMeshes[clientId]) {
+          if (!mgr.peersMeshes[clientId]) {
             const m = makePeerMarker();
             const peerUsername = p.username;
             if (peerUsername) {
@@ -71,9 +80,9 @@ export function createMultiplayerManager(deps) {
               m.traverse(n => { if (n.isMesh) n.material.color.setHex(col); });
             }
             scene.add(m);
-            peersMeshes[clientId] = m;
+            mgr.peersMeshes[clientId] = m;
           }
-          const marker = peersMeshes[clientId];
+          const marker = mgr.peersMeshes[clientId];
           marker.position.x += (p.x - marker.position.x) * PEER_LERP;
           marker.position.y += (p.y - marker.position.y) * PEER_LERP;
           marker.position.z += (p.z - marker.position.z) * PEER_LERP;
@@ -81,33 +90,26 @@ export function createMultiplayerManager(deps) {
           marker.scale.setScalar(s);
         });
 
-        Object.keys(peersMeshes).forEach(clientId => {
+        Object.keys(mgr.peersMeshes).forEach(clientId => {
           if (!currentPresence[clientId]) {
-            removeAndDispose(peersMeshes[clientId]);
-            delete peersMeshes[clientId];
+            removeAndDispose(mgr.peersMeshes[clientId]);
+            delete mgr.peersMeshes[clientId];
           }
         });
       });
     } catch (e) {
       console.warn('initMultiplayer failed', e);
-      room = null;
+      mgr.room = null;
     }
-  }
-
-  function dispose() {
-    if (room && typeof room.dispose === 'function') {
-      try { room.dispose(); } catch (_) {}
-    }
-    Object.values(peersMeshes).forEach(m => removeAndDispose(m));
-    for (const key in peersMeshes) delete peersMeshes[key];
-  }
-
-  return {
-    initMultiplayer,
-    pushPresence,
-    peersMeshes,
-    room,
-    presenceAccumulator,
-    dispose,
   };
+
+  mgr.dispose = function dispose() {
+    if (mgr.room && typeof mgr.room.dispose === 'function') {
+      try { mgr.room.dispose(); } catch (_) {}
+    }
+    Object.values(mgr.peersMeshes).forEach(m => removeAndDispose(m));
+    for (const key in mgr.peersMeshes) delete mgr.peersMeshes[key];
+  };
+
+  return mgr;
 }
