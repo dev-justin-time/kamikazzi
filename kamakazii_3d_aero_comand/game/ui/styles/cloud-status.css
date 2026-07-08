@@ -1,0 +1,63 @@
+/* game/ui/styles/cloud-status.css
+   Cloud connection status indicator pill for the start screen.
+   Mirrors the cloud-status-pill pattern from Studio 3D and Vector Strike OMNI.
+*/
+
+/* ── Cloud connection status pill ── */
+.cloud-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+.cloud-status-pill:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.cloud-status-pill::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+.cloud-status-pill.cloud-connected {
+    background: rgba(0, 221, 221, 0.12);
+    color: #00dddd;
+    border: 1px solid rgba(0, 221, 221, 0.25);
+}
+.cloud-status-pill.cloud-connected::before {
+    background: #00dddd;
+    box-shadow: 0 0 6px rgba(0, 221, 221, 0.5);
+}
+.cloud-status-pill.cloud-disconnected {
+    background: rgba(152, 203, 255, 0.06);
+    color: rgba(152, 203, 255, 0.5);
+    border: 1px solid rgba(152, 203, 255, 0.12);
+}
+.cloud-status-pill.cloud-disconnected::before {
+    background: rgba(152, 203, 255, 0.4);
+}
+.cloud-status-pill.cloud-checking {
+    background: rgba(0, 221, 221, 0.08);
+    color: #00dddd;
+    border: 1px solid rgba(0, 221, 221, 0.2);
+}
+.cloud-status-pill.cloud-checking::before {
+    background: #00dddd;
+    animation: cloudPulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes cloudPulse {
+    from { opacity: 0.4; transform: scale(0.8); }
+    to   { opacity: 1;   transform: scale(1.1); }
+}

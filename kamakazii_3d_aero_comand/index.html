@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="./game/ui/styles/settings.css">
   <link rel="stylesheet" href="./game/ui/styles/lobby.css">
   <link rel="stylesheet" href="./game/ui/styles/skin-lab.css">
+  <link rel="stylesheet" href="./game/ui/styles/cloud-status.css">
 
   <!-- Tailwind CSS — loaded for gui-states dynamic screen styling -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" crossorigin="anonymous"></script>
@@ -126,6 +127,8 @@
       <button id="legalBtn" class="menu-btn" aria-label="View legal and compliance information"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">balance</span>Legal</button>
       <button id="puterLoginBtn" class="menu-btn highlight" aria-label="Sign in with Puter for cloud sync" title="Sign in to Puter to save scores, skins, and settings to the cloud"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync</button>
     </div>
+    <!-- Cloud connection status indicator -->
+    <span id="cloudStatusPill" class="cloud-status-pill cloud-disconnected" style="display:none;">☁️ <span id="cloudStatusLabel">Cloud</span></span>
     <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint"><span class="material-symbols-outlined" aria-hidden="true">keyboard</span> Arrow Keys / WASD to steer<br><span class="material-symbols-outlined" aria-hidden="true">smartphone</span> Tilt your device or drag the screen<br><span class="material-symbols-outlined" aria-hidden="true">sports_esports</span> Use joystick (bottom-left) for touch<br><span class="material-symbols-outlined" aria-hidden="true">help</span> Press <strong>?</strong> for keyboard shortcuts</div>
 </div>
 
