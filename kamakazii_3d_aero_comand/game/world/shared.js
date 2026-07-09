@@ -27,7 +27,7 @@ export function loadTexture(url, opts = {}) {
   const loader = new THREE.TextureLoader();
   const promise = withTimeout(new Promise((resolve, reject) => {
     loader.load(url, tex => {
-      if (opts.sRGB !== false) tex.encoding = THREE.sRGBEncoding;
+      if (opts.sRGB !== false) tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = opts.anisotropy ?? 4;
       resolve(tex);
     }, undefined, err => reject(err));

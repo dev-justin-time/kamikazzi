@@ -25,7 +25,7 @@ export function createRenderer(container) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   
   // FIX: Correct color space for proper brightness (Three.js 0.128)
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   container.appendChild(renderer.domElement);
 
