@@ -49,201 +49,33 @@
 <div id="burger" title="Burger! Click me!" role="button" tabindex="0" aria-label="Burger easter egg"><span class="material-symbols-outlined" aria-hidden="true">lunch_dining</span></div>
 <div id="userBadge" class="hidden" aria-live="polite"></div>
 
-<!-- Final Sector announcement overlay -->
-<div id="finalSectorScreen" data-gui-state="final-sector" class="hidden" aria-hidden="true" role="alert" aria-live="assertive">
-  <div class="fs-text">
-    <div class="fs-title">FINAL SECTOR</div>
-    <div class="fs-sub">BOSS APPROACHING</div>
-  </div>
-</div>
+<!-- Final Sector announcement overlay (content loaded from gui-states) -->
+<div id="finalSectorScreen" data-gui-state="final-sector" class="hidden" aria-hidden="true" role="alert" aria-live="assertive"></div>
 
-<!-- Model Upgrade announcement overlay (compact HUD flash at 15,000 pts) -->
-<div id="modelUpgradeScreen" data-gui-state="model-upgrade" class="hidden" aria-hidden="true" role="alert" aria-live="assertive">
-  <div class="mu-text">
-    <div class="mu-title">AIRCRAFT UPGRADED</div>
-    <div class="mu-sub">BOEING 747 — LONG-RANGE BOMBER</div>
-  </div>
-</div>
+<!-- Model Upgrade announcement overlay (content loaded from gui-states) -->
+<div id="modelUpgradeScreen" data-gui-state="model-upgrade" class="hidden" aria-hidden="true" role="alert" aria-live="assertive"></div>
 
 <!-- Tactical overlays -->
 <div class="scanline-overlay" aria-hidden="true"></div>
 <div class="grid-overlay" aria-hidden="true"></div>
 
-<!-- Boot screen -->
-<div id="bootScreen" data-gui-state="boot" role="region" aria-label="System boot sequence">
-  <div class="boot-grid" aria-hidden="true"></div>
-  <div class="boot-panel">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-    <!-- dev-splash removed — asset no longer available -->
-    <h2>AERO_COMMAND // KAMIKAZZI 3D</h2>
-    <div class="boot-status" id="bootStatus" aria-live="polite">Initializing kernel...</div>
-    <div class="boot-bar" id="bootBar"></div>
-    <div class="boot-meta">
-      <span id="bootKernel">KERNEL: v9.2.1-stable</span>
-      <span class="boot-pct" id="bootPct">000%</span>
-    </div>
-  </div>
-</div>
+<!-- Boot screen (content loaded from gui-states) -->
+<div id="bootScreen" data-gui-state="boot" role="region" aria-label="System boot sequence"></div>
 
-<!-- Pause screen -->
-<div id="pauseScreen" data-gui-state="pause" class="hidden" role="dialog" aria-modal="true" aria-label="Pause menu">
-  <div class="pause-panel">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-    <h2 data-i18n="pause.title">System Suspended</h2>
-    <div class="pause-sub" data-i18n="pause.subtitle">Kernel pause signal active</div>
-    <button class="pause-btn" id="resumeBtn" aria-label="Resume flight" data-i18n="btn.resume">Resume Flight</button>
-    <button class="pause-btn" id="pauseRetryBtn" aria-label="Restart mission from beginning" data-i18n="btn.restartMission">Restart Mission</button>
-    <button class="pause-btn danger" id="quitBtn" aria-label="Quit to main menu" data-i18n="btn.quitToMenu">Quit to Main Menu</button>
-    <div class="pause-hint" aria-label="Press Escape to resume" data-i18n="pause.hint">Press ESC to resume</div>
-  </div>
-</div>
+<!-- Pause screen (content loaded from gui-states) -->
+<div id="pauseScreen" data-gui-state="pause" class="hidden" role="dialog" aria-modal="true" aria-label="Pause menu"></div>
 
-<div id="startScreen" data-gui-state="start" class="overlay" role="region" aria-label="Main menu">
-  <h1 data-i18n="title">KAMIKAZZI 3D</h1>
-  <div class="subtitle" aria-label="shin kaze">
-    <span class="kanji" aria-hidden="true">神風</span>
-    <span class="romaji" data-i18n="subtitle">shin kaze</span>
-  </div>
-  <p data-i18n-html="startScreen.description">Strap into a rattletrap warbird and scream through the neon valley in a kamikaze streak of red and white. She rattles, she weeps, she might not make the runway — but the 405 will remember your silhouette. Punch "Start Flying" and dive the tin can past towers, tram cables, and every bad decision you've ever made.</p>
-    <!-- Resume Run — appears when a snapshot is available (hidden by default) -->
-    <button id="resumeRunBtn" class="hidden" aria-label="Resume saved run"><span class="material-symbols-outlined" aria-hidden="true">play_arrow</span> Resume Run</button>
-    <!-- Primary action -->
-    <button id="startBtn" class="btn" aria-label="Start flying game" data-i18n="btn.startFlying">Start Flying</button>
-    <!-- Grid of secondary menu actions -->
-    <div class="menu-grid" role="group" aria-label="Secondary actions">
-      <button id="leaderboardBtn" class="menu-btn highlight" aria-label="View leaderboard scores" data-i18n="btn.leaderboard"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">military_tech</span>Leaderboard</button>
-      <button id="lobbyBtn" class="menu-btn highlight" aria-label="Open multiplayer lobby" data-i18n="btn.lobby"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">groups</span>Lobby</button>
-      <button id="profileBtn" class="menu-btn highlight" aria-label="View pilot profile"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">person</span>Profile</button>
-      <button id="skinLabBtn" class="menu-btn" aria-label="Customize plane skin and pilot portrait" data-i18n="btn.customize"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">palette</span>Customize</button>
-      <button id="marketplaceBtn" class="menu-btn" aria-label="Browse building skins marketplace" data-i18n="btn.skins"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">apartment</span>Skins</button>
-      <button id="communityPowerupBtn" class="menu-btn powerup" aria-label="Browse community powerups"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">bolt</span>Powerups</button>
-      <button id="replayGalleryBtn" class="menu-btn" aria-label="View saved replays" data-i18n="btn.replays"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">play_circle</span>Replays</button>
-      <button id="runHistoryBtn" class="menu-btn" aria-label="View run history" data-i18n="btn.history"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">description</span>History</button>
-      <button id="briefingsBtn" class="menu-btn" aria-label="Open pilot briefings" data-i18n="btn.briefings"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">satellite_alt</span>Briefings</button>
-      <button id="sg-lv-fab-btn" class="menu-btn highlight" aria-label="Open Level Fabricator"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">public</span>Terrain Editor</button>
-      <button id="settingsBtn" class="menu-btn" aria-label="Open settings" data-i18n="btn.settings"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">settings</span>Settings</button>
-      <button id="legalBtn" class="menu-btn" aria-label="View legal and compliance information"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">balance</span>Legal</button>
-      <button id="puterLoginBtn" class="menu-btn highlight" aria-label="Sign in with Puter for cloud sync" title="Sign in to Puter to save scores, skins, and settings to the cloud"><span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_sync</span>Cloud Sync</button>
-    </div>
-    <!-- Cloud connection status indicator -->
-    <span id="cloudStatusPill" class="cloud-status-pill cloud-disconnected" style="display:none;">☁️ <span id="cloudStatusLabel">Cloud</span></span>
-    <div class="hint" role="note" aria-label="Control instructions" data-i18n-html="hint"><span class="material-symbols-outlined" aria-hidden="true">keyboard</span> Arrow Keys / WASD to steer<br><span class="material-symbols-outlined" aria-hidden="true">smartphone</span> Tilt your device or drag the screen<br><span class="material-symbols-outlined" aria-hidden="true">sports_esports</span> Use joystick (bottom-left) for touch<br><span class="material-symbols-outlined" aria-hidden="true">help</span> Press <strong>?</strong> for keyboard shortcuts</div>
-</div>
+<!-- Start screen (content loaded from gui-states) -->
+<div id="startScreen" data-gui-state="start" class="overlay" role="region" aria-label="Main menu"></div>
 
-<div id="explodeScreen" data-gui-state="crash" class="hidden" aria-hidden="true" role="region" aria-label="Crash explosion animation">
-  <img class="crash-splash-bg" alt="Crash explosion background" />
-  <img id="explodeImg" alt="Explosion animation" />
-</div>
+<!-- Crash explosion overlay (content loaded from gui-states) -->
+<div id="explodeScreen" data-gui-state="crash" class="hidden" aria-hidden="true" role="region" aria-label="Crash explosion animation"></div>
 
-<div id="missionSuccess" data-gui-state="mission-success" class="overlay hidden" role="alertdialog" aria-modal="true" aria-label="Mission successful">
-  <div class="success-panel">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
+<!-- Mission success screen (content loaded from gui-states) -->
+<div id="missionSuccess" data-gui-state="mission-success" class="overlay hidden" role="alertdialog" aria-modal="true" aria-label="Mission successful"></div>
 
-    <div class="success-header">
-      <div class="sequence-complete" data-i18n="missionSuccess.sequenceComplete">SEQUENCE COMPLETE</div>
-      <h1 data-i18n="missionSuccess.title">MISSION SUCCESSFUL</h1>
-      <div class="mission-divider"></div>
-    </div>
-
-    <div class="success-grade">
-      <div class="grade-label" data-i18n="missionSuccess.grade">PERFORMANCE GRADE</div>
-      <div class="grade-letter" id="msGrade">S</div>
-    </div>
-
-    <div class="telemetry-grid">
-      <div class="telemetry-card">
-        <div class="telemetry-label">FINAL_SCORE</div>
-        <div class="telemetry-value"><span id="msScore">0</span><span class="telemetry-unit">PTS</span></div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">SECTOR_ID</div>
-        <div class="telemetry-value" id="msSector">SECTOR_08</div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">DISTANCE_FLOWN</div>
-        <div class="telemetry-value"><span id="msDistance">0.00</span><span class="telemetry-unit">KM</span></div>
-      </div>
-    </div>
-
-    <div class="mission-stats">
-      <div>
-        <div>ALTITUDE: <span id="msAlt">00.00m</span></div>
-        <div>THROTTLE_STATE: <span id="msThrottle">100%</span></div>
-      </div>
-      <div style="text-align:right;">
-        <div class="stats-reason" style="color:#00dddd;" id="msStatus">STATUS: NOMINAL</div>
-        <div id="msElapsed">TIME_ELAPSED: 00:00</div>
-      </div>
-    </div>
-
-    <div class="best-score-line">PERSONAL BEST: <span id="msBest">0</span></div>
-
-    <div class="mission-actions">
-      <button id="successRetryBtn" class="mt-btn primary" aria-label="Fly again — start a new mission">FLY AGAIN</button>
-      <button id="successQuitBtn" class="mt-btn secondary" aria-label="Return to main menu">RETURN TO COMMAND</button>
-    </div>
-  </div>
-</div>
-
-<div id="gameOver" data-gui-state="mission-terminated" class="overlay hidden" role="alertdialog" aria-modal="true" aria-label="Mission terminated">
-  <div class="mission-panel">
-    <div class="boot-bracket-tl"></div><div class="boot-bracket-tr"></div>
-    <div class="boot-bracket-bl"></div><div class="boot-bracket-br"></div>
-
-    <div class="mission-header">
-      <div class="signal-lost">
-        <span class="warn-icon">!</span>
-        <span data-i18n="gameOver.signalLost">SIGNAL LOST</span>
-      </div>
-      <h1 data-i18n="gameOver.title">MISSION TERMINATED</h1>
-      <div class="mission-divider"></div>
-    </div>
-
-    <div class="critical-box">
-      <div class="critical-bar"></div>
-      <div>
-        <div class="critical-label" data-i18n="gameOver.criticalFailure">CRITICAL SYSTEM FAILURE</div>
-        <div class="critical-sub" data-i18n="gameOver.kernelPanic">KERNEL_PANIC: IMPACT_DETECTED</div>
-      </div>
-    </div>
-
-    <div class="telemetry-grid">
-      <div class="telemetry-card">
-        <div class="telemetry-label">FINAL_SCORE</div>
-        <div class="telemetry-value"><span id="mtScore">0</span><span class="telemetry-unit">PTS</span></div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">SECTOR_ID</div>
-        <div class="telemetry-value" id="mtSector">SECTOR_01</div>
-      </div>
-      <div class="telemetry-card">
-        <div class="telemetry-label">DISTANCE_FLOWN</div>
-        <div class="telemetry-value"><span id="mtDistance">0.00</span><span class="telemetry-unit">KM</span></div>
-      </div>
-    </div>
-
-    <div class="mission-stats">
-      <div>
-        <div>ALT_AT_IMPACT: <span id="mtAlt">00.00m</span></div>
-        <div>THROTTLE_STATE: <span id="mtThrottle">100%</span></div>
-      </div>
-      <div style="text-align:right;">
-        <div class="stats-reason" id="mtReason">REASON: COLLISION_DETECTED</div>
-        <div id="mtElapsed">TIME_ELAPSED: 00:00</div>
-      </div>
-    </div>
-
-    <div class="best-score-line">PERSONAL BEST: <span id="mtBest">0</span></div>
-
-    <div class="mission-actions">
-      <button id="retryBtn" class="mt-btn primary" aria-label="Retry mission — restart from beginning">RETRY MISSION</button>
-      <button id="abortBtn" class="mt-btn secondary" aria-label="Abort mission and return to menu">ABORT TO COMMAND</button>
-    </div>
-  </div>
-</div>
+<!-- Game over screen (content loaded from gui-states) -->
+<div id="gameOver" data-gui-state="mission-terminated" class="overlay hidden" role="alertdialog" aria-modal="true" aria-label="Mission terminated"></div>
 
 <!-- Leaderboard overlay -->
 <div id="leaderboardPanel" data-gui-state="leaderboard" class="hidden" role="dialog" aria-modal="true" aria-label="Leaderboard">

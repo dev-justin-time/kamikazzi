@@ -215,6 +215,75 @@
 </header>
 <!-- Main Viewport Canvas -->
 <main class="relative w-full h-full pt-[72px] pb-[72px]">
+<div id="sg-container" style="display:none;"></div>
+<button id="sg-lv-fab-close" style="display:none;">✕</button>
+<div id="sg-stats-panel" style="display:none;">
+  <span id="sg-fps-counter">FPS: 0</span>
+  <button id="sg-fullscreen-btn">⛶</button>
+</div>
+<div id="sg-controls-panel" style="display:none;">
+  <div id="sg-controls-handle"></div>
+  <button id="sg-toggle-controls">−</button>
+  <div id="sg-controls-content">
+    <select id="sg-preset-select"></select>
+    <div id="sg-custom-upload-group" style="display:none;">
+      <input type="file" id="sg-heightmap-input" />
+    </div>
+    <select id="sg-quality-select"></select>
+    <input type="range" id="sg-size-slider" />
+    <span id="sg-size-val">256</span>
+    <input type="range" id="sg-scale-slider" />
+    <span id="sg-scale-val">40</span>
+    <input type="range" id="sg-height-slider" />
+    <span id="sg-height-val">25</span>
+    <input type="range" id="sg-octaves-slider" />
+    <span id="sg-octaves-val">4</span>
+    <input type="range" id="sg-persistence-slider" />
+    <span id="sg-falloff-val">0.50</span>
+    <input type="checkbox" id="sg-water-toggle" checked />
+    <input type="range" id="sg-tree-density-slider" />
+    <span id="sg-tree-density-val">1.0</span>
+    <input type="range" id="sg-city-density-slider" />
+    <span id="sg-city-density-val">0.00</span>
+    <button id="sg-regenerate-btn">🌱 Regenerate</button>
+    <button id="sg-reset-defaults-btn">Reset Defaults</button>
+    <input type="range" id="sg-speed-slider" />
+    <span id="sg-speed-val">80</span>
+    <input type="range" id="sg-pheight-slider" />
+    <span id="sg-pheight-val">10</span>
+    <select id="sg-view-mode-select"></select>
+    <select id="sg-edit-tool"></select>
+    <input type="range" id="sg-brush-size-slider" />
+    <span id="sg-brush-size-val">20</span>
+    <input type="range" id="sg-brush-strength-slider" />
+    <span id="sg-brush-strength-val">1.0</span>
+    <input type="range" id="sg-stamp-height-slider" />
+    <span id="sg-stamp-height-val">0.8</span>
+    <input type="range" id="sg-v-noise-slider" />
+    <span id="sg-v-noise-val">0.3</span>
+    <input type="range" id="sg-v-detail-slider" />
+    <span id="sg-v-detail-val">2</span>
+    <select id="sg-tree-type-select"></select>
+    <select id="sg-city-type-select"></select>
+    <input type="range" id="sg-biome-range-slider" />
+    <span id="sg-biome-range-val">0.5</span>
+    <input type="color" id="sg-biome-color" value="#228b22" />
+    <button id="sg-add-biome-btn">Add Biome</button>
+    <select id="sg-edit-view-mode"></select>
+    <button id="sg-exit-edit-btn">Exit Edit Mode</button>
+  </div>
+</div>
+<div id="sg-minimap-container" style="display:none;">
+  <div id="sg-minimap-handle">🗺 Minimap</div>
+  <div id="sg-minimap-content">
+    <canvas id="sg-minimap-canvas"></canvas>
+    <div id="sg-player-marker"></div>
+    <button id="sg-toggle-minimap-size">◻</button>
+    <button id="sg-mode-minimap">M</button>
+  </div>
+</div>
+<div id="sg-joystick-zone" style="display:none;"></div>
+
 <!-- Fullscreen Three.js Terrain -->
 <!-- STITCH_THREEJS_START:ANIMATION_61 class="absolute inset-0 w-full h-full z-0 opacity-80" -->
 <div class="absolute inset-0 w-full h-full z-0 opacity-80" style="display:block;">
