@@ -13,9 +13,11 @@ async function boot() {
     return;
   }
 
-  // 0) Initialize screen-loader: loads gui-states styles + starts auto-inject
-  // MutationObserver. Overlays are automatically injected with their
-  // gui-states Tailwind designs when they become visible.
+  // 0) Preload ALL gui-states panel content synchronously before the game
+  // starts. This hydrates each inlined panel shell with its visual design
+  // AND functional elements from the gui-states/*.html files, so every
+  // element ID the game code references exists in the DOM from the start.
+  await screenLoader.preloadAll();
   screenLoader.init().catch(() => {});
 
   // 1) WebGL renderer + scene/camera

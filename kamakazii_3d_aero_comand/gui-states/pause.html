@@ -236,18 +236,18 @@
 <!-- Action Grid -->
 <div class="flex flex-col gap-4">
 <!-- Resume Button -->
-<button class="group relative bg-secondary-container text-on-secondary-container py-4 px-8 font-headline-lg-mobile text-lg flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 shadow-[0_0_20px_rgba(0,221,221,0.4)] hover:shadow-[0_0_35px_rgba(0,221,221,0.6)]">
+<button id="resumeBtn" class="group relative bg-secondary-container text-on-secondary-container py-4 px-8 font-headline-lg-mobile text-lg flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 shadow-[0_0_20px_rgba(0,221,221,0.4)] hover:shadow-[0_0_35px_rgba(0,221,221,0.6)]" aria-label="Resume flight" data-i18n="btn.resume">
 <span class="material-symbols-outlined group-hover:rotate-12 transition-transform">flight_takeoff</span>
 <span class="font-bold">RESUME FLIGHT</span>
 <div class="absolute inset-0 border-2 border-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 </button>
 <!-- Restart Button -->
-<button class="group bg-transparent border-2 border-secondary/40 text-secondary py-3 px-8 font-subheading flex items-center justify-center gap-3 transition-all duration-300 hover:bg-secondary/10 active:translate-y-1">
+<button id="pauseRetryBtn" class="group bg-transparent border-2 border-secondary/40 text-secondary py-3 px-8 font-subheading flex items-center justify-center gap-3 transition-all duration-300 hover:bg-secondary/10 active:translate-y-1" aria-label="Restart mission from beginning" data-i18n="btn.restartMission">
 <span class="material-symbols-outlined text-sm">refresh</span>
 <span class="uppercase tracking-widest text-sm">RESTART MISSION</span>
 </button>
 <!-- Quit Button -->
-<button class="group bg-transparent border-2 border-primary-container text-primary-container py-3 px-8 font-subheading flex items-center justify-center gap-3 transition-all duration-300 hover:bg-primary-container hover:text-on-primary-container active:translate-y-1">
+<button id="quitBtn" class="group bg-transparent border-2 border-primary-container text-primary-container py-3 px-8 font-subheading flex items-center justify-center gap-3 transition-all duration-300 hover:bg-primary-container hover:text-on-primary-container active:translate-y-1" aria-label="Quit to main menu" data-i18n="btn.quitToMenu">
 <span class="material-symbols-outlined text-sm">logout</span>
 <span class="uppercase tracking-widest text-sm">QUIT TO MAIN MENU</span>
 </button>

@@ -232,12 +232,14 @@
 <div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant mb-2">
 <div class="flex items-center gap-2">
 <span class="text-primary-container">&gt;&gt;</span>
+<span id="bootStatus" style="display:none;">Mounting kernel modules...</span>
 <span id="status-text">Mounting kernel modules...</span>
 </div>
+<span id="bootPct" style="display:none;">089%</span>
 <span class="text-secondary">89%</span>
 </div>
 <!-- Cyber Progress Bar (Segmented Retro Style) -->
-<div class="h-4 w-full bg-surface-container-high border border-outline-variant flex gap-0.5 p-0.5">
+<div class="h-4 w-full bg-surface-container-high border border-outline-variant flex gap-0.5 p-0.5" id="bootBar">
 <!-- Progress segments -->
 <div class="h-full w-[89%] flex gap-0.5">
 <div class="h-full flex-1 bg-secondary shadow-[0_0_10px_#49f9f9]"></div>

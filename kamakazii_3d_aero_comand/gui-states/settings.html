@@ -248,7 +248,7 @@
 <span class="font-mono-label text-[10px] text-on-surface-variant opacity-60">Enable real-time combat HUD telemetry</span>
 </div>
 <label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer toggle-glow" id="tactical-overlays" type="checkbox"/>
+<input checked="" class="sr-only peer toggle-glow" id="toggleOverlays" type="checkbox" role="switch" aria-checked="true"/>
 <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
 </label>
 </div>
@@ -274,12 +274,7 @@
 <div class="relative group">
 <label class="font-mono-label text-[10px] text-secondary block mb-2 uppercase">Selected Module</label>
 <div class="relative">
-<select class="w-full bg-surface-container-lowest border-b-2 border-primary-container text-on-surface font-mono-label py-3 px-4 focus:outline-none focus:ring-0 appearance-none cursor-pointer">
-<option value="en">ENGLISH // PRIMARY</option>
-<option value="jp">日本語 // ORIGIN</option>
-<option value="fr">FRANÇAIS // EURO_1</option>
-<option value="de">DEUTSCH // EURO_2</option>
-<option value="es">ESPAÑOL // LATAM</option>
+<select id="langSelect" class="w-full bg-surface-container-lowest border-b-2 border-primary-container text-on-surface font-mono-label py-3 px-4 focus:outline-none focus:ring-0 appearance-none cursor-pointer" aria-label="Select language">
 </select>
 <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-primary">
 <span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
@@ -300,13 +295,13 @@
 <span class="font-mono-label text-[10px] text-on-surface-variant opacity-60">Synchronize flight data to central orbital</span>
 </div>
 <label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer toggle-glow" type="checkbox"/>
+<input class="sr-only peer toggle-glow" id="toggleCloudSync" type="checkbox" role="switch" aria-checked="false"/>
 <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
 </label>
 </div>
-<button class="w-full py-4 bg-primary-container text-white font-headline-lg text-[18px] uppercase tracking-tighter flex items-center justify-center gap-3 glitch-hover active:scale-95 transition-all shadow-[0_0_15px_#e0115f]/40">
-<span class="material-symbols-outlined" data-icon="backup">backup</span>
-                        Manual Deployment Sync
+<button id="settingsClose" class="w-full py-4 bg-primary-container text-white font-headline-lg text-[18px] uppercase tracking-tighter flex items-center justify-center gap-3 glitch-hover active:scale-95 transition-all shadow-[0_0_15px_#e0115f]/40" aria-label="Close settings">
+<span class="material-symbols-outlined" data-icon="backup">close</span>
+                        Close Settings
                     </button>
 <div class="p-3 border border-primary-container/20 bg-primary-container/5 rounded">
 <div class="flex justify-between items-center mb-2">

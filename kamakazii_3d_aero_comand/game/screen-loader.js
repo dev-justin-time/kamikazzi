@@ -113,6 +113,24 @@ const _injected = new Set();
 const _skipScreens = new Set(['crash']);
 
 /**
+ * Screens that use FULL REPLACEMENT mode:
+ * The entire panel innerHTML is replaced with the gui-states <main> content
+ * (both visual AND functional). The inlined fallback in index.html is ignored.
+ *
+ * All 23 panels are in replacement mode. The gui-states files are the single
+ * source of truth for both visual design and functional elements.
+ */
+const _replacementScreens = new Set([
+  'boot', 'start', 'pause',
+  'mission-success', 'mission-terminated', 'crash',
+  'leaderboard', 'lobby', 'profile', 'skin-lab',
+  'marketplace', 'powerups', 'replays', 'replay-detail',
+  'delete-confirm', 'history', 'briefings',
+  'shortcuts', 'settings', 'legal',
+  'final-sector', 'model-upgrade', 'terrain-editor',
+]);
+
+/**
  * Inject gui-states <main> content as a visible design backdrop inside
  * the corresponding inlined overlay.
  * @param {string} name - gui-state name (e.g. 'boot', 'leaderboard')
@@ -131,17 +149,7 @@ async function inject(name) {
   try {
     const { mainHTML, styles } = await fetchScreen(name);
 
-    // Mark the overlay as wired so CSS can adjust backgrounds
-    target.classList.add('gui-state-wired');
-
-    // Inject the gui-states design as a visible backdrop layer
-    const designDiv = document.createElement('div');
-    designDiv.className = 'gui-state-design';
-    // The design is a visible backdrop — pointer-events:none so clicks pass through
-    designDiv.innerHTML = mainHTML;
-    target.insertBefore(designDiv, target.firstChild);
-
-    // Inject inline styles (once per screen)
+    // Inject inline styles first (once per screen)
     for (const css of styles) {
       const key = `gui-state-style-${name}`;
       if (!_injectedStyles.has(key)) {
@@ -153,9 +161,26 @@ async function inject(name) {
       }
     }
 
+    if (_replacementScreens.has(name)) {
+      // FULL REPLACEMENT mode: replace the panel's innerHTML entirely.
+      // The gui-states <main> content becomes the panel content (visual + functional).
+      target.innerHTML = mainHTML;
+      target.classList.add('gui-state-replaced');
+    } else {
+      // BACKDROP mode: inject the design as a visible backdrop layer
+      // (legacy behavior for any future non-replacement screens)
+      target.classList.add('gui-state-wired');
+
+      const designDiv = document.createElement('div');
+      designDiv.className = 'gui-state-design';
+      designDiv.innerHTML = mainHTML;
+      designDiv.style.pointerEvents = 'none';
+      target.insertBefore(designDiv, target.firstChild);
+    }
+
     _injected.add(name);
     if (window.__screenLoaderDebug) {
-      console.log(`[ScreenLoader] Injected design for "${name}"`);
+      console.log(`[ScreenLoader] ${_replacementScreens.has(name) ? 'Replaced' : 'Injected design for'} "${name}"`);
     }
   } catch (e) {
     console.warn(`[ScreenLoader] Failed to inject screen "${name}":`, e);
@@ -297,6 +322,49 @@ function startObserver() {
 }
 
 /**
+ * Preload all gui-states panel content synchronously before the game JS
+ * modules execute. This ensures every element ID referenced by the game
+ * code exists in the DOM from the start.
+ *
+ * Call this from a <script> tag in index.html BEFORE the <script type="module"> tags.
+ */
+async function preloadAll() {
+  await loadStyles();
+
+  const screens = [..._replacementScreens];
+  const results = await Promise.allSettled(
+    screens.map(async (name) => {
+      const target = document.querySelector(`[data-gui-state="${name}"]`);
+      if (!target) return;
+
+      const { mainHTML, styles } = await fetchScreen(name);
+
+      // Inject inline styles
+      for (const css of styles) {
+        const key = `gui-state-style-${name}`;
+        if (!_injectedStyles.has(key)) {
+          _injectedStyles.add(key);
+          const styleTag = document.createElement('style');
+          styleTag.id = key;
+          styleTag.textContent = css;
+          document.head.appendChild(styleTag);
+        }
+      }
+
+      // Replace panel content
+      target.innerHTML = mainHTML;
+      target.classList.add('gui-state-replaced');
+      _injected.add(name);
+    })
+  );
+
+  const failed = results.filter(r => r.status === 'rejected');
+  if (failed.length > 0 && window.__screenLoaderDebug) {
+    console.warn(`[ScreenLoader] ${failed.length} screens failed to preload`);
+  }
+}
+
+/**
  * Initialize screen-loader: load styles + start auto-injection observer.
  * Call this once from main.js during boot.
  */
@@ -333,6 +401,7 @@ export const screenLoader = {
   init,
   inject,
   injectElement,
+  preloadAll,
   loadStyles,
   startObserver,
   fetchHTML,

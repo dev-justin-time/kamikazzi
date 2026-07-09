@@ -201,6 +201,8 @@
 </header>
 <!-- Main Content Canvas -->
 <main class="relative z-10 pt-20 pb-32 px-grid-margin flex flex-col gap-10">
+<span id="cloudStatusPill" class="hidden" style="display:none;">☁️ <span id="cloudStatusLabel">Cloud</span></span>
+
 <!-- Hero Section -->
 <section class="flex flex-col items-center justify-center pt-8 text-center">
 <div class="relative inline-block mb-4">
@@ -215,7 +217,7 @@
 <!-- CTA Cluster -->
 <div class="w-full flex flex-col gap-4">
 <!-- Primary Action -->
-<button class="group relative w-full bg-primary-container h-16 flex items-center justify-center overflow-hidden active:scale-95 transition-all">
+<button id="startBtn" class="group relative w-full bg-primary-container h-16 flex items-center justify-center overflow-hidden active:scale-95 transition-all">
 <div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div>
 <span class="relative z-10 font-display-xl-mobile text-[32px] text-white italic uppercase tracking-tighter group-hover:skew-x-12 transition-transform">START FLYING</span>
 <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-50 group-hover:opacity-100">
@@ -224,7 +226,7 @@
 </div>
 </button>
 <!-- Secondary Action -->
-<button class="w-full h-14 bg-surface-container-high border border-secondary/30 flex items-center justify-between px-6 active:bg-secondary/10 group">
+<button id="resumeRunBtn" class="w-full h-14 bg-surface-container-high border border-secondary/30 flex items-center justify-between px-6 active:bg-secondary/10 group">
 <div class="flex flex-col items-start">
 <span class="font-mono-label text-[10px] text-secondary/60">RESUME SECTOR 03</span>
 <span class="font-mono-label text-secondary text-lg">12,400 PTS</span>
@@ -248,53 +250,57 @@
 <!-- Technical Navigation Grid -->
 <section class="grid grid-cols-3 gap-2">
 <!-- Grid Item Template -->
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="leaderboardBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">military_tech</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Leaderboard</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="lobbyBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">hub</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Lobby</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="profileBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">account_circle</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Profile</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="skinLabBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">tune</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Customize</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="marketplaceBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">palette</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Skins</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="communityPowerupBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">bolt</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Powerups</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="replayGalleryBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">videocam</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Replays</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="runHistoryBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">history</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">History</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="briefingsBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">description</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Briefings</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="sg-lv-fab-btn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">terrain</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Terrain</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="settingsBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">settings_input_component</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Settings</span>
 </button>
-<button class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<button id="legalBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
 <span class="material-symbols-outlined text-primary text-2xl">gavel</span>
 <span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Legal</span>
+</button>
+<button id="puterLoginBtn" class="flex flex-col items-center justify-center bg-surface-container-low border border-secondary/10 p-4 gap-2 hover:border-secondary/40 active:skew-x-12 transition-all">
+<span class="material-symbols-outlined text-primary text-2xl">cloud_sync</span>
+<span class="font-mono-label text-[10px] text-on-surface-variant uppercase">Cloud Sync</span>
 </button>
 </section>
 <!-- Aerospace Branding Details -->

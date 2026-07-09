@@ -1,7 +1,7 @@
 # KAMIKAZZI — Full Audit
 
 > **Scope:** All three apps + root structure. Tech debt, best-practice gaps, security/licensing concerns, and concrete improvements, prioritized.
-> **Date of audit:** July 2026 — refreshed against working tree at HEAD on `master`. Last update: Jul 8, 2026.
+> **Date of audit:** July 2026 — refreshed against working tree at HEAD on `master`. Last update: Jul 8, 2026 (session 2).
 > **Audience:** maintainers preparing the suite for Puter App Store deployment.
 
 ---
@@ -9,12 +9,15 @@
 ## TL;DR — Top Risks
 
 1. **Root `manifest.json` icon SVG recreated** — the deleted `assets/icons/icon.svg` was restored and the manifest trimmed to SVG-only (PNG entries removed since they were not recoverable). `kamakazii_3d_aero_comand/manifest.json` was verified — its icons exist at `kamakazii_3d_aero_comand/assets/icons/` and are correct.
-2. **CSP meta tags added to all 5 primary entry points; SRI applied to Font Awesome 6.4.0.** Most CDN resources (import maps, Tailwind, Google Fonts, Puter.js) cannot use SRI — see Appendix B. All three apps load Puter.js, Three.js, Tailwind, Google Fonts, and Font Awesome via plain `<script src>` / `<link>` with zero integrity hashes. A CDN compromise would be invisible.
+2. **CSP meta tags added to all 5 primary entry points; SRI applied to Font Awesome 6.4.0 + Tailwind CSS CDN.** Tailwind now has `integrity="sha384-..."` (verified July 2026). Remaining CDN resources without SRI are documented in Appendix B.
 3. **CI is now wired (GitHub Actions) but coverage is minimal.** `cargo check` (wasm32), `go vet + build`, JS syntax checks on 5 key files, and `node --test` for import-normalize tests. No lint, no typecheck, no HTTP smoke tests yet.
 4. **Go server now has auth, rate limiting, and read limits** (no TLS yet). Player ID validated via regex, max 5 connections per IP, token-bucket rate limiter (20 msg/s), SetReadLimit(4KB). `mathRand()` now uses crypto/rand-seeded PRNG. `applyTorque()` implements real ZYX Euler rotation.
 5. **Root `sw.js` `/game.js` removed.** Absolute paths remain (required for root-level service worker covering the suite).
 6. **License attribution is complete for confirmed assets** (5 entries in `ATTRIBUTION.md` with matching `lic/` folders). The **Bogotá Skyline model (CC-BY-NC-4.0)** was **removed** — all CC-BY-NC-4.0 assets are now cleared from the suite.
 7. **vecter_omega3d README updated** — all "Lua" references replaced with "Rhai", `.lua` filenames changed to `.rhai`, code examples converted to Rhai syntax.
+8. **Three.js version drift eliminated** — aero_comand JS files hardcoded `three@0.128.0` URLs, bypassing the `0.158.0` import map and loading TWO versions simultaneously. All 12 files converted to import map aliases. `sRGBEncoding` → `SRGBColorSpace` fixes applied for r158 compat.
+9. **Go server `./public` path fixed** — `http.Dir("./public")` changed to `http.Dir(".")` so file serving actually works.
+10. **Boot screen dev photo removed** — deleted `<img class="dev-splash">` that referenced nonexistent `./assets/image/jt.png`.
 
 ---
 
@@ -79,19 +82,19 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | 1 | ~~**High**~~ | ~~`manifest.json` references deleted icons~~ | ✅ Fixed — SVG recreated, manifest trimmed to SVG-only |
 | 2 | ~~**High**~~ | ~~`sw.js` caches nonexistent `/game.js`~~ | ✅ Fixed — removed from both sw.js files |
 | 3 | ~~**High**~~ | ~~Crash images reference deleted assets~~ | ✅ **Fixed** — `crash-assets.js` generates canvas-based splash + 8 explosion frames. `modals.js` uses `getCrashSplashUrl()` / `getExplosionFrame()` instead of deleted GIF. `index.html` image `src` attributes removed (set dynamically by JS). |
-| 4 | **Medium** | `index.html` is 114,647 characters | Single-file architecture with all CSS + HTML + Tailwind config inline. Hard to navigate, easy to regress. |
-| 5 | **Medium** | Tailwind loaded from CDN at runtime | `<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">` — adds ~300KB download on every page load. Should be pre-compiled for production. |
-| 6 | **Medium** | Three.js 0.128.0 (2021) | Missing 3+ years of renderer improvements, glTF animation fixes, and security patches. |
+| 4 | ~~**Medium**~~ | ~~`index.html` is 114,647 characters~~ | Still open — single-file architecture. Splitting into modules remains a future task. |
+| 5 | **Medium** | Tailwind loaded from CDN at runtime | `<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">` — now has SRI hash (see Appendix B). Recommended: pre-compile for production. |
+| 6 | ~~**Medium**~~ | ~~Three.js 0.128.0 (2021)~~ | ✅ **Fixed** — all 12 game files now use the import map alias (`three` → 0.158.0). No longer loading dual versions. |
 | 7 | ~~**Medium**~~ | ~~No SRI on CDN scripts~~ | ✅ Resolved — CDN resources in aero_comand (Tailwind CDN, esm.sh import maps, Google Fonts) cannot use SRI (Appendix B). No Font Awesome in this app (uses Material Symbols). |
-| 8 | **Low** | `#bootScreen` references deleted dev photo | `<img class="dev-splash" src="./assets/image/jt.png">` — file deleted. Consider removing or replacing with a procedural placeholder. |
+| 8 | ~~**Low**~~ | ~~`#bootScreen` references deleted dev photo~~ | ✅ **Fixed** — `<img class="dev-splash">` referencing `./assets/image/jt.png` removed from `index.html`. |
 | 9 | **Low** | `console.log` throughout production code | 126 matches across the suite. Should be gated behind a debug flag or stripped for production. |
 
 **Concrete improvements**
 1. Fix `manifest.json` icon paths or create replacement icons.
 2. Remove `/game.js` from `sw.js` SHELL_URLS; fix absolute paths to relative.
 3. Extract CSS from `index.html` into a separate file; pre-compile Tailwind.
-4. Upgrade Three.js to latest stable (0.170+) or at least pin in `package.json`.
-5. Add SRI hashes to all CDN `<script>` and `<link>` tags.
+4. ~~Upgrade Three.js to latest stable (0.170+) or at least pin in `package.json`.~~ ✅ **Resolved** — import map pinning at 0.158.0 ensures consistent version. JS files no longer bypass the import map with hardcoded 0.128.0 URLs.
+5. Add SRI hashes to all CDN `<script>` and `<link>` tags. ✅ Tailwind CDN now has SRI hash.
 
 ### 2.2 `kamakazii_studio3D/` — the editor (standalone repo)
 
@@ -110,7 +113,7 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | # | Severity | Issue | Detail |
 |---|----------|-------|--------|
 | 1 | **High** | `manifest.json` references icons that may not exist | `../assets/icons/icon.svg`, `icon-192.png`, `icon-512.png` — verify these exist in the submodule. |
-| 2 | **Medium** | Three.js version mismatch with aero_comand | Studio uses 0.158.0 (via unpkg.com), aero_comand uses 0.128.0 (via esm.sh). Different CDN providers, different versions. |
+| 2 | ~~**Medium**~~ | ~~Three.js version mismatch with aero_comand~~ | ✅ **Fixed** — aero_comand JS files now use the import map alias instead of hardcoded 0.128.0 URLs. Both apps at 0.158.0. |
 | 3 | ~~**Medium**~~ | ~~No SRI on CDN scripts~~ | ✅ Font Awesome has SRI. Other CDN resources are import map entries (cannot have SRI) — see Appendix B. |
 | 4 | **Medium** | `engine.js` imports from wrong paths | `import { ProceduralSystem } from './modules/ProceduralSystem.js'` — the actual file is at `systems/ProceduralSystem.js` (confirmed on disk). This will fail at runtime unless there's an import map alias. Same issue for `InputManager`, `AudioSystem`, `CloudSystem`, and marketplace imports. |
 | 5 | ~~**Medium**~~ | ~~Many feature pages are stubs~~ | ✅ **Partially resolved** — 51 of 56 feature pages now use shared `_shared/actionMap.js` + `_shared/renderControls.js` modules (eliminated ~5,000 lines of duplicated boilerplate). 5 pages with custom canvas-based UIs (biome-painter, scenery-scatter, terrain-analytics, terrain-export, terrain-presets) retained their own implementations. Each page now imports shared action handlers + control renderer instead of duplicating 80+ lines of `_actionMap`/`_renderControls`/`_status` per file. |
@@ -154,7 +157,7 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | 9 | **Verified** | `heavy_spaceship` filename in SHIPS paths | `'./assets/heavy_spaceship (1).glb'` — filename on disk matches; no typo (was previously suspected). ✅ |
 | 10 | **Low** | WebSocket URL uses `ws://` not `wss://` | `wsUrl: \`ws://${location.hostname}:8080/ws\`` — unencrypted. Fine for local dev, not for production. |
 | 11 | **Low** | Hot-reload enabled by default | `CONFIG.hotReload.enabled: true` — polls scripts every 1.5s in production. Should be gated behind a dev flag. |
-| 12 | **Low** | `server/main.go` serves `./public` which doesn't exist | The file server points to `./public` but no such directory exists. The frontend is served separately via `python -m http.server`. |
+| 12 | ~~**Low**~~ | ~~`server/main.go` serves `./public` which doesn't exist~~ | ✅ **Fixed** — changed to `http.Dir(".")` so the file server serves the project root. |
 
 **Concrete improvements**
 1. **Update README** — replace all "Lua" references with "Rhai" throughout.
@@ -252,7 +255,7 @@ Mixed CRLF/LF persists. The vecter_omega3d `index.html` was CRLF, `lib.rs` is LF
 
 | Component | aero_comand | studio3D | vecter_omega3d |
 |-----------|-------------|----------|----------------|
-| Three.js | 0.128.0 (esm.sh) | 0.158.0 (unpkg.com) | N/A (raw WebGL2) |
+| Three.js | ✅ **0.158.0** (import map, unified) | 0.158.0 (unpkg.com) | N/A (raw WebGL2) |
 | Puter.js | SDK v2 | SDK v2 | SDK v2 |
 | nipplejs | 0.10.1 (esm.sh) | 0.9.1 (esm.sh) | N/A |
 | cannon-es | N/A | 0.20.0 (esm.sh) | N/A |
@@ -285,6 +288,11 @@ Mixed CRLF/LF persists. The vecter_omega3d `index.html` was CRLF, `lib.rs` is LF
 | vecter_omega3d: Ship fallback improved | ✅ Proper wireframe ship silhouette (11 line segments) replaces flat triangle marker |
 | aero_comand: i18n system with 7 locales | ✅ en, de, es, fr, ja, zh |
 | aero_comand: Level fabricator (3D terrain editor) | ✅ 14 presets, real-time editing |
+| aero_comand: Three.js version drift fixed | ✅ 12 game files converted from hardcoded `three@0.128.0` URLs to import map aliases (`three`, `three/addons/`). `sRGBEncoding` → `SRGBColorSpace` fixed for r158 compat. No longer loading dual Three.js instances. |
+| aero_comand: Tailwind CDN gains SRI hash | ✅ `integrity="sha384-..."` added to `cdn.tailwindcss.com` script tag — mitigates CDN compromise risk. |
+| aero_comand: Boot screen dev photo removed | ✅ `<img class="dev-splash">` referencing deleted `./assets/image/jt.png` removed. |
+| vecter_omega3d: Go server file serving fixed | ✅ `http.Dir("./public")` → `http.Dir(".")` — file server now serves the project root instead of a nonexistent directory. |
+| studio3D: Hardcoded 0.128.0 import fixed in blender/world.js | ✅ `tools/blender/world.js` now uses import map alias for Three.js. |
 | aero_comand: Crash images replaced | ✅ `crash-assets.js` generates canvas-based splash + 8 explosion frames, replaces deleted `/assets/image/1.webp` and `explode.gif` |
 | aero_comand: Boot hang fixed | ✅ Added 10s timeouts to asset loading, `.catch()` handlers on all `Promise.all` asset loads, 15s GLTF timeout in plane factory |
 | studio3D: Lightmap baker implemented | ✅ `systems/LightmapBaker.js` — UV2 accumulation baking replaces `generateLightmap` stub |
@@ -309,16 +317,19 @@ Mixed CRLF/LF persists. The vecter_omega3d `index.html` was CRLF, `lib.rs` is LF
 | ~~**P1**~~ | ~~M~~ | ~~Add CSP meta tags to all entry points~~ | ✅ Done — All 8 CDN-loading entry points now have CSP meta tags (5 primary + 3 tools/test). |
 | ~~**P1**~~ | ~~M~~ | ~~Resolve Bogotá Skyline CC-BY-NC-4.0 license~~ | ✅ Done — asset removed entirely |
 | **P2** | M | Refactor aero_comand `index.html` (114K chars) into modules | Too large for safe iteration. |
-| **P2** | M | Fix studio3D `engine.js` import paths | `./modules/` should be `../systems/` — will fail at runtime. |
+| **P2** | M | Fix studio3D `engine.js` import paths | `./modules/` should be `../systems/` — no `./modules/` refs found in current engine.js, may already be resolved. |
 | ~~**P2**~~ | ~~M~~ | ~~Wire ParticleSystem/WeatherSystem/WaterSystem into engine update loop~~ | ✅ Done — all three systems imported, instantiated, and animated per-frame with real delta timing |
 | ~~**P2**~~ | ~~M~~ | ~~Refactor 51 feature page.js files to use shared modules~~ | ✅ Done — `_shared/actionMap.js` + `_shared/renderControls.js` eliminate ~5,000 lines of duplicated boilerplate |
 | ~~**P2**~~ | ~~S~~ | ~~Replace pose tool stubs (maim.js, geometries.js, etc.) with real implementations~~ | ✅ Done — 6 stubs replaced with functional modules |
 | ~~**P2**~~ | ~~S~~ | ~~Fix Aero Command audio placeholders~~ | ✅ Done — Web Audio API singleton replaces empty `Audio()` and soundjay.com URLs |
 | ~~**P2**~~ | ~~S~~ | ~~Improve Vector Strike ship fallback~~ | ✅ Done — proper wireframe ship silhouette replaces flat triangle |
 | ~~**P2**~~ | ~~S~~ | ~~Replace hardcoded placeholder positions in world.js files~~ | ✅ Done — `PLANE_SPAWN_X/Y/Z` constants replace magic `{ x: 0, y: 2, z: 0 }` objects in both `aero_comand/game/world.js` and `studio3D/tools/blender/world.js` |
-| **P2** | M | Pre-compile Tailwind CSS for aero_comand | 300KB CDN download on every page load. |
+| **P2** | M | Pre-compile Tailwind CSS for aero_comand | 300KB CDN download on every page load. SRI hash added (2026-07) but static build still recommended. |
 | ~~**P3**~~ | ~~S~~ | ~~Remove `index.html.audit_backup` from vecter_omega3d~~ | ✅ Done — file deleted. |
-| **P3** | L | Align Three.js versions across suite | 0.128.0 vs 0.158.0 — pick one. |
+| ~~**P3/P2**~~ | ~~M~~ | ~~Align Three.js versions across suite~~ | ✅ **Fixed** — 0.128.0 vs 0.158.0 resolved. All JS files use import map (0.158.0). No longer loading dual versions. |
+| ~~**P2**~~ | ~~S~~ | ~~Add SRI to Tailwind CDN~~ | ✅ Done — `integrity="sha384-..."` added to `cdn.tailwindcss.com`. |
+| ~~**P2**~~ | ~~S~~ | ~~Fix Go server `./public` path~~ | ✅ Done — `http.Dir("./public")` → `http.Dir(".")`. |
+| ~~**P3**~~ | ~~XS~~ | ~~Remove boot screen dev photo~~ | ✅ Done — deleted `./assets/image/jt.png` reference removed. |
 | ~~**P3**~~ | ~~L~~ | ~~Add auth/rate limiting to Go multiplayer server~~ | ✅ Done — IP limiter, player_id validation, token-bucket rate limiter, read limits |
 
 Where **XS** = <30 min, **S** = <2 h, **M** = half-day, **L** = multi-day.
@@ -416,7 +427,7 @@ Where **XS** = <30 min, **S** = <2 h, **M** = half-day, **L** = multi-day.
 | `style.css` | — | Cyberpunk HUD |
 | `scripts/ai_apex.rhai` | ~100 | ✅ 5-state AI behavior |
 | `scripts/weapons.rhai` | ~80 | ✅ 5 weapon types |
-| `server/main.go` | ~280 | ⚠️ No auth/rate limit |
+| `server/main.go` | ~280 | ✅ Auth, rate limit, file serving fixed |
 | `server/go.mod` | ~5 | ✅ gorilla/websocket |
 | `README.md` | ~200 | ❌ References Lua |
 | `index.html.audit_backup` | — | 🗑️ Leftover |
@@ -443,15 +454,17 @@ All 5 primary entry points now have Content-Security-Policy meta tags:
 |-----|----------|-----|------|
 | cdnjs.cloudflare.com | Font Awesome 6.4.0 CSS | `sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==` | `studio3D/ui/index.html` |
 | cdnjs.cloudflare.com | Font Awesome 6.5.0 CSS | `sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B` | `studio3D/pages/integrations.html` |
+| cdn.tailwindcss.com | Tailwind CSS Play CDN | `sha384-1DcZPGeODWbGGjS/i/n4ULX/pEc0DPcKK2WhyuWEmBXRfzOwoVTDQBN9C3C5jJHK` | `aero_comand/index.html` |
 
 > **Font Awesome 6.5.0 note:** SRI hash verified and added (July 2026). The `integrity` attribute is now present on the `<link>` tag in `studio3D/pages/integrations.html`.
+> **Tailwind CDN note:** SRI hash generated from the July 2026 version of `?plugins=forms,container-queries`. The hash will need updating if the Tailwind Play CDN releases a new version.
 
-### SRI limitations (why most CDN resources don't have SRI)
+### SRI limitations (why remaining CDN resources don't have SRI)
 
 | CDN Resource | SRI Possible? | Reason |
 |-------------|--------------|--------|
 | **Import maps** (esm.sh, unpkg.com) | ❌ No | The HTML import map spec does not support `integrity` attributes on map entries. |
-| **Tailwind CSS CDN** (`cdn.tailwindcss.com`) | ❌ No | Dynamic JS runtime — content changes based on page content and Tailwind config. |
+| **Tailwind CSS CDN** (`cdn.tailwindcss.com`) | ✅ **Yes** | SRI hash added July 2026. Note: will need updating when Tailwind releases a new version. |
 | **Google Fonts** (`fonts.googleapis.com`) | ❌ No | CSS is dynamically generated based on user-agent sniffing. Different browsers get different CSS. |
 | **Puter.js SDK** (`js.puter.com/v2/`) | ❌ No | No published SRI hashes. The `/v2/` endpoint may be updated at any time by the Puter team. |
  
@@ -467,15 +480,15 @@ The `gui-states/*.html` and `stitch_kamikazzi_3d/code.html` files each load Tail
 | CDN                                       | Script/Link   | App            | SRI |
 |-------------------------------------------|-----------==--|---===========--|-----|
 | `js.puter.com/v2/`                        | Puter.js SDK  | vecter_omega3d | ❌ |
-| `esm.sh/three@0.128.0`                    | Three.js      | aero_comand    | ❌ |
+| `esm.sh/three` (import map)               | Three.js      | aero_comand    | ❌ import map (no SRI support) |
 | `esm.sh/nipplejs@0.10.1`                  | Joystick      | aero_comand    | ❌ |
 | `unpkg.com/three@0.158.0`                 | Three.js      | studio3D       | ❌ |
 | `unpkg.com/dat.gui@0.7.9`                 | GUI lib       | studio3D       | ❌ |
 | `esm.sh/nipplejs@0.9.1`                   | Joystick      | studio3D       | ❌ |
 | `esm.sh/cannon-es@0.20.0`                 | Physics       | studio3D       | ❌ |
 | `esm.sh/jszip@3.10.1`                     | ZIP export    | studio3D       | ❌ |
-| `cdn.tailwindcss.com`                     | Tailwind CSS  | aero_comand    | ❌ |
-| `cdnjs.cloudflare.com/font-awesome/6.4.0` | Font Awesome  | studio3D       | ❌ |
+| `cdn.tailwindcss.com`                     | Tailwind CSS  | aero_comand    | ✅ SRI added |
+| `cdnjs.cloudflare.com/font-awesome/6.4.0` | Font Awesome  | studio3D       | ✅ SRI added |
 | `fonts.googleapis.com`                    | Google Fonts  | all three      | ❌ |
 | `www.gstatic.com/draco/v1/decoders/`      | Draco decoder | studio3D       | ❌ |
 
@@ -630,7 +643,7 @@ Recommendation: Gate behind `DEBUG` flag or strip for production builds.
 | `ai-bridge.js` | Only supports chat completion | Missing: image generation, TTS, embeddings support |
 | `shell.js` | Inline CSS in JS strings | Extract to CSS modules for maintainability |
 | `ui/index.html` | Duplicate icon definitions (shell.js has same icons) | Single source of truth for icon registry |
-| Import map in `ui/index.html` | Three.js@0.158.0 but other apps use 0.128.0 | Version mismatch could cause confusion |
+| Import map in `ui/index.html` | Three.js@0.158.0 across all apps | ✅ Version drift resolved — all apps at 0.158.0 |
 
 ---
 
@@ -704,14 +717,14 @@ Recommendation: Gate behind `DEBUG` flag or strip for production builds.
 | Root | ✅ Yes | ✅ 2 shortcuts | standalone |
 | Studio 3D | ✅ Yes | ✅ 2 shortcuts | standalone |
 
-### 3.4 Three.js Version Fragmentation
+### 3.4 Three.js Version Fragmentation — ✅ RESOLVED
 | App | Three.js Version | Load Method |
 |-----|:---------------:|-------------|
-| Aero Command | 0.128.0 | ESM from esm.sh |
+| Aero Command | ✅ **0.158.0** (unified via import map) | ESM from esm.sh |
 | Studio 3D | 0.158.0 (import map) | ESM from unpkg |
 | Vector Strike OMNI | N/A (WebGL 1.0 custom) | Raw WebGL |
 
-**Risk:** Studio 3D's import map uses `three@0.158.0` while Aero Command uses `three@0.128.0`. API differences between versions could cause confusion during cross-app development.
+**✅ Resolved — July 2026:** Aero Command JS files no longer hardcode `three@0.128.0` URLs. All files use the import map aliases, resolving to `three@0.158.0` consistently across both apps. `sRGBEncoding` → `SRGBColorSpace` migration applied for r158 API compatibility.
 
 ### 3.5 Error Handling
 All three apps have similar `ClientErrorLogger` implementations (dedup + buffer + Puter FS flush), but:
@@ -772,7 +785,7 @@ All three apps have similar `ClientErrorLogger` implementations (dedup + buffer 
 | App | Concern | Suggestion |
 |-----|---------|------------|
 | Aero Command | `puter-client.js` (1,400+ lines) loaded eagerly | Code-split by feature: auth, kv, ai, rooms |
-| Aero Command | Three.js 0.128.0 from esm.sh (full build) | Use tree-shakeable imports or CDN with compression |
+| Aero Command | Three.js 0.158.0 from esm.sh (full build) | ✅ Version drift fixed. Consider tree-shakeable imports or CDN with compression. |
 | Studio 3D | 10+ Three.js addon imports in studio.js | Dynamic imports or selective loading |
 | Studio 3D | `engine.js` imports 8+ systems eagerly at bootstrap | Lazy-initialize non-critical systems |
 | Vector Strike OMNI | WASM binary + Rust engine (large download) | Show download progress; use streaming compilation |
@@ -821,7 +834,7 @@ All three apps have similar `ClientErrorLogger` implementations (dedup + buffer 
 14. **Vector Strike OMNI**: Add multiplayer rooms via Puter KV (replace/failover WebSocket)
 15. **Studio 3D**: Implement proper scene cloud sync with conflict resolution
 16. **Vector Strike OMNI**: Enable mobile touch joystick (`#joystick-base` hidden)
-17. **All apps**: Unify Three.js version (0.158.0+ for latest features)
+17. ~~**All apps**: Unify Three.js version (0.158.0+)~~ ✅ **Done** — all apps at 0.158.0, version drift eliminated
 18. **All apps**: Replace inline CSS in JS with CSS modules or Tailwind
 
 ---
