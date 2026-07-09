@@ -1,4 +1,4 @@
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 
 // FIX: Removed 'async' as there are no 'await' calls inside
 export function createRenderer(container) {

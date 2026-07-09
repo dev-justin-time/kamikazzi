@@ -4,7 +4,7 @@
 // Bridge: world.js feeds (normalizedΔx, normalizedΔy) per RAF as `input`.
 //
 // realistic damping + visible contrails from wing tips.
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 import { TUNING, clamp } from '../shared.js';
 
 // ---------- Exhaust trail (ring-buffered Line) ----------

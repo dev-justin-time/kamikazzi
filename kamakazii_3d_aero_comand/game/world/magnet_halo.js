@@ -28,7 +28,7 @@
 //   - Parent the returned sprite to `plane` so it follows translation.
 //   - Call halo.setActive(isMagnetActive, performance.now()) each frame.
 //   - On reset/crash, setActive(false, now) so it doesn't linger.
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 
 const MAGNET_HALO_COLOR = 0xff5dc8;        // matches powerups.js POWERUP_TYPES.magnet.color
 const MAGNET_HALO_SCALE = 12;              // halo radius in world meters (plane scale 3.0 + 11m wingspan)

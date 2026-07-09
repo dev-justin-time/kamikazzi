@@ -2,8 +2,8 @@
 // Plane factory: builds a procedural WW1-style plane OR loads a GLB model.
 // Module-scope SHARED/GEO objects are reused across every plane instance.
 // The propeller is named so PlaneController can find and spin it.
-import * as THREE from 'https://esm.sh/three@0.128.0';
-import { GLTFLoader } from 'https://esm.sh/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Shared materials (reused across every plane instance).
 export const SHARED = {

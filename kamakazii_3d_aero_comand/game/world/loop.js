@@ -3,7 +3,7 @@
    and loop start/stop control.
 */
 
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 
 import {
   TUNING, clamp,

@@ -15,7 +15,7 @@
 // getExplosionParticleMaterial when a new color is added to the cache.
 //
 // Anyone introducing a new shared resource MUST call registerShared(...).
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 
 // ---------- Tuning (split into domain files under tuning/) ----------
 import { TUNING } from './tuning/index.js';

@@ -4,7 +4,7 @@
 // Now: shared per-size geometries, shared per-color materials, single texture cache,
 // dispose+remove on reap (no GPU buffer leak). Supports multiple building shapes +
 // themed skins from shared.js (BUILDING_SKINS).
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 import {
   TUNING, WINDOW_FILL_COLORS, GRAFFITI_ASSETS,
   WINDOW_GEOMETRY, WINDOW_FRAME_MATERIAL, getWindowPaneMaterial,

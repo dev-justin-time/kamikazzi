@@ -2,7 +2,7 @@
 // Particle burst on crash. Was 40×BoxGeometry + 40×MeshBasicMaterial per explosion
 // (and they were never disposed, leaking across rounds).
 // Now: single shared geometry + per-color shared material + dispose on shrink.
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 import {
   EXPLOSION_COLORS, EXPLOSION_PARTICLE_GEOMETRY, EXPLOSION_PALETTES,
   getExplosionParticleMaterial, removeAndDispose,

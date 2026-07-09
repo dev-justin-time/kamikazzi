@@ -31,7 +31,7 @@
 //   MAGNET_PULL m/s. The Y/Z axes aren't pulled — only left/right, since
 //   that mirrors the gameplay feel of "my plane is steering powerups
 //   sideways into my lane".
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 import { TUNING, removeAndDispose } from './shared.js';
 
 // Type catalog. Shape fns produce a centered THREE.Object3D so the spawn

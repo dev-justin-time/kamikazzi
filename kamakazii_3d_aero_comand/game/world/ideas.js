@@ -32,7 +32,7 @@
 // as a healthy round-trip. A 5-minute sliding window resets the cap to
 // 0 before the gate runs, so an extended API outage self-heals instead
 // of locking the user out.
-import * as THREE from 'https://esm.sh/three@0.128.0';
+import * as THREE from 'three';
 import { TUNING } from './shared.js';
 
 const KEY = 'kamikazziBriefings';

@@ -18,8 +18,8 @@
      - Public API assembly
 */
 
-import * as THREE from 'https://esm.sh/three@0.128.0';
-import { GLTFLoader } from 'https://esm.sh/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { buildPlane, loadPlaneFromGLB } from './world/plane/factory.js';
 import { PlaneController } from './world/plane/controller.js';
