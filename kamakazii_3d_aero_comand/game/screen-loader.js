@@ -1,3 +1,4 @@
+import { dbg } from './dbg.js';
 /* game/screen-loader.js
    ===========================================================================
    Dynamic screen loader for gui-states HTML files.
@@ -145,7 +146,7 @@ async function inject(name) {
   // Find the overlay by data-gui-state attribute
   const target = document.querySelector(`[data-gui-state="${name}"]`);
   if (!target) {
-    console.warn(`[ScreenLoader] No overlay with data-gui-state="${name}" found`);
+    dbg.warn(`[ScreenLoader] No overlay with data-gui-state="${name}" found`);
     return;
   }
 
@@ -183,10 +184,10 @@ async function inject(name) {
 
     _injected.add(name);
     if (window.__screenLoaderDebug) {
-      console.log(`[ScreenLoader] ${_replacementScreens.has(name) ? 'Replaced' : 'Injected design for'} "${name}"`);
+      dbg.log(`[ScreenLoader] ${_replacementScreens.has(name) ? 'Replaced' : 'Injected design for'} "${name}"`);
     }
   } catch (e) {
-    console.warn(`[ScreenLoader] Failed to inject screen "${name}":`, e);
+    dbg.warn(`[ScreenLoader] Failed to inject screen "${name}":`, e);
   }
 }
 
@@ -274,7 +275,7 @@ async function loadStyles() {
       link.href = GUI_STATES_DIR + 'styles.css';
       document.head.appendChild(link);
     } catch (e) {
-      console.warn('[ScreenLoader] Failed to load gui-states/styles.css:', e);
+      dbg.warn('[ScreenLoader] Failed to load gui-states/styles.css:', e);
     }
   }
 
@@ -363,7 +364,7 @@ async function preloadAll() {
 
   const failed = results.filter(r => r.status === 'rejected');
   if (failed.length > 0 && window.__screenLoaderDebug) {
-    console.warn(`[ScreenLoader] ${failed.length} screens failed to preload`);
+    dbg.warn(`[ScreenLoader] ${failed.length} screens failed to preload`);
   }
 }
 
@@ -375,7 +376,7 @@ async function init() {
   await loadStyles();
   startObserver();
   if (window.__screenLoaderDebug) {
-    console.log('[ScreenLoader] Initialized — watching for overlay visibility changes');
+    dbg.log('[ScreenLoader] Initialized — watching for overlay visibility changes');
   }
 }
 

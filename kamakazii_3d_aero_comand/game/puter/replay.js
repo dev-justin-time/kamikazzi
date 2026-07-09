@@ -6,6 +6,8 @@
 
 import { resolvePuter } from './auth.js';
 
+import { dbg } from '../dbg.js';
+
 const REPLAY_DIR = '/kamikazzi3d/replays';
 const LOCAL_REPLAYS_KEY = 'kamikazzi_local_replays';
 const MAX_LOCAL_REPLAYS = 10;
@@ -34,7 +36,7 @@ export async function captureScreenshot(renderer) {
   try {
     return renderer.domElement.toDataURL('image/png');
   } catch (e) {
-    console.warn('captureScreenshot failed', e);
+    dbg.warn('captureScreenshot failed', e);
     return null;
   }
 }
@@ -62,7 +64,7 @@ export async function saveReplay(replay, screenshotDataUrl) {
       await p.fs.write(`${REPLAY_DIR}/${id}/replay.json`, JSON.stringify(replay, null, 2));
       return { id, source: 'cloud' };
     } catch (e) {
-      console.warn('saveReplay cloud failed, falling back to local', e);
+      dbg.warn('saveReplay cloud failed, falling back to local', e);
     }
   }
 
@@ -74,7 +76,7 @@ export async function saveReplay(replay, screenshotDataUrl) {
     localStorage.setItem(LOCAL_REPLAYS_KEY, JSON.stringify(local));
     return { id, source: 'local' };
   } catch (e) {
-    console.warn('saveReplay local failed', e);
+    dbg.warn('saveReplay local failed', e);
     return null;
   }
 }

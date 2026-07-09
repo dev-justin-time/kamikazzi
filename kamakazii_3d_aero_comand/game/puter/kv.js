@@ -7,6 +7,8 @@
 
 import { resolvePuter, getUser, isPuterAvailable } from './auth.js';
 
+import { dbg } from '../dbg.js';
+
 const CLOUD_PREFIX = 'kamikazzi3d_';
 const LOCAL_PREFIX = 'kamikazzi';
 
@@ -269,7 +271,7 @@ const MAX_COMMUNITY_ITEMS = 100;
 
 export async function submitCommunityPowerup(design) {
   if (!design || !design.name || !design.color || !design.shape || !design.effect) {
-    console.warn('submitCommunityPowerup: missing required fields');
+    dbg.warn('submitCommunityPowerup: missing required fields');
     return null;
   }
   const user = await getUser();
@@ -293,7 +295,7 @@ export async function submitCommunityPowerup(design) {
     }
     return saved;
   } catch (e) {
-    console.warn('submitCommunityPowerup failed', e);
+    dbg.warn('submitCommunityPowerup failed', e);
     return null;
   }
 }
@@ -326,7 +328,7 @@ export async function voteCommunityPowerup(itemId) {
     }
     return newCount >= 0 ? newCount : votes.length;
   } catch (e) {
-    console.warn('voteCommunityPowerup failed', e);
+    dbg.warn('voteCommunityPowerup failed', e);
     return -1;
   }
 }

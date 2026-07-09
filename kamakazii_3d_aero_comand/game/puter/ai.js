@@ -6,6 +6,8 @@
 
 import { resolvePuter, getUser, getAiExport } from './auth.js';
 
+import { dbg } from '../dbg.js';
+
 // ── AI Chat: generateFromComment ───────────────────────────────
 export async function generateFromComment(text) {
   if (!text) return null;
@@ -63,7 +65,7 @@ export async function generateImage(prompt, options = {}) {
   if (!prompt) return null;
   const p = await resolvePuter();
   if (!p || !p.ai || typeof p.ai.txt2img !== 'function') {
-    console.warn('Puter image generation unavailable');
+    dbg.warn('Puter image generation unavailable');
     return null;
   }
   try {
@@ -84,7 +86,7 @@ export async function generateImage(prompt, options = {}) {
     if (result && typeof result.url === 'string') return result.url;
     return null;
   } catch (e) {
-    console.warn('generateImage failed', e);
+    dbg.warn('generateImage failed', e);
     return null;
   }
 }
@@ -285,7 +287,7 @@ export async function generateBuildingPalette(userPrompt, presetId) {
     });
     return { palette, roofColor: sorted[0], accentColor: sorted[sorted.length - 1], imageUrl };
   } catch (e) {
-    console.warn('generateBuildingPalette color extraction failed', e);
+    dbg.warn('generateBuildingPalette color extraction failed', e);
     return { palette: [0x5c6bc0, 0x26a69a, 0xab47bc, 0xef5350, 0xffa726, 0x42a5f5, 0x55d65f], roofColor: 0x4a4a6a, accentColor: 0x2a2f3a, imageUrl };
   }
 }

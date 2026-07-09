@@ -7,6 +7,8 @@
 import { resolvePuter, getUser } from './auth.js';
 import { save, load } from './kv.js';
 
+import { dbg } from '../dbg.js';
+
 const CLOUD_PREFIX = 'kamikazzi3d_';
 const SNAPSHOT_KEY = 'GameSnapshot';
 
@@ -20,7 +22,7 @@ const SNAPSHOT_KEY = 'GameSnapshot';
 export async function createPuterRoom(roomName = 'kamikazzi-lobby') {
   const p = await resolvePuter();
   if (!p || !p.kv) {
-    console.warn('Puter room: KV unavailable; multiplayer disabled');
+    dbg.warn('Puter room: KV unavailable; multiplayer disabled');
     return null;
   }
 
@@ -260,18 +262,18 @@ export async function createMultiplayerRoom(roomName = 'kamikazzi-lobby') {
   try {
     const puterRoom = await createPuterRoom(roomName);
     if (puterRoom) {
-      console.log('[Multiplayer] Connected via Puter KV');
+      dbg.log('[Multiplayer] Connected via Puter KV');
       return puterRoom;
     }
   } catch (e) {
-    console.warn('[Multiplayer] Puter room failed, trying Websim', e);
+    dbg.warn('[Multiplayer] Puter room failed, trying Websim', e);
   }
   try {
     const websimRoom = await createWebsimRoom(roomName);
-    console.log('[Multiplayer] Connected via Websim (BroadcastChannel)');
+    dbg.log('[Multiplayer] Connected via Websim (BroadcastChannel)');
     return websimRoom;
   } catch (e) {
-    console.warn('[Multiplayer] Websim room failed', e);
+    dbg.warn('[Multiplayer] Websim room failed', e);
     return null;
   }
 }

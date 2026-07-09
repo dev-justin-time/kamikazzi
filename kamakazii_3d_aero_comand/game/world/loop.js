@@ -11,6 +11,8 @@ import {
   FINAL_LEVEL_TINT, FINAL_LEVEL_FOG,
 } from './shared.js';
 
+import { dbg } from '../dbg.js';
+
 /**
  * Create the game loop controller.
  * @param {object} ctx - context object with all references the loop() needs
@@ -57,7 +59,7 @@ export function createGameLoop(ctx) {
   // ---- loop ----
   function startLoop(rendererObj) {
     if (!rendererObj || !rendererObj.renderer) {
-      console.warn('startLoop: rendererObj missing; aborting', rendererObj);
+      dbg.warn('startLoop: rendererObj missing; aborting', rendererObj);
       return;
     }
     const renderer = rendererObj.renderer;
@@ -120,7 +122,7 @@ export function createGameLoop(ctx) {
             if (state.score >= 15000 && !boeingSwapped.value) {
               boeingSwapped.value = true;
               try { window.dispatchEvent(new CustomEvent('modelUpgrade')); } catch (_) {}
-              swapPlaneModel('/assets/model/BOEING/scene.gltf').catch(err => console.warn('Boeing swap failed', err));
+              swapPlaneModel('/assets/model/BOEING/scene.gltf').catch(err => dbg.warn('Boeing swap failed', err));
             }
 
             // Level advance
@@ -231,7 +233,7 @@ export function createGameLoop(ctx) {
         renderer.clearDepth();
         renderer.render(scene, camera);
       } catch (err) {
-        console.error('world loop error:', err);
+        dbg.error('world loop error:', err);
         if (raf) { cancelAnimationFrame(raf); raf = null; }
       }
     }
