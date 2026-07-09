@@ -146,6 +146,7 @@ export function setupUI({ world, rendererObj }) {
     if (key === 'Escape') {
       e.preventDefault();
       const order = [
+        { id:'deleteConfirmPanel', close:()=>modals.closeDeleteConfirm() },
         { id:'briefingsPanel', close:()=>panels.closeBriefings() },
         { id:'lobbyPanel', close:()=>lobby.closeLobby() },
         { id:'settingsPanel', close:()=>settings.closeSettings() },
@@ -160,11 +161,33 @@ export function setupUI({ world, rendererObj }) {
         { id:'legalPanel', close:()=>settings.closeLegal() },
         { id:'shortcutsPanel', close:()=>settings.toggleShortcuts() },
         { id:'pauseScreen', close:()=>resumeGame() },
-        { id:'deleteConfirmPanel', close:()=>modals.closeDeleteConfirm() },
       ];
       let handled = false;
       for (const entry of order) {
         const el = document.getElementById(entry.id);
         if (el && !el.classList.contains('hidden')) { entry.close(); handled = true; break; }
       }
-      if (!handled) { if (skipExplodeIf
+      if (!handled) {
+        if (!skipExplodeIfRunning()) {
+          if (!world || !world.state) return;
+          if (world.state.running && !world.state.over && !world.state.won) {
+            togglePause();
+          } else {
+            quitToMenu();
+          }
+        }
+      }
+    }
+  });
+
+  // Auto-pause when the tab is hidden (browsers throttle rAF when hidden)
+  document.addEventListener('visibilitychange', () => {
+    if (!world || !world.state) return;
+    if (document.hidden && world.state.running && !world.state.over && !world.state.won && !world.state.paused) {
+      togglePause();
+    }
+  });
+
+  // Start the UI loop (HUD updates, powerup chip strip, explosion/mission triggers)
+  uiLoop();
+}

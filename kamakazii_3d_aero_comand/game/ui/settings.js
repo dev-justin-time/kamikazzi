@@ -33,6 +33,14 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
 
   // Wire click-to-recheck on the cloud status pill
   initCloudRecheck('cloudStatusPill', async () => {
+    // User-initiated recheck: reset the puter-lib circuit breaker so the
+    // next attempt actually hits the network. If the backend is still down,
+    // the breaker will re-open after 3 more failures (30s window).
+    try {
+      const { resetCloudCircuit } = await import('../../../puter-lib.js');
+      if (typeof resetCloudCircuit === 'function') resetCloudCircuit();
+    } catch (_) { /* puter-client not available in some build configs */ }
+
     if (!puterAvailable) return;
     try {
       const username = await getUsername();

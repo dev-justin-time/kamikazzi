@@ -40,6 +40,10 @@ const MAX_BUFFER = 50;
 const FLUSH_BATCH = 20;
 const DEDUP_WINDOW_MS = 5000;
 const FLUSH_DEBOUNCE_MS = 2000;
+// Dedupe the "Puter FS write failed" warn to once per 60s. The underlying
+// puter-lib circuit breaker (3 fails / 30s) throttles the actual writes;
+// this prevents the catch block from re-logging the same outage repeatedly.
+const PUTER_WARN_DEDUPE_MS = 60000;
 
 // Per-project configuration (set by install())
 let logDir = '/Logs';
@@ -51,6 +55,7 @@ const seen = new Map();   // key -> ts (for dedup)
 const buffer = [];
 let flushTimer = null;
 let flushing = false;     // re-entrancy guard
+let lastPuterWarnAt = 0;  // dedupe the [CLIENT-ERROR] Puter FS write failed warn
 
 function makeKey(kind, message) {
   return kind + '|' + String(message || '').slice(0, 200);
@@ -125,6 +130,7 @@ async function flush() {
   if (flushing) return;
   if (buffer.length === 0) return;
   if (typeof puter === 'undefined' || !puter || !puter.fs) return;
+  if (typeof puter.isCloudDisabled === 'function' && puter.isCloudDisabled()) { scheduleFlush(); return; }
   if (!isPuterReady()) { scheduleFlush(); return; }
   flushing = true;
   // Hoisted to prevent ReferenceError crash when an exception fires
@@ -144,8 +150,13 @@ async function flush() {
     await puter.fs.write(logPath, blob);
   } catch (e) {
     if (toFlush.length) buffer.unshift(...toFlush);
-    // eslint-disable-next-line no-restricted-imports
-    console.warn('[CLIENT-ERROR] Puter FS write failed:', e);
+    // Dedupe the outage warning (once per 60s). The actual writes are
+    // throttled by the puter-lib circuit breaker (3 fails / 30s).
+    if (Date.now() - lastPuterWarnAt > PUTER_WARN_DEDUPE_MS) {
+      // eslint-disable-next-line no-restricted-imports
+      console.warn('[CLIENT-ERROR] Puter FS write failed:', e);
+      lastPuterWarnAt = Date.now();
+    }
   } finally {
     flushing = false;
     if (buffer.length > 0) scheduleFlush();

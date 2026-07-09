@@ -94,6 +94,89 @@ export function getAiModule() {
 }
 
 // ============================================================================
+// 1b. CIRCUIT BREAKER
+// Prevents the Puter backend from being hammered with retries when it is
+// unreachable. After 3 consecutive failures within a 30-second window the
+// circuit opens and all fs/kv/ai calls short-circuit to a local fallback
+// (no network attempt, no console noise). The circuit resets on:
+//   - the next successful Puter call (auto-close after first success), OR
+//   - an explicit user-initiated recheck (resetCloudCircuit() — wired to the
+//     cloud-status pill click handler in editor/UIManager.js and game/ui/settings.js).
+// ============================================================================
+
+const CIRCUIT_THRESHOLD = 3;
+const CIRCUIT_WINDOW_MS = 30000;
+const WARN_DEDUPE_MS = 60000;
+
+let _cloudFailures = [];
+let _cloudDisabled = false;
+let _lastFsWarnAt = 0;
+let _lastLoggerWarnAt = 0;
+let _lastAiWarnAt = 0;
+
+/** Return true if the cloud backend is currently disabled by the circuit breaker. */
+export function isCloudDisabled() {
+  return _cloudDisabled;
+}
+
+/** User-initiated recheck: reset the circuit breaker so Puter calls can resume. */
+export function resetCloudCircuit() {
+  _cloudFailures = [];
+  _cloudDisabled = false;
+  // Do NOT reset the warn-dedupe timestamps — the user clicking the pill
+  // doesn't mean we should immediately spam the console again.
+}
+
+function _recordCloudError() {
+  const now = Date.now();
+  _cloudFailures.push(now);
+  _cloudFailures = _cloudFailures.filter(t => now - t < CIRCUIT_WINDOW_MS);
+  if (_cloudFailures.length >= CIRCUIT_THRESHOLD && !_cloudDisabled) {
+    _cloudDisabled = true;
+    // Trip event: only log once (when the breaker transitions to open).
+    console.warn('[puter-lib] Cloud circuit opened (3+ failures in 30s); Puter calls paused');
+  }
+}
+
+function _recordCloudSuccess() {
+  if (!_cloudDisabled) _cloudFailures = [];
+}
+
+function _maybeWarn(scope, label, ...rest) {
+  const now = Date.now();
+  const stamp =
+    scope === 'fs' ? _lastFsWarnAt :
+    scope === 'logger' ? _lastLoggerWarnAt :
+    scope === 'ai' ? _lastAiWarnAt : 0;
+  if (now - stamp <= WARN_DEDUPE_MS) return;
+  if (scope === 'fs') _lastFsWarnAt = now;
+  else if (scope === 'logger') _lastLoggerWarnAt = now;
+  else if (scope === 'ai') _lastAiWarnAt = now;
+  console.warn(`[puter-lib:${scope}] ${label}`, ...rest);
+}
+
+/**
+ * Determine whether a Puter SDK error represents a genuine backend
+ * outage (5xx or network failure) vs a client-side issue (4xx).
+ *
+ * The Puter SDK wraps HTTP errors with `.status` and `.message`.
+ * - 5xx status (500, 502, 503…) → server/backend error → trip breaker.
+ * - No status (DNS failure, timeout, connection refused) → likely
+ *   network-level outage → trip breaker.
+ * - 4xx status (404, 403…) → client error (file not found, permission) →
+ *   expected, do NOT trip breaker.
+ */
+function _isServerError(err) {
+  if (!err) return false;
+  const status = err.status || err.statusCode;
+  // No status code = network-level error (DNS, timeout) — treat as outage.
+  if (status == null) return true;
+  // 5xx = backend failure — trip the breaker.
+  // 4xx = client error (404 not-found, 403 forbidden) — expected, don't trip.
+  return status >= 500;
+}
+
+// ============================================================================
 // 2. AUTH
 // ============================================================================
 
@@ -252,12 +335,17 @@ export const kv = {
    */
   async set(key, value) {
     _localSet(key, value);
+    if (isCloudDisabled()) return false;
     const p = await resolvePuter();
     if (!p || !p.kv || typeof p.kv.set !== 'function') return false;
     try {
       await p.kv.set(_cloudKey(key), JSON.stringify(value));
+      _recordCloudSuccess();
       return true;
-    } catch (_) { return false; }
+    } catch (_) {
+      _recordCloudError();
+      return false;
+    }
   },
 
   /**
@@ -270,17 +358,25 @@ export const kv = {
    * @returns {Promise<*>}
    */
   async get(key, defaultValue = undefined) {
-    const p = await resolvePuter();
-    if (p && p.kv && typeof p.kv.get === 'function') {
-      try {
-        const raw = await p.kv.get(_cloudKey(key));
-        if (raw !== undefined && raw !== null) {
-          const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-          _localSet(key, parsed);
-          return parsed;
+    if (!isCloudDisabled()) {
+      const p = await resolvePuter();
+      if (p && p.kv && typeof p.kv.get === 'function') {
+        try {
+          const raw = await p.kv.get(_cloudKey(key));
+          _recordCloudSuccess();
+          if (raw !== undefined && raw !== null) {
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            _localSet(key, parsed);
+            return parsed;
+          }
+          // Cloud returned no value for this key → fall through to local
+        } catch (_) {
+          _recordCloudError();
+          // Fall through to local
         }
-      } catch (_) {}
+      }
     }
+    // Cloud unavailable or key not found → fall back to local
     const localVal = _localGet(key);
     return localVal !== undefined ? localVal : defaultValue;
   },
@@ -293,12 +389,17 @@ export const kv = {
    */
   async delete(key) {
     _localDelete(key);
+    if (isCloudDisabled()) return false;
     const p = await resolvePuter();
     if (!p || !p.kv || typeof p.kv.del !== 'function') return false;
     try {
       await p.kv.del(_cloudKey(key));
+      _recordCloudSuccess();
       return true;
-    } catch (_) { return false; }
+    } catch (_) {
+      _recordCloudError();
+      return false;
+    }
   },
 
   /**
@@ -310,12 +411,19 @@ export const kv = {
    * @returns {Promise<number>} The new value, or -1 on failure.
    */
   async incr(key, delta = 1) {
-    const p = await resolvePuter();
-    if (p && p.kv && typeof p.kv.incr === 'function') {
-      try {
-        const result = await p.kv.incr(_cloudKey(key), delta);
-        return Math.max(0, typeof result === 'number' ? result : 0);
-      } catch (_) {}
+    if (!isCloudDisabled()) {
+      const p = await resolvePuter();
+      if (p && p.kv && typeof p.kv.incr === 'function') {
+        try {
+          const result = await p.kv.incr(_cloudKey(key), delta);
+          _recordCloudSuccess();
+          const val = Math.max(0, typeof result === 'number' ? result : 0);
+          _localSet(key, val);
+          return val;
+        } catch (_) {
+          _recordCloudError();
+        }
+      }
     }
     // Local fallback
     const current = _localGet(key);
@@ -367,14 +475,17 @@ export const fs = {
    * @returns {Promise<boolean>}
    */
   async write(path, data) {
+    if (isCloudDisabled()) return false;
     const p = await resolvePuter();
     if (!p || !p.fs || typeof p.fs.write !== 'function') return false;
     try {
       const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain' });
       await p.fs.write(path, blob);
+      _recordCloudSuccess();
       return true;
     } catch (e) {
-      console.warn('[puter-lib:fs] write failed:', path, e);
+      _recordCloudError();
+      _maybeWarn('fs', 'write failed:', path, e);
       return false;
     }
   },
@@ -387,12 +498,42 @@ export const fs = {
    *   Returns null if the file doesn't exist or the read fails.
    */
   async read(path) {
+    if (isCloudDisabled()) return null;
     const p = await resolvePuter();
     if (!p || !p.fs || typeof p.fs.read !== 'function') return null;
     try {
       const file = await p.fs.read(path);
+      _recordCloudSuccess();
       return file || null;
-    } catch (_) { return null; }
+    } catch (e) {
+      // Only trip the circuit breaker for genuine server/network errors
+      // (5xx or no status). 4xx errors (404 not-found, 403 forbidden)
+      // are expected client-side conditions and should not count toward
+      // the 3-failure threshold.
+      if (_isServerError(e)) _recordCloudError();
+      return null;
+    }
+  },
+
+  /**
+   * Create a directory on the Puter virtual drive.
+   * Safe to call even if the directory already exists.
+   *
+   * @param {string} path — absolute path (e.g. '/CloudAssets/myapp').
+   * @returns {Promise<boolean>}
+   */
+  async mkdir(path) {
+    if (isCloudDisabled()) return false;
+    const p = await resolvePuter();
+    if (!p || !p.fs || typeof p.fs.mkdir !== 'function') return false;
+    try {
+      await p.fs.mkdir(path);
+      _recordCloudSuccess();
+      return true;
+    } catch (_) {
+      // Directory may already exist — expected, not a backend outage.
+      return false;
+    }
   },
 
   /**
@@ -417,12 +558,19 @@ export const fs = {
    * @returns {Promise<boolean>}
    */
   async delete(path) {
+    if (isCloudDisabled()) return false;
     const p = await resolvePuter();
     if (!p || !p.fs || typeof p.fs.delete !== 'function') return false;
     try {
       await p.fs.delete(path);
+      _recordCloudSuccess();
       return true;
-    } catch (_) { return false; }
+    } catch (e) {
+      // Only trip the circuit breaker for genuine server/network errors.
+      // 4xx (not-found, forbidden) are expected and should not count.
+      if (_isServerError(e)) _recordCloudError();
+      return false;
+    }
   },
 };
 
@@ -443,6 +591,7 @@ export const ai = {
    * @returns {Promise<string|null>} The response text content, or null.
    */
   async chat(messages, options = {}) {
+    if (isCloudDisabled()) return null;
     const p = await resolvePuter();
     if (!p || !p.ai || typeof p.ai.chat !== 'function') return null;
     try {
@@ -452,9 +601,11 @@ export const ai = {
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens || 1024,
       });
+      _recordCloudSuccess();
       return typeof response === 'string' ? response : (response && response.message) || null;
     } catch (e) {
-      console.warn('[puter-lib:ai] chat failed:', e);
+      _recordCloudError();
+      _maybeWarn('ai', 'chat failed:', e);
       return null;
     }
   },
@@ -469,6 +620,7 @@ export const ai = {
    * @returns {Promise<string|null>} The image URL, or null.
    */
   async generateImage(prompt, options = {}) {
+    if (isCloudDisabled()) return null;
     const p = await resolvePuter();
     if (!p || !p.ai || typeof p.ai.txt2img !== 'function') return null;
     try {
@@ -476,9 +628,11 @@ export const ai = {
         size: options.size || '512x512',
         negative_prompt: options.negative_prompt || undefined,
       });
+      _recordCloudSuccess();
       return (result && result.url) || result || null;
     } catch (e) {
-      console.warn('[puter-lib:ai] generateImage failed:', e);
+      _recordCloudError();
+      _maybeWarn('ai', 'generateImage failed:', e);
       return null;
     }
   },
@@ -490,13 +644,16 @@ export const ai = {
    * @returns {Promise<string|null>} The audio URL or data URI, or null.
    */
   async textToSpeech(text) {
+    if (isCloudDisabled()) return null;
     const p = await resolvePuter();
     if (!p || !p.ai || typeof p.ai.txt2speech !== 'function') return null;
     try {
       const result = await p.ai.txt2speech(text);
+      _recordCloudSuccess();
       return result || null;
     } catch (e) {
-      console.warn('[puter-lib:ai] textToSpeech failed:', e);
+      _recordCloudError();
+      _maybeWarn('ai', 'textToSpeech failed:', e);
       return null;
     }
   },
@@ -552,24 +709,35 @@ function _logScheduleFlush() {
 async function _logFlush() {
   _logFlushTimer = null;
   if (_logFlushing || _logBuffer.length === 0) return;
-  const p = await resolvePuter();
-  if (!p || !p.fs || typeof p.fs.write !== 'function') return;
+  if (isCloudDisabled()) return;
   _logFlushing = true;
   const toFlush = _logBuffer.splice(0, _logBuffer.length);
   try {
     const date = new Date().toISOString().slice(0, 10);
     const logPath = _logBasePath + '/errors-' + date + '.jsonl';
     const newContent = toFlush.map(e => JSON.stringify(e)).join('\n') + '\n';
-    let existing = '';
-    try {
-      const file = await p.fs.read(logPath);
-      if (file && typeof file.text === 'function') existing = await file.text();
-    } catch (_) {}
+
+    // Route through the fs wrappers so circuit breaker tracking,
+    // deduped warnings, and future instrumentation apply uniformly.
+    const file = await fs.read(logPath);
+    const existing = (file && typeof file.text === 'function')
+      ? await file.text() : '';
+
     const blob = new Blob([existing + newContent], { type: 'text/plain' });
-    await p.fs.write(logPath, blob);
+    const ok = await fs.write(logPath, blob);
+    if (!ok) {
+      // fs.write returns false on failure (it records the error via the
+      // circuit breaker and issues its own deduped warn under 'fs' scope).
+      // Issue a logger-scoped warn as well and re-push entries so they
+      // survive the failed flush and are retried later.
+      _logBuffer.unshift(...toFlush);
+      _maybeWarn('logger', 'FS write failed:', logPath);
+    }
   } catch (e) {
+    // Unexpected error — should be rare since the fs wrappers are
+    // non-throwing. Re-push entries so no data is lost.
     _logBuffer.unshift(...toFlush);
-    console.warn('[puter-lib:logger] FS write failed:', e);
+    _maybeWarn('logger', 'FS write failed:', e);
   } finally {
     _logFlushing = false;
     if (_logBuffer.length > 0) _logScheduleFlush();
@@ -651,6 +819,8 @@ export const ClientLogger = {
 const puter = {
   resolvePuter,
   isPuterAvailable,
+  isCloudDisabled,
+  resetCloudCircuit,
   getAiModule,
   auth,
   kv,
