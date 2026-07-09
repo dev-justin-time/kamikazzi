@@ -108,9 +108,12 @@ async function fetchScreen(name) {
 
 const _injected = new Set();
 
-/** Screens that should NOT get design injection (e.g., crash overlay
- * that needs its solid black background for the explosion effect). */
-const _skipScreens = new Set(['crash']);
+/** Screens that should NOT get lazy injection via MutationObserver.
+ * preloadAll() handles all screens at boot, so this is now unused.
+ * Kept for documentation purposes in case future screens need to
+ * skip lazy injection (e.g., screens whose content must not be
+ * replaced once visible). */
+const _skipScreens = new Set();
 
 /**
  * Screens that use FULL REPLACEMENT mode:

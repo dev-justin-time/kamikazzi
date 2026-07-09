@@ -34,6 +34,7 @@
 // of locking the user out.
 import * as THREE from 'three';
 import { TUNING } from './shared.js';
+import { dbg } from '../dbg.js';
 
 const KEY = 'kamikazziBriefings';
 const AI_RESULT_KEY = 'kamikazziIdeaResult';
@@ -104,7 +105,7 @@ function _registerMode(name, sky, groundTone, bgTint, fog) {
     // tint still applies via the tier-2 lookup in applyPalette, but its
     // per-mode colour row is needed for visual distinctness.
     if (!(tint in overridesMap)) {
-      console.warn(`[ideas] palette override missing: mode='${name}', tint=${tint}. ` +
+      dbg.warn(`[ideas] palette override missing: mode='${name}', tint=${tint}. ` +
         `Tints registered in TINT_PRIORITY must have a row in both ` +
         `_TINT_DAY_OVERRIDES and _TINT_NIGHT_OVERRIDES.`);
     }
@@ -281,7 +282,7 @@ function maybeEscalateToAi(combined, tokens, alreadyHaveAiCfg) {
         writeEscalationMeta({ lastTs: Date.now(), count: Math.max(0, cur.count - 1) });
       } catch (_) { /* localStorage might be disabled */ }
     }).catch(e => {
-      console.warn('AI escalation HTTP/JSON failed', e);
+      dbg.warn('AI escalation HTTP/JSON failed', e);
     }).finally(() => {
       escalating = false;
     });

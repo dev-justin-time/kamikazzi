@@ -4,6 +4,7 @@
 */
 
 import { IMPACT_SOUND_URL, POWERUP_SFX_URLS } from './shared.js';
+import { dbg } from '../dbg.js';
 
 /**
  * Load the impact SFX buffer once at world-init.
@@ -27,7 +28,7 @@ export async function loadImpactBuffer(THREE) {
         loader.load(t.url, resolve, undefined, reject);
       });
       if (t.isFallback) {
-        console.warn(`Impact sound: ${IMPACT_SOUND_URL} not found; using airplane.wav as one-shot burst fallback.`);
+        dbg.warn(`Impact sound: ${IMPACT_SOUND_URL} not found; using airplane.wav as one-shot burst fallback.`);
       }
       return { buffer: buf, isFallback: t.isFallback };
     } catch (e) {
@@ -35,7 +36,7 @@ export async function loadImpactBuffer(THREE) {
     }
   }
   // Both file loads failed — synthesize an explosion via Web Audio API.
-  console.warn('Impact sound: all files failed; synthesizing explosion via Web Audio API.', lastErr);
+  dbg.warn('Impact sound: all files failed; synthesizing explosion via Web Audio API.', lastErr);
   try {
     const sampleRate = 44100;
     const duration = 0.8;
@@ -71,10 +72,10 @@ export async function loadImpactBuffer(THREE) {
     noiseSource.stop(now + duration);
 
     const renderedBuffer = await offlineCtx.startRendering();
-    console.log('Impact sound: synthesized explosion successfully.');
+    dbg.log('Impact sound: synthesized explosion successfully.');
     return { buffer: renderedBuffer, isFallback: true };
   } catch (synthErr) {
-    console.warn('Impact sound: synthesis also failed; crash will be silent.', synthErr);
+    dbg.warn('Impact sound: synthesis also failed; crash will be silent.', synthErr);
     return null;
   }
 }
@@ -121,7 +122,7 @@ export function createImpactPlayer(audioListener, impactBufferData, THREE) {
       if (impactAudio.isPlaying) impactAudio.stop();
       impactAudio.setLoop(false);
       impactAudio.play();
-    } catch (e) { console.warn('playImpact failed', e); }
+    } catch (e) { dbg.warn('playImpact failed', e); }
   }
   function stopImpact() {
     try {

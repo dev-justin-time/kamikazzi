@@ -50,6 +50,7 @@ import { loadImpactBuffer, loadPickupSfxBuffers, createImpactPlayer } from './wo
 import { createEngineSound } from './world/engine-sound.js';
 import { createMultiplayerManager } from './world/multiplayer.js';
 import { createGameLoop } from './world/loop.js';
+import { dbg } from './dbg.js';
 
 // ── Internal constants ─────────────────────────────────────────
 const SUN_POSITION_X = 40;
@@ -91,10 +92,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   // ── Preload all assets in parallel with per-promise timeouts ──
   const bgUrls = LEVEL_BACKGROUNDS.map(entry => typeof entry === 'string' ? entry : entry.url);
   const [bgTextures, impactBufferData, floorTextures, pickupSfxBuffers] = await Promise.all([
-    Promise.all(bgUrls.map(url => loadTexture(url).catch(e => { console.warn('bg texture load failed', url, e); return null; }))),
-    loadImpactBuffer(THREE).catch(e => { console.warn('impact buffer load failed', e); return null; }),
-    Promise.all(FLOOR_ASSETS.map(url => loadTexture(url).catch(e => { console.warn('floor texture load failed', url, e); return null; }))),
-    loadPickupSfxBuffers(THREE).catch(e => { console.warn('pickup sfx load failed', e); return {}; }),
+    Promise.all(bgUrls.map(url => loadTexture(url).catch(e => { dbg.warn('bg texture load failed', url, e); return null; }))),
+    loadImpactBuffer(THREE).catch(e => { dbg.warn('impact buffer load failed', e); return null; }),
+    Promise.all(FLOOR_ASSETS.map(url => loadTexture(url).catch(e => { dbg.warn('floor texture load failed', url, e); return null; }))),
+    loadPickupSfxBuffers(THREE).catch(e => { dbg.warn('pickup sfx load failed', e); return {}; }),
   ]);
   // Filter out failed loads so downstream code gets clean arrays
   const bgTexturesFiltered = bgTextures.filter(t => t !== null);
@@ -193,7 +194,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         loader.load('/assets/model/rain_1/scene.gltf', resolve, undefined, reject);
       });
       cloudSourceModel = gltf.scene || (gltf.scenes && gltf.scenes[0]);
-      if (!cloudSourceModel) { console.warn('initClouds: no scene in GLTF'); return; }
+      if (!cloudSourceModel) { dbg.warn('initClouds: no scene in GLTF'); return; }
 
       cloudSourceModel.traverse(node => {
         if (node.isMesh && node.material) {
@@ -229,7 +230,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         clouds.push(clone);
       }
     } catch (e) {
-      console.warn('initClouds: GLTF load failed, using procedural fallback', e);
+      dbg.warn('initClouds: GLTF load failed, using procedural fallback', e);
       initProceduralClouds();
     }
   }
@@ -268,7 +269,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       propeller = built.propeller;
     }
   } catch (e) {
-    console.warn('GLB load failed, falling back to procedural plane', e);
+    dbg.warn('GLB load failed, falling back to procedural plane', e);
   }
   if (!plane) {
     const built = buildPlane();
@@ -327,7 +328,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   const multiplayerMgr = createMultiplayerManager({
     scene, state, plane, createMultiplayerRoom, THREE,
   });
-  multiplayerMgr.initMultiplayer().catch(err => console.warn('multiplayer init error', err));
+  multiplayerMgr.initMultiplayer().catch(err => dbg.warn('multiplayer init error', err));
 
   // ── PlaneController + Magnet Halo ──
   const planeController = new PlaneController(plane, propeller, scene);
@@ -355,7 +356,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   // ── Plane model swap ──
   async function swapPlaneModel(newModelUrl) {
     if (!newModelUrl || newModelUrl === _currentModelUrl) return;
-    console.log('swapPlaneModel: upgrading from', _currentModelUrl, 'to', newModelUrl);
+    dbg.log('swapPlaneModel: upgrading from', _currentModelUrl, 'to', newModelUrl);
     try {
       const built = await loadPlaneFromGLB(newModelUrl, {
         scale: getModelScale(newModelUrl), castShadow: true, receiveShadow: true,
@@ -391,9 +392,9 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       engineSound.attachEngineSoundTo(newPlane);
       engineSound.tryStartEngineSound();
 
-      console.log('swapPlaneModel: upgrade complete');
+      dbg.log('swapPlaneModel: upgrade complete');
     } catch (err) {
-      console.warn('swapPlaneModel failed:', err);
+      dbg.warn('swapPlaneModel failed:', err);
     }
   }
 
@@ -482,7 +483,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         level: state.level, distance: state.impactDistance,
         timeMs: state.timeElapsedMs, won: state.won, timestamp: Date.now(),
       });
-    } catch (e) { console.warn('cloud score sync failed', e); }
+    } catch (e) { dbg.warn('cloud score sync failed', e); }
     try {
       if (multiplayerMgr.room && multiplayerMgr.room.collection) {
         await multiplayerMgr.room.collection('score').create({
@@ -491,7 +492,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           timestamp: new Date().toISOString(),
         });
       }
-    } catch (e) { console.warn('persisting score failed', e); }
+    } catch (e) { dbg.warn('persisting score failed', e); }
 
     const notableReason = isNewBest ? 'new-best' : state.won ? 'mission-success' : final >= 3000 ? 'high-score' : null;
     if (notableReason) {
@@ -512,7 +513,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         };
         await saveReplay(replay, screenshotDataUrl);
         try { window.dispatchEvent(new CustomEvent('replaySaved', { detail: replay })); } catch (_) {}
-      } catch (e) { console.warn('replay save failed', e); }
+      } catch (e) { dbg.warn('replay save failed', e); }
     }
 
     multiplayerMgr.pushPresence(true);
@@ -592,7 +593,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       list.push({ from: author || 'player', idea: text, ts: Date.now() });
       localStorage.setItem('kamikazziBriefings', JSON.stringify(list));
       window.dispatchEvent(new Event('ideasUpdated'));
-    } catch (e) { console.warn('addIdea failed', e); }
+    } catch (e) { dbg.warn('addIdea failed', e); }
   }
 
   async function sendIdeasToPuter() {
@@ -621,7 +622,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     } else if (typeof aiOutput === 'object') {
       parsed = aiOutput;
     }
-    if (!parsed) { console.warn('applyGameChanges: parse failed', aiOutput); return; }
+    if (!parsed) { dbg.warn('applyGameChanges: parse failed', aiOutput); return; }
 
     if (typeof parsed.spawnInterval === 'number') {
       state.spawnInterval = Math.max(6, parsed.spawnInterval);
@@ -650,7 +651,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     if (parsed.persistIdeasConfig) {
       try { localStorage.setItem('kamikazziBriefingsCfg', JSON.stringify(parsed)); } catch (_) {}
     }
-    console.log('applyGameChanges applied', parsed);
+    dbg.log('applyGameChanges applied', parsed);
   }
 
   try { window.applyGameChanges = applyGameChanges; } catch (_) {}
@@ -663,13 +664,13 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
       const text = latest.idea || latest.text || (typeof latest === 'string' ? latest : '');
       if (!text) return;
       if (typeof window.generateFromComment !== 'function') {
-        console.warn('ideasUpdated: generateFromComment unavailable');
+        dbg.warn('ideasUpdated: generateFromComment unavailable');
         return;
       }
       const aiOutput = await window.generateFromComment(text);
       if (!aiOutput) return;
-      try { applyGameChanges(aiOutput); } catch (err) { console.warn('ideasUpdated: applyGameChanges failed', err); }
-    } catch (err) { console.warn('ideasUpdated handler error', err); }
+      try { applyGameChanges(aiOutput); } catch (err) { dbg.warn('ideasUpdated: applyGameChanges failed', err); }
+    } catch (err) { dbg.warn('ideasUpdated handler error', err); }
   });
 
   // ── Plane skin ──
@@ -694,7 +695,7 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
           m.needsUpdate = true;
         });
       });
-    }, undefined, err => console.warn('applyPlaneSkin failed', err));
+    }, undefined, err => dbg.warn('applyPlaneSkin failed', err));
   }
 
   // ── Snapshot ──

@@ -2,6 +2,7 @@
 // Integration wrapper that manages the Level Fabricator lifecycle within the game
 
 let _lfApp = null;
+import { dbg } from './dbg.js';
 let _lfPausedWorld = null;
 let _lfRendererObj = null;
 
@@ -32,7 +33,7 @@ export async function mountLevelFabricator(worldObj, rendererObj) {
             applyDOMTranslations();
         } catch (_) {}
     } catch (err) {
-        console.error('Failed to mount Level Fabricator:', err);
+        dbg.error('Failed to mount Level Fabricator:', err);
         const container = document.getElementById('sg-container');
         if (container) {
             container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ffb4ab;font-family:'JetBrains Mono',monospace;font-size:14px;text-align:center;padding:20px;">
@@ -48,7 +49,7 @@ export function destroyLevelFabricator() {
     try {
         _lfApp.destroy();
     } catch (e) {
-        console.warn('Error destroying Level Fabricator:', e);
+        dbg.warn('Error destroying Level Fabricator:', e);
     }
     _lfApp = null;
 

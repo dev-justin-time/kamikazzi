@@ -14,6 +14,8 @@
  *   import { saveMap, loadMap, listMaps, deleteMap, exportMap, importMapFromFile } from './mapStorage.js';
  */
 
+import { dbg } from '../dbg.js';
+
 const LS_INDEX  = 'kamikazii_map_index';
 const LS_PREFIX = 'kamikazii_map_';
 const CLOUD_PREFIX = 'kamikazzi3d_map_';
@@ -111,7 +113,7 @@ export function buildMapSnapshot(name, app) {
     hasCustomHeightmap: !!app.terrainParams.customHeightmap,
   };
   if (snapshot.hasCustomHeightmap) {
-    console.info('[mapStorage] Custom heightmap image is not saved — terrain will regenerate from parameters.');
+    dbg.log('[mapStorage] Custom heightmap image is not saved — terrain will regenerate from parameters.');
   }
   return snapshot;
 }
@@ -286,7 +288,7 @@ export function importMapFromFile(file) {
       try {
         const data = JSON.parse(e.target.result);
         if (!data.terrainParams || !data.heightData) {
-          console.warn('mapStorage: invalid map file — missing terrainParams or heightData');
+          dbg.warn('mapStorage: invalid map file — missing terrainParams or heightData');
           return resolve(null);
         }
         // Assign fresh id so import doesn't collide
@@ -295,7 +297,7 @@ export function importMapFromFile(file) {
         data.source = 'import';
         resolve(data);
       } catch (err) {
-        console.warn('mapStorage: failed to parse map file', err);
+        dbg.warn('mapStorage: failed to parse map file', err);
         resolve(null);
       }
     };

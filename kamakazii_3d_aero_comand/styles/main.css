@@ -565,6 +565,7 @@
   }
 
   .hidden { display: none !important; }
+  .hidden-js { display: none; }
 
   /* ---- User badge ---- */
   #userBadge {

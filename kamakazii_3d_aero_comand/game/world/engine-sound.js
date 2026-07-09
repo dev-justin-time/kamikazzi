@@ -4,6 +4,8 @@
    are missing or browser blocks autoplay.
 */
 
+import { dbg } from '../dbg.js';
+
 /**
  * Create the engine sound manager.
  * @param {THREE.AudioListener} audioListener - shared Three.js audio listener
@@ -34,9 +36,9 @@ export function createEngineSound(audioListener, THREE) {
         obj.userData.engineAudioReady = true;
         engineAudio = audio;
         engineAudioReady = true;
-      }, undefined, err => console.warn('Airplane sound load failed', err));
+      }, undefined, err => dbg.warn('Airplane sound load failed', err));
     } catch (e) {
-      console.warn('attachEngineSoundTo failed', e);
+      dbg.warn('attachEngineSoundTo failed', e);
     }
   }
 

@@ -10,6 +10,7 @@ import {
   syncSettings, getSettings, speak, refreshUser,
 } from '../puter-client.js';
 import { setCloudStatus, initCloudRecheck, CloudState } from '../../../shared/cloud-status.js';
+import { dbg } from '../dbg.js';
 
 /**
  * wireSettings — wires settings panel, overlays, cloud sync, Puter auth,
@@ -205,7 +206,7 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
           setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter not available — using local storage');
         }
       } catch (e) {
-        console.warn('Puter login failed:', e);
+        dbg.warn('Puter login failed:', e);
         puterLoginBtn.innerHTML = '<span class="menu-btn-icon material-symbols-outlined" aria-hidden="true">cloud_off</span>Sync Failed';
         setCloudStatus('cloudStatusPill', CloudState.DISCONNECTED, 'Puter sync failed — try again');
         setTimeout(() => {

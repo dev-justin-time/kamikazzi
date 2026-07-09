@@ -4,6 +4,7 @@
    Extracted from the original monolithic game/ui.js.
 */
 import { isPuterAvailable, generateImage, buildSkinPrompt, getSkinStylePresets } from '../puter-client.js';
+import { dbg } from '../dbg.js';
 
 /**
  * wireSkinLab — wires skin lab UI: skin/portrait/building palette
@@ -164,7 +165,7 @@ export function wireSkinLab({ world }) {
       if (buildStatus) buildStatus.textContent = 'Palette generated! Apply it as a building skin.';
       if (applyBuildPaletteBtn) { applyBuildPaletteBtn.classList.remove('btn-hidden'); applyBuildPaletteBtn.classList.add('btn-inline'); }
     } catch (e) {
-      console.warn('doGenerateBuildPalette failed', e);
+      dbg.warn('doGenerateBuildPalette failed', e);
       if (buildStatus) buildStatus.textContent = 'Failed. Try again.';
     }
     if (generateBuildBtn) generateBuildBtn.disabled = false;
@@ -183,7 +184,7 @@ export function wireSkinLab({ world }) {
       try { localStorage.setItem('kamikazzi_building_skin', 'custom_generated'); } catch (_) {}
       if (buildStatus) buildStatus.textContent = 'Palette applied! Start a new run to see it. Open the Skins panel to select it.';
       if (applyBuildPaletteBtn) { applyBuildPaletteBtn.classList.remove('btn-inline'); applyBuildPaletteBtn.classList.add('btn-hidden'); }
-    } catch (e) { console.warn('doApplyBuildPalette failed', e); if (buildStatus) buildStatus.textContent = 'Failed to apply. Try again.'; }
+    } catch (e) { dbg.warn('doApplyBuildPalette failed', e); if (buildStatus) buildStatus.textContent = 'Failed to apply. Try again.'; }
   }
 
   // ---- Event listeners ----

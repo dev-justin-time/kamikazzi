@@ -325,9 +325,8 @@ void main() {
 <!-- STITCH_SHADER_END:ANIMATION_5 -->
 </div>
 <main class="relative z-10 pt-24 pb-32 px-gutter min-h-screen max-w-5xl mx-auto">
-<div id="marketplaceBody" style="display:none;"></div>
-<button id="marketplaceClose" style="display:none;"></button>
-</main>
+<div id="marketplaceBody" data-functional="true" class="hidden-js"></div>
+<button id="marketplaceClose" data-functional="true" class="hidden-js"></button>
 
 <!-- HERO SECTION -->
 <section class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-grid-margin z-10 overflow-hidden">
@@ -614,6 +613,7 @@ animate();
             © 2124 NEO-TOKYO AEROSPACE. ALL RIGHTS RESERVED. // ENCRYPTION AES-512 ACTIVE
         </p>
 </footer>
+</main>
 <!-- MOBILE NAVIGATION BOTTOM BAR -->
 <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest/90 dark:bg-surface-container-lowest/90 backdrop-blur-lg border-t-2 border-primary dark:border-primary flex justify-around items-center px-4 py-2 pb-safe shadow-[0_-4px_30px_rgba(224,17,95,0.2)]">
 <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 scale-110 shadow-[0_0_15px_#e0115f] transition-transform active:translate-y-1" href="#">

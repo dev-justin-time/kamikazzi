@@ -215,18 +215,18 @@
 </header>
 <!-- Main Viewport Canvas -->
 <main class="relative w-full h-full pt-[72px] pb-[72px]">
-<div id="sg-container" style="display:none;"></div>
-<button id="sg-lv-fab-close" style="display:none;">✕</button>
-<div id="sg-stats-panel" style="display:none;">
+<div id="sg-container" data-functional="true" class="hidden-js"></div>
+<button id="sg-lv-fab-close" data-functional="true" class="hidden-js">✕</button>
+<div id="sg-stats-panel" data-functional="true" class="hidden-js">
   <span id="sg-fps-counter">FPS: 0</span>
   <button id="sg-fullscreen-btn">⛶</button>
 </div>
-<div id="sg-controls-panel" style="display:none;">
+<div id="sg-controls-panel" data-functional="true" class="hidden-js">
   <div id="sg-controls-handle"></div>
   <button id="sg-toggle-controls">−</button>
   <div id="sg-controls-content">
     <select id="sg-preset-select"></select>
-    <div id="sg-custom-upload-group" style="display:none;">
+    <div id="sg-custom-upload-group" data-functional="true" class="hidden-js">
       <input type="file" id="sg-heightmap-input" />
     </div>
     <select id="sg-quality-select"></select>
@@ -273,7 +273,7 @@
     <button id="sg-exit-edit-btn">Exit Edit Mode</button>
   </div>
 </div>
-<div id="sg-minimap-container" style="display:none;">
+<div id="sg-minimap-container" data-functional="true" class="hidden-js">
   <div id="sg-minimap-handle">🗺 Minimap</div>
   <div id="sg-minimap-content">
     <canvas id="sg-minimap-canvas"></canvas>
@@ -282,7 +282,7 @@
     <button id="sg-mode-minimap">M</button>
   </div>
 </div>
-<div id="sg-joystick-zone" style="display:none;"></div>
+<div id="sg-joystick-zone" data-functional="true" class="hidden-js"></div>
 
 <!-- Fullscreen Three.js Terrain -->
 <!-- STITCH_THREEJS_START:ANIMATION_61 class="absolute inset-0 w-full h-full z-0 opacity-80" -->

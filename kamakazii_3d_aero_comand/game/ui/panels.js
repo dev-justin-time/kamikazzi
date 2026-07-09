@@ -5,6 +5,7 @@
    Extracted from the original monolithic game/ui.js.
 */
 import { t } from '../locale.js';
+import { dbg } from '../dbg.js';
 import {
   isPuterAvailable, getUsername, getAvatarUrl, getLeaderboard,
   generateImage, getReplays, deleteReplay,
@@ -578,7 +579,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
       if (replayDetailPanel) replayDetailPanel.classList.add('hidden');
       renderReplays();
       if (replayPanel) replayPanel.classList.remove('hidden');
-    } catch (e) { console.warn('deleteReplay failed', e); }
+    } catch (e) { dbg.warn('deleteReplay failed', e); }
   }
   if (replayGalleryBtn) replayGalleryBtn.addEventListener('click', openReplayGallery);
   if (replayClose) replayClose.addEventListener('click', closeReplayGallery);
@@ -607,7 +608,7 @@ export function wirePanels({ world, rendererObj, computeGrade }) {
     try {
       const { mountLevelFabricator } = await import('../level-fabricator-init.js');
       await mountLevelFabricator(world, rendererObj);
-    } catch (e) { console.error("Failed to mount Level Fabricator:", e); _lfMounted = false; }
+    } catch (e) { dbg.error("Failed to mount Level Fabricator:", e); _lfMounted = false; }
   }
   function closeLevelFabricator() {
     if (!_lfMounted) return;

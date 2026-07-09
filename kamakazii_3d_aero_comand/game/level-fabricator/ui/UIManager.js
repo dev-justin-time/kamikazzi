@@ -1,5 +1,6 @@
 import { setupDragging, processHeightmapToData } from './UIUtils.js';
 import { saveMap, loadMap, listMaps, deleteMap, exportMap, importMapFromFile, buildMapSnapshot, applyMapSnapshot } from '../mapStorage.js';
+import { dbg } from '../../dbg.js';
 
 export class UIManager {
     constructor(app) {
@@ -77,7 +78,7 @@ export class UIManager {
         elements['fullscreen-btn'].onclick = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Fullscreen error: ${err.message}`);
+                    dbg.warn(`Fullscreen error: ${err.message}`);
                 });
             } else {
                 if (document.exitFullscreen) {

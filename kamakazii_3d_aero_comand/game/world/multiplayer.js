@@ -4,6 +4,7 @@
 */
 
 import { removeAndDispose } from './shared.js';
+import { dbg } from '../dbg.js';
 
 const PEER_LERP = 0.2;
 const PEER_BASE_SCALE = 0.8;
@@ -54,7 +55,7 @@ export function createMultiplayerManager(deps) {
     }).then(() => {
       mgr.presenceAccumulator = 0;
     }).catch(e => {
-      if (force) console.warn('pushPresence failed', e);
+      if (force) dbg.warn('pushPresence failed', e);
     });
   };
 
@@ -98,7 +99,7 @@ export function createMultiplayerManager(deps) {
         });
       });
     } catch (e) {
-      console.warn('initMultiplayer failed', e);
+      dbg.warn('initMultiplayer failed', e);
       mgr.room = null;
     }
   };

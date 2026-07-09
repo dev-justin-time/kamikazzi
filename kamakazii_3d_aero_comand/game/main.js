@@ -5,11 +5,12 @@ import { createWorld } from './world.js';
 import { setupInput } from './controls/index.js';
 import { setupUI } from './ui.js';
 import { screenLoader } from './screen-loader.js';
+import { dbg } from './dbg.js';
 
 async function boot() {
   const container = document.getElementById('game');
   if (!container) {
-    console.error('boot: #game container missing from DOM');
+    dbg.error('boot: #game container missing from DOM');
     return;
   }
 
@@ -44,4 +45,4 @@ async function boot() {
   window.__missionLog = { rendererObj, worldObj };
 }
 
-boot().catch(err => console.error('Kamikazzi boot failed:', err));
+boot().catch(err => dbg.error('Kamikazzi boot failed:', err));
