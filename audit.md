@@ -112,7 +112,8 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 
 | # | Severity | Issue | Detail |
 |---|----------|-------|--------|
-| 1 | **High** | `manifest.json` references icons that may not exist | `../assets/icons/icon.svg`, `icon-192.png`, `icon-512.png` — verify these exist in the submodule. |
+| 1 | 
+
 | 2 | ~~**Medium**~~ | ~~Three.js version mismatch with aero_comand~~ | ✅ **Fixed** — aero_comand JS files now use the import map alias instead of hardcoded 0.128.0 URLs. Both apps at 0.158.0. |
 | 3 | ~~**Medium**~~ | ~~No SRI on CDN scripts~~ | ✅ Font Awesome has SRI. Other CDN resources are import map entries (cannot have SRI) — see Appendix B. |
 | 4 | **Medium** | `engine.js` imports from wrong paths | `import { ProceduralSystem } from './modules/ProceduralSystem.js'` — the actual file is at `systems/ProceduralSystem.js` (confirmed on disk). This will fail at runtime unless there's an import map alias. Same issue for `InputManager`, `AudioSystem`, `CloudSystem`, and marketplace imports. |
@@ -153,20 +154,15 @@ The root entry point has been rewritten as a clean 3-card suite launcher linking
 | 5 | **Medium** | `saveLoadout()` has a missing closing brace | The function has `{` after `try` but the `catch` block closes without matching. The `loadLoadout()` and `saveReplay()` functions are nested inside `saveLoadout()` due to a brace mismatch. |
 | 6 | ~~**Medium**~~ | ~~No SRI on Puter.js SDK~~ | ✅ Verified — Puter.js has no published SRI hashes (Appendix B). `crossorigin="anonymous"` is present. |
 | 7 | **Medium** | `Cargo.toml` uses `rhai` but README says Lua | The dependency is correct (`rhai = "1.19"`) but the documentation is stale. |
-| 8 | **Medium** | `index.html.audit_backup` still in tree | Leftover backup file from previous audit work. Should be removed. |
+| 8 | **Medium** | |`index.html.audit_backup` still in tree | Leftover backup file from previous audit work. Should be removed. 
 | 9 | **Verified** | `heavy_spaceship` filename in SHIPS paths | `'./assets/heavy_spaceship (1).glb'` — filename on disk matches; no typo (was previously suspected). ✅ |
 | 10 | **Low** | WebSocket URL uses `ws://` not `wss://` | `wsUrl: \`ws://${location.hostname}:8080/ws\`` — unencrypted. Fine for local dev, not for production. |
 | 11 | **Low** | Hot-reload enabled by default | `CONFIG.hotReload.enabled: true` — polls scripts every 1.5s in production. Should be gated behind a dev flag. |
 | 12 | ~~**Low**~~ | ~~`server/main.go` serves `./public` which doesn't exist~~ | ✅ **Fixed** — changed to `http.Dir(".")` so the file server serves the project root. |
 
 **Concrete improvements**
-1. **Update README** — replace all "Lua" references with "Rhai" throughout.
-2. ~~**Fix `mathRand()`**~~ ✅ — crypto/rand seeded PRNG.
-3. ~~**Implement `applyTorque()`**~~ ✅ — ZYX Euler rotation with ROTATION_SPEED=3.0.
-4. **Fix `saveLoadout()` brace mismatch** — nested functions are leaking scope.
-5. ~~**Add auth/rate limiting to Go server**~~ ✅ — IP limiter, player_id regex, token-bucket rate limiter, read limits.
-6. **Remove `index.html.audit_backup`**.
-7. **Add SRI to Puter.js SDK**.
+
+
 
 ---
 
