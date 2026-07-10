@@ -187,7 +187,10 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
   const clouds = [];
   let cloudSourceModel = null;
 
+  let _cloudsInitialized = false;
+
   async function initClouds() {
+    if (_cloudsInitialized) return;
     try {
       const loader = new GLTFLoader();
       const gltf = await new Promise((resolve, reject) => {
@@ -229,9 +232,11 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
         scene.add(clone);
         clouds.push(clone);
       }
+      _cloudsInitialized = true;
     } catch (e) {
       dbg.warn('initClouds: GLTF load failed, using procedural fallback', e);
       initProceduralClouds();
+      _cloudsInitialized = true;
     }
   }
 
@@ -256,20 +261,40 @@ export async function createWorld({ scene, camera, domElement, planeModelUrl = n
     }
   }
 
-  initClouds();
+  initClouds().catch(e => dbg.warn('initClouds unexpected error', e));
+
+  // Safety: if clouds haven't initialized after 10s, force procedural fallback
+  setTimeout(() => {
+    if (!_cloudsInitialized && clouds.length === 0) {
+      dbg.warn('Cloud init timed out, forcing procedural fallback');
+      initProceduralClouds();
+      _cloudsInitialized = true;
+    }
+  }, 10000);
 
   // ── Plane ──
   let _currentModelUrl = planeModelUrl;
   const boeingSwapped = { value: false };
   let plane = null, propeller = null;
+  // Timeout: don't hang if model takes >12s to load — fall back to procedural
+  const MODEL_LOAD_TIMEOUT_MS = 12000;
+  const loadWithTimeout = (promise, timeoutMs) => {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Model load timed out')), timeoutMs)),
+    ]);
+  };
   try {
     if (planeModelUrl && typeof planeModelUrl === 'string') {
-      const built = await loadPlaneFromGLB(planeModelUrl, { scale: getModelScale(planeModelUrl), castShadow: true, receiveShadow: true });
+      const built = await loadWithTimeout(
+        loadPlaneFromGLB(planeModelUrl, { scale: getModelScale(planeModelUrl), castShadow: true, receiveShadow: true }),
+        MODEL_LOAD_TIMEOUT_MS,
+      );
       plane = built.plane;
       propeller = built.propeller;
     }
   } catch (e) {
-    dbg.warn('GLB load failed, falling back to procedural plane', e);
+    dbg.warn('GLB load failed or timed out, falling back to procedural plane', e);
   }
   if (!plane) {
     const built = buildPlane();

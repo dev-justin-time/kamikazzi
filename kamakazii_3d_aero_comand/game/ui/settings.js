@@ -18,7 +18,7 @@ import { dbg } from '../dbg.js';
  * Returns a controller with { closeSettings, toggleShortcuts, closeLegal,
  * legalConsentAccepted }.
  */
-export function wireSettings({ world, onStartLegal, onResumeLegal }) {
+export function wireSettings({ world, onStartLegal, onResumeLegal, onLegalConsentAccepted }) {
   const puterAvailable = isPuterAvailable();
   const OVERLAYS_KEY = 'kamikazzi_overlays_enabled';
   const CLOUD_SYNC_KEY = 'kamikazzi_cloud_sync_enabled';
@@ -314,6 +314,8 @@ export function wireSettings({ world, onStartLegal, onResumeLegal }) {
       try { localStorage.setItem(LEGAL_CONSENT_KEY, 'true'); } catch (_) {}
       _legalConsentAccepted = true;
       if (legalConsentBar) legalConsentBar.classList.add('hidden');
+      // Notify modals so the start/resume flow can proceed without re-opening legal
+      if (typeof onLegalConsentAccepted === 'function') onLegalConsentAccepted();
     });
   }
 

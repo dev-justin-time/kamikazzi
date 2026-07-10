@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Voxel World</title>
+  <style>
+    @font-face {
+      font-family: 'Minecraft';
+      src: url('/Minecraft Seven_2.ttf');
+    }
+
+    .server-entry {
+      width: 100%;
+      height: 70px;
+      border: 1px solid transparent;
+      padding: 5px;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      color: #fff;
+      font-family: 'Minecraft', sans-serif;
+    }
+    
+    .server-entry:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .server-entry.selected {
+      background-color: rgba(0, 0, 0, 1.0);
+      border: 1px solid #808080;
+    }
+
+    .server-icon {
+      width: 64px;
+      height: 64px;
+      background: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      image-rendering: pixelated;
+    }
+
+    .server-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .server-name {
+      font-size: 16px;
+      margin-bottom: 5px;
+      text-shadow: 1px 1px 0 #3f3f3f;
+    }
+
+    .server-motd {
+      color: #808080;
+      font-size: 14px;
+      text-shadow: 1px 1px 0 #202020;
+    }
+
+    .server-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      width: 100px;
+    }
+    
+    #server-tooltip {
+      position: absolute;
+      background: rgba(16, 0, 16, 0.95);
+      border: 2px solid #3700b3;
+      border-radius: 4px;
+      color: #aaaaaa;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 14px;
+      padding: 6px 10px;
+      z-index: 10000;
+      pointer-events: none;
+      text-shadow: 2px 2px 0 #202020;
+      display: none;
+      white-space: pre;
+    }
+
+    /* Menu Styles */
+    .mc-button {
+      width: 600px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 16px;
+      text-shadow: 2px 2px 0 #3f3f3f;
+      cursor: pointer;
+      margin-bottom: 10px;
+      user-select: none;
+      box-sizing: border-box;
+      
+      /* New Custom Sprite Styles */
+      border-style: solid;
+      border-width: 4px 40px; 
+      border-image-slice: 2 20 2 20 fill;
+      border-image-width: 4px 40px;
+      border-image-repeat: repeat;
+      image-rendering: pixelated;
+      background: none;
+    }
+
+    /* Standard fallback if script hasn't generated the sliced textures yet */
+    .mc-button:not(.atlas-ready) {
+      background-color: #7d7d7d;
+      border: 2px solid #000;
+      border-top-color: #a0a0a0;
+      border-left-color: #a0a0a0;
+      border-right-color: #555;
+      border-bottom-color: #555;
+      border-image-source: none;
+    }
+
+    .mc-button:hover {
+      color: #ffffa0;
+    }
+
+    .mc-button:disabled, .mc-button.disabled {
+      color: #a0a0a0;
+      cursor: default;
+    }
+
+    .mc-button.small {
+      width: 295px;
+    }
+
+    /* Fix for long text in small buttons */
+    .mc-button.text-fit {
+      font-size: 13px;
+    }
+
+    .mc-input {
+      width: 600px;
+      height: 40px;
+      user-select: text;
+      -webkit-user-select: text;
+      background-color: #000;
+      border: 2px solid #a0a0a0;
+      color: #fff;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 16px;
+      padding: 5px 10px;
+      margin-bottom: 20px;
+      outline: none;
+    }
+
+    .mc-input:focus {
+      border-color: #fff;
+    }
+
+    #main-menu, #create-world-menu, #loading-screen, #pause-menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+
+    #main-menu {
+      background: transparent;
+    }
+    
+    #loading-screen {
+      z-index: 6000;
+      /* Background handled by pseudo-element for darkening */
+      background-color: #000;
+    }
+
+    #loading-screen::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('/dirt_16x16 (1).png');
+      background-size: 64px;
+      background-repeat: repeat;
+      image-rendering: pixelated;
+      filter: brightness(0.25);
+      z-index: -1;
+    }
+
+    #loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .progress-bar-container {
+      width: 400px;
+      height: 40px;
+      border: 2px solid #fff;
+      background: #000;
+      padding: 2px;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background-color: #00ff00; /* Classic Minecraft green loader */
+      transition: width 0.1s linear;
+    }
+    
+    #pause-menu {
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 4000;
+    }
+
+    canvas.blurred {
+      filter: blur(8px);
+    }
+
+    #panorama-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      filter: blur(2px);
+    }
+    
+    #menu-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      z-index: 1001;
+    }
+
+    #title-logo {
+      margin-bottom: 50px;
+      position: relative;
+      text-align: center;
+      z-index: 10;
+    }
+
+    #title-logo img {
+      max-width: 90vw;
+      width: 600px;
+      image-rendering: pixelated;
+    }
+
+    #splash-text {
+      position: absolute;
+      bottom: 10px;
+      right: -20px;
+      color: #ffff00;
+      font-size: 20px;
+      transform: rotate(-20deg);
+      animation: splashPulse 0.5s infinite alternate;
+      text-shadow: 1px 1px 0 #3f3f3f;
+      white-space: nowrap;
+    }
+
+    @keyframes splashPulse {
+      from { transform: rotate(-20deg) scale(1); }
+      to { transform: rotate(-20deg) scale(1.1); }
+    }
+
+    .menu-content {
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #bottom-text {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      color: #fff;
+      font-size: 12px;
+      text-shadow: 1px 1px 0 #000;
+      z-index: 10;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .input-group label {
+      color: #a0a0a0;
+      margin-bottom: 5px;
+      font-size: 14px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .rc-slot {
+      width: 36px;
+      height: 36px;
+      background: #8b8b8b;
+      border: 2px solid #373737;
+      border-right-color: #fff;
+      border-bottom-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .rc-slot:hover {
+      background: #a0a0a0;
+    }
+    
+    .rc-slot img {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 820px) {
+      #multiplayer-menu .mc-button {
+        width: 90vw;
+      }
+      #multiplayer-menu .mc-button.small {
+        width: calc(45vw - 5px);
+      }
+      #multiplayer-menu #server-list {
+        width: 90vw !important;
+      }
+      #multiplayer-menu .button-row {
+        width: 90vw;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .mc-button, .mc-input {
+        width: 340px;
+      }
+      .mc-button.small {
+        width: 165px;
+      }
+    }
+    
+    body.in-menu #crosshair,
+    body.in-menu #hud-bottom,
+    body.in-menu #chat-container,
+    body.in-menu #debug-info,
+    body.in-menu #joystick,
+    body.in-menu #inv-button-mobile,
+    body.in-menu #chat-button-mobile,
+    body.in-menu #btn-crouch {
+      display: none !important;
+    }
+
+    body.hide-hud #crosshair,
+    body.hide-hud #hud-bottom,
+    body.hide-hud #chat-container,
+    body.hide-hud #debug-info,
+    body.hide-hud #joystick,
+    body.hide-hud #inv-button-mobile,
+    body.hide-hud #chat-button-mobile,
+    body.hide-hud #btn-crouch,
+    body.hide-hud #item-tooltip,
+    body.hide-hud #server-tooltip,
+    body.hide-hud #player-list-overlay,
+    body.hide-hud #mobile-controls,
+    body.hide-hud #mobile-inv-controls {
+      display: none !important;
+    }
+
+    /* Hide menu background overlays when in-game to allow touch interaction */
+    body:not(.in-menu) #panorama-container,
+    body:not(.in-menu) #menu-overlay {
+      display: none !important;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      overflow: hidden;
+      font-family: 'Minecraft', sans-serif;
+      background: #87CEEB;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+    
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+    
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+    }
+    
+    #crosshair::before,
+    #crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+    }
+    
+    #crosshair::before {
+      width: 2px;
+      height: 20px;
+      left: 9px;
+    }
+    
+    #crosshair::after {
+      width: 20px;
+      height: 2px;
+      top: 9px;
+    }
+
+
+    #joystick {
+      position: absolute;
+      bottom: 100px;
+      left: 20px;
+      width: 120px;
+      height: 120px;
+      display: none;
+    }
+    
+    @media (pointer: coarse) {
+      #joystick {
+        display: block;
+      }
+    }
+    
+    #item-name-display {
+      color: #FFFFFF;
+      font-family: 'Minecraft', sans-serif;
+      font-size: calc(6px * var(--scale));
+      text-shadow: calc(1px * var(--scale)) calc(1px * var(--scale)) 0 #3f3f3f;
+      margin-bottom: calc(15px * var(--scale));
+      opacity: 0;
+      transition: opacity 1.0s;
+      pointer-events: none;
+      height: auto;
+      text-align: center;
+    }
+
+    #item-name-display.visible {
+      opacity: 1;
+      transition: opacity 0.1s;
+    }
+
+    .heart-slot {
+      position: relative;
+      width: calc(9px * var(--scale));
+      height: calc(9px * var(--scale));
+    }
+
+    .heart-bg, .heart-fg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('/Hearts.png');
+      background-size: calc(33px * var(--scale)) calc(22px * var(--scale));
+      image-rendering: pixelated;
+    }
+
+    #hud-bottom {
+      --scale: 1.6;
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    @media (min-width: 600px) {
+      #hud-bottom {
+        --scale: 2.4;
+      }
+    }
+
+    #xp-bar {
+      width: calc(182px * var(--scale));
+      height: calc(5px * var(--scale));
+      background-image: url('experience_bar_background.png');
+      background-size: 100% 100%;
+      image-rendering: pixelated;
+      margin-bottom: calc(2px * var(--scale));
+      pointer-events: auto;
+    }
+
+    #hotbar {
+      position: relative;
+      width: calc(182px * var(--scale));
+      height: calc(22px * var(--scale));
+      background-image: url('hotbar.png');
+      background-size: 100% 100%;
+      image-rendering: pixelated;
+      pointer-events: auto;
+    }
+    
+    .hotbar-slot {
+      position: absolute;
+      width: calc(16px * var(--scale));
+      height: calc(16px * var(--scale));
+      top: calc(3px * var(--scale));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .hotbar-slot img {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+
+    .hotbar-count {
+      position: absolute;
+      bottom: 0;
+      right: calc(1px * var(--scale));
+      color: #FFFFFF;
+      font-family: 'Minecraft', sans-serif;
+      font-size: calc(8px * var(--scale));
+      text-shadow: calc(1px * var(--scale)) calc(1px * var(--scale)) 0 #3f3f3f;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    #selector {
+      position: absolute;
+      top: 0;
+      width: calc(22px * var(--scale));
+      height: calc(22px * var(--scale));
+      background-image: url('selector.png');
+      background-size: 100% 100%;
+      image-rendering: pixelated;
+      pointer-events: none;
+      z-index: 2;
+      transition: left 0.1s ease-out;
+    }
+
+
+    #debug-info {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      color: #e0e0e0;
+      font-family: 'Minecraft', monospace;
+      font-size: 12px;
+      text-shadow: 1px 1px 0 #3f3f3f;
+      line-height: 1.2;
+      pointer-events: auto;
+      padding: 6px;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 2000;
+      min-width: 200px;
+    }
+
+    #debug-controls {
+      margin-top: 10px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    #debug-controls label {
+      display: block;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    
+    #debug-controls input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    #anim-debug-ui {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 250px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 10px;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 12px;
+      display: none;
+      z-index: 2000;
+      border: 1px solid #555;
+    }
+
+    .anim-row {
+      margin-bottom: 8px;
+    }
+
+    .anim-row label {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .anim-row input {
+      width: 100%;
+    }
+
+    /* Chat Styles */
+    #chat-container {
+      position: absolute;
+      bottom: 100px;
+      left: 10px;
+      width: 50%;
+      max-width: 600px;
+      z-index: 1000;
+      font-family: 'Minecraft', sans-serif;
+      pointer-events: none;
+    }
+
+    #chat-history {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 50px;
+      max-height: 300px;
+      overflow: hidden;
+      margin-bottom: 5px;
+      text-shadow: 1px 1px 0 #000;
+    }
+    
+    #chat-suggestions {
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #aaa;
+      padding: 4px;
+      margin-bottom: 2px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .chat-message {
+      color: white;
+      padding: 2px 4px;
+      margin-top: 2px;
+      width: fit-content;
+      background-color: rgba(0, 0, 0, 0.5);
+      font-size: 16px;
+      opacity: 1;
+      transition: opacity 1s ease-in;
+    }
+    
+    .chat-message.faded {
+      opacity: 0;
+    }
+    
+    /* When chat is open, show all history clearly */
+    #chat-container.active #chat-history .chat-message {
+      opacity: 1;
+    }
+    
+    #chat-container.active #chat-history {
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    #chat-input-wrapper {
+      display: none;
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      gap: 5px;
+      pointer-events: auto;
+    }
+
+    #chat-input {
+      flex: 1;
+      user-select: text;
+      -webkit-user-select: text;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 1px solid #888;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 16px;
+      padding: 8px;
+      outline: none;
+      pointer-events: auto;
+    }
+
+    #chat-send-btn {
+      height: 38px;
+      padding: 0 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 1px solid #888;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-shadow: 1px 1px 0 #000;
+      pointer-events: auto;
+    }
+
+    #chat-send-btn:active {
+      background-color: #666;
+    }
+    
+    @media (pointer: coarse) {
+      #chat-send-btn {
+        display: flex;
+      }
+    }
+
+    .ui-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.75);
+      z-index: 1500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ui-container.visible {
+      display: flex;
+    }
+
+    .ui-window {
+      position: relative;
+      image-rendering: pixelated;
+      transform-origin: center;
+      transform: scale(3);
+    }
+
+    #inventory-window {
+      width: 176px;
+      height: 166px;
+      background-image: url('inventory.png');
+      background-size: 100% 100%;
+    }
+
+    #crafting-window {
+      width: 176px;
+      height: 166px;
+      background-image: url('crafting_table_ui_fixed.png');
+      background-size: 100% 100%;
+    }
+
+    #furnace-window {
+      width: 176px;
+      height: 166px;
+      background-image: url('furnace_ui_fixed.png');
+      background-size: 100% 100%;
+    }
+
+    @media (max-width: 600px) {
+      .ui-window {
+        transform: scale(1.8);
+      }
+    }
+
+    .ui-slot {
+      position: absolute;
+      /* background: rgba(255, 0, 0, 0.2);  Debug highlight */
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .ui-slot.static {
+      cursor: default;
+    }
+
+    .ui-slot:not(.static):hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .ui-slot img {
+      width: 16px;
+      height: 16px;
+      image-rendering: pixelated;
+      display: none;
+    }
+
+    .ui-slot .count {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      color: white;
+      text-shadow: 1px 1px 0 #3f3f3f;
+      font-size: 8px;
+      font-family: 'Minecraft', sans-serif;
+      pointer-events: none;
+      display: none;
+    }
+
+    #inv-button-mobile {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: 2px solid #ddd;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 20px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #chat-button-mobile {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: 2px solid #ddd;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #mobile-controls {
+      position: absolute;
+      bottom: 60px;
+      right: 20px;
+      display: none;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 15px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .mobile-row {
+      display: flex;
+      gap: 15px;
+      pointer-events: none;
+    }
+
+    .mobile-btn {
+      width: 60px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      pointer-events: auto;
+      text-shadow: 1px 1px 0 #000;
+      backdrop-filter: blur(2px);
+    }
+    
+    .mobile-btn:active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: #fff;
+    }
+
+    .mobile-btn.big {
+      width: 80px;
+      height: 80px;
+      font-size: 14px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Slider Styling */
+    .mc-slider-container {
+      position: absolute;
+      top: -4px;
+      left: -40px;
+      right: -40px;
+      bottom: -4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px; /* Accounts for half of the 20px thumb width to keep it inside visual bounds */
+      box-sizing: border-box;
+    }
+    
+    .mc-slider-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input[type=range].mc-range {
+      -webkit-appearance: none; 
+      width: 100%; 
+      height: 100%;
+      background: transparent; 
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      border: none;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    input[type=range].mc-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 40px;
+      width: 20px;
+      background: #555;
+      border: 2px solid #000;
+      border-top-color: #a0a0a0;
+      border-left-color: #a0a0a0;
+      border-right-color: #333;
+      border-bottom-color: #333;
+      cursor: pointer;
+      margin-top: 0px; 
+    }
+
+    input[type=range].mc-range::-moz-range-thumb {
+      height: 40px;
+      width: 20px;
+      background: #555;
+      border: 2px solid #000;
+      border-top-color: #a0a0a0;
+      border-left-color: #a0a0a0;
+      border-right-color: #333;
+      border-bottom-color: #333;
+      cursor: pointer;
+    }
+
+    #multiplayer-menu .mc-button {
+      width: 800px;
+    }
+
+    #multiplayer-menu .mc-button.small {
+      width: 395px;
+    }
+
+    #multiplayer-menu #server-list {
+      width: 800px !important;
+    }
+
+    #multiplayer-menu .button-row {
+      width: 800px;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    /* Options Menu specific */
+    #music-settings-menu {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 7100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.85);
+      color: white;
+    }
+
+    .dirt-bg {
+      background-image: url('/dirt_16x16 (1).png');
+      background-size: 64px;
+      background-repeat: repeat;
+      image-rendering: pixelated;
+      filter: brightness(0.25);
+    }
+    
+    .transparent-bg {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    #btn-slot-left, #btn-slot-right {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #btn-close-inv {
+      position: absolute;
+      top: 10px;
+      right: 60px;
+      width: 40px;
+      height: 40px;
+      background: #aa0000;
+      border: 2px solid #fff;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-weight: bold;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #btn-crouch {
+      position: absolute;
+      bottom: 260px;
+      left: 40px;
+      width: 80px;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: auto;
+      backdrop-filter: blur(2px);
+      user-select: none;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    #btn-crouch:active, #btn-crouch.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: #fff;
+    }
+
+    #item-tooltip {
+      position: absolute;
+      display: none;
+      background: rgba(16, 0, 16, 0.95);
+      border: 2px solid #3700b3;
+      border-radius: 4px;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      font-size: 16px;
+      padding: 6px 10px;
+      z-index: 10000;
+      pointer-events: none;
+      text-shadow: 2px 2px 0 #202020;
+      white-space: nowrap;
+    }
+    
+    /* Player List / Tab List */
+    #player-list-overlay {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 8000;
+      color: white;
+      font-family: 'Minecraft', sans-serif;
+      min-width: 300px;
+      text-shadow: 1px 1px 0 #3f3f3f;
+    }
+    
+    #player-list-header {
+      text-align: center;
+      margin: 5px 0;
+      color: #ffff55;
+    }
+    
+    #player-list-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 5px;
+      padding: 5px 10px 10px 10px;
+    }
+    
+    .player-list-entry {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 5px;
+      gap: 8px;
+    }
+    
+    .player-head {
+      width: 16px;
+      height: 16px;
+      image-rendering: pixelated;
+      background-color: #555;
+    }
+    
+    .player-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .player-ping {
+       font-size: 12px;
+       color: #00ff00;
+       text-shadow: none;
+    }
+
+    @media (pointer: coarse) {
+      #inv-button-mobile {
+        display: flex;
+      }
+      #chat-button-mobile {
+        display: flex;
+      }
+      #mobile-controls {
+        display: flex;
+      }
+      #btn-crouch {
+        display: flex;
+      }
+    }
+
+    #mod-menu {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 7000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+    }
+
+    #mod-filter-popup {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      background: #c6c6c6;
+      border: 2px solid #000;
+      border-top-color: #fff;
+      border-left-color: #fff;
+      border-right-color: #555;
+      border-bottom-color: #555;
+      z-index: 7100;
+      padding: 10px;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+    }
+
+    .mod-menu-container {
+      width: 900px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mod-menu-header {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .mod-menu-search {
+      width: 100%;
+      display: flex;
+      gap: 5px;
+    }
+
+    .mod-menu-content {
+      display: flex;
+      flex: 1;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .mod-list {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid #555;
+      overflow-y: auto;
+      padding: 5px;
+    }
+
+    .mod-entry {
+      display: flex;
+      gap: 10px;
+      padding: 5px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .mod-entry.selected {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mod-entry-icon {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+    }
+
+    .mod-entry-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mod-entry-name {
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .mod-entry-desc {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .mod-details {
+      flex: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .mod-details-header {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mod-details-icon {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+    }
+
+    .mod-details-title {
+      flex: 1;
+    }
+
+    .mod-details-header-left {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+      flex: 1;
+    }
+
+    .mod-details-name {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .mod-details-meta {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .mod-details-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mod-details-body {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #eee;
+      border-top: 1px solid #444;
+      padding-top: 10px;
+    }
+
+    .mod-menu-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body class="in-menu">
+  <div id="panorama-container"></div>
+  <div id="menu-overlay"></div>
+  <div id="main-menu">
+    <div class="mc-button small" id="btn-donate" style="position: absolute; top: 10px; right: 10px; width: 140px; height: 36px; font-size: 14px; z-index: 20; margin-bottom: 0;">Donations</div>
+    <div id="title-logo">
+      <img src="Minecraft.png" alt="Minecraft">
+      <div id="splash-text">Now with planes!</div>
+    </div>
+    <div class="menu-content">
+      <div class="mc-button" id="btn-singleplayer">Singleplayer</div>
+      <div class="mc-button" style="color: #a0a0a0; cursor: default;">Multiplayer</div>
+      <div class="mc-button" style="color: #a0a0a0; cursor: default;">Minecraft Realms</div>
+      <div class="mc-button" id="btn-mods">Mods</div>
+      <br>
+      <div style="display: flex; gap: 10px; width: 600px; justify-content: space-between;">
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Options...</div>
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Quit Game</div>
+      </div>
+    </div>
+    <div id="bottom-text">
+      Minecraft with planes<br>
+      Copyright Mojang Specifications
+    </div>
+    <div id="btn-recipe-creator" style="position: absolute; bottom: 5px; right: 5px; color: #aaa; font-size: 12px; cursor: pointer; text-shadow: 1px 1px 0 #000; z-index: 20; font-family: 'Minecraft', sans-serif;">
+      [Debug: Recipe Creator]
+    </div>
+  </div>
+
+  <div id="recipe-creator-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <h2 style="margin-bottom: 20px; text-shadow: 2px 2px 0 #3f3f3f;">Recipe Creator</h2>
+    
+    <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; justify-content: center;">
+      <!-- Crafting Area -->
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <div style="position: relative; width: 300px; height: 160px; background: #c6c6c6; border: 2px solid #555; box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #555; display: flex; align-items: center; padding: 20px;">
+           <!-- Grid -->
+           <div id="rc-grid" style="display: grid; grid-template-columns: repeat(3, 36px); gap: 4px; margin-right: 40px;">
+             <!-- generated -->
+           </div>
+           
+           <!-- Arrow -->
+           <div style="width: 30px; height: 20px; background: #8b8b8b; margin-right: 20px; clip-path: polygon(0 25%, 60% 25%, 60% 0, 100% 50%, 60% 100%, 60% 75%, 0 75%);"></div>
+           
+           <!-- Result -->
+           <div id="rc-result" class="rc-slot" style="width: 36px; height: 36px; background: #8b8b8b; border: 2px solid #555; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+           </div>
+        </div>
+        
+        <!-- Furnace Recipe Section -->
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #555; width: 300px;">
+           <h3 style="margin-bottom: 10px; font-size: 16px;">Furnace Recipe</h3>
+           <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+             <div id="rc-furnace-input" class="rc-slot"></div>
+             <div style="font-size: 20px;">🔥</div>
+             <div style="width: 20px; height: 4px; background: #555;"></div>
+             <div style="width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 10px solid #555;"></div>
+             <div id="rc-furnace-result" class="rc-slot"></div>
+           </div>
+           <div class="mc-button" id="btn-rc-add-furnace" style="width: 100%; margin-top: 10px; font-size: 14px; height: 30px;">Add Furnace Recipe</div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <label>Result Count: <input type="number" id="rc-count" value="1" min="1" max="64" style="width: 50px; font-family: inherit;"></label>
+        </div>
+      </div>
+      
+      <!-- Palette -->
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <div>Select Item:</div>
+        <div id="rc-palette" style="width: 240px; height: 300px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 2px solid #a0a0a0; padding: 10px; display: grid; grid-template-columns: repeat(5, 36px); gap: 8px;">
+           <!-- generated -->
+        </div>
+        <div id="rc-selected-item" style="height: 20px; font-size: 14px; color: #ffff55;">None</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 30px; display: flex; gap: 10px;">
+       <div class="mc-button" id="btn-rc-add">Add Recipe</div>
+       <div class="mc-button" id="btn-rc-download">Download JSON</div>
+       <div class="mc-button" id="btn-rc-close">Close</div>
+    </div>
+    <div id="rc-status" style="margin-top: 10px; color: #aaa;">Recipes: 0</div>
+  </div>
+
+  <div id="create-world-menu" style="display: none;">
+    <div id="panorama-bg-2" style="position:absolute; top:0; left:0; width:100%; height:100%; background-image: url('/dirt_16x16 (1).png'); background-size: 64px; background-repeat: repeat; image-rendering: pixelated; filter: brightness(0.25); z-index:-1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Create New World</h2>
+    
+    <div class="input-group">
+      <label>Seed for the World Generator</label>
+      <input type="text" id="world-seed-input" placeholder="Leave blank for random seed" class="mc-input">
+    </div>
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" style="color: #a0a0a0; cursor: default;">Game Mode: Survival</div>
+      <div class="mc-button" id="btn-create-difficulty">Difficulty: Normal</div>
+      <br>
+      <div class="mc-button" id="btn-create-world">Create New World</div>
+      <div class="mc-button" id="btn-cancel-create">Cancel</div>
+    </div>
+  </div>
+
+  <div id="loading-screen" style="display: none;">
+    <div id="loading-content">
+      <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 10px;">Generating World</h2>
+      <div style="color: #a0a0a0; font-size: 14px; margin-bottom: 5px;">Building Terrain</div>
+      <div class="progress-bar-container">
+        <div id="loading-progress" class="progress-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause-menu">
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 40px;">Game Menu</h2>
+    <div class="menu-content">
+      <div class="mc-button" id="btn-resume">Back to Game</div>
+      <div style="display: flex; gap: 10px; width: 600px; justify-content: space-between;">
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Advancements</div>
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Statistics</div>
+      </div>
+      <div style="display: flex; gap: 10px; width: 600px; justify-content: space-between;">
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Give Feedback</div>
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Report Bugs</div>
+      </div>
+      <div style="display: flex; gap: 10px; width: 600px; justify-content: space-between;">
+         <div class="mc-button small" id="btn-pause-options">Options...</div>
+         <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Open to LAN</div>
+      </div>
+      <div class="mc-button" id="btn-quit">Save and Quit to Title</div>
+    </div>
+  </div>
+
+  <div id="crosshair"></div>
+  <div id="joystick"></div>
+  <div id="inv-button-mobile">...</div>
+  <div id="chat-button-mobile">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="image-rendering: pixelated;">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+    </svg>
+  </div>
+  <div id="btn-crouch">SNEAK</div>
+  <div id="btn-close-inv">X</div>
+
+  <div id="mobile-controls">
+    <div class="mobile-row">
+       <div class="mobile-btn" id="btn-throw">DROP</div>
+    </div>
+    <div class="mobile-row">
+       <div class="mobile-btn" id="btn-slot-left">&lt;</div>
+       <div class="mobile-btn" id="btn-slot-right">&gt;</div>
+    </div>
+    <div class="mobile-row">
+       <div class="mobile-btn" id="btn-place">PLACE</div>
+       <div class="mobile-btn" id="btn-jump">JUMP</div>
+       <div class="mobile-btn big" id="btn-break">BREAK</div>
+    </div>
+  </div>
+
+  <div id="mobile-inv-controls" style="position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); display: none; z-index: 2000; gap: 10px;">
+     <div class="mobile-btn" id="btn-inv-mode" style="width: 120px; border-radius: 4px;">MODE: ALL</div>
+  </div>
+
+  <div id="inventory-container" class="ui-container">
+    <div id="inventory-window" class="ui-window"></div>
+  </div>
+
+  <div id="crafting-container" class="ui-container">
+    <div id="crafting-window" class="ui-window"></div>
+  </div>
+
+  <div id="furnace-container" class="ui-container">
+    <div id="furnace-window" class="ui-window"></div>
+  </div>
+
+  <div id="structure-menu" class="ui-container" style="z-index: 5000; flex-direction: column; color: white;">
+    <h2 style="margin-bottom: 20px; text-shadow: 2px 2px 0 #3f3f3f;">Save Structure</h2>
+    <div id="structure-size-info" style="margin-bottom: 15px; color: #ffff55; text-shadow: 1px 1px 0 #000; white-space: pre-wrap; text-align: center;"></div>
+    <div class="input-group">
+      <label>Structure Name</label>
+      <input type="text" id="structure-name-input" value="my_structure" class="mc-input">
+    </div>
+    <div class="menu-content" style="margin-top: 20px; display: flex; gap: 10px;">
+      <div class="mc-button" id="btn-save-structure">Save JSON</div>
+      <div class="mc-button" id="btn-cancel-structure">Cancel</div>
+    </div>
+  </div>
+
+  <div id="player-list-overlay" style="display: none;">
+    <div id="player-list-header">Players</div>
+    <div id="player-list-content"></div>
+  </div>
+
+  <div id="multiplayer-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6000; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Play Multiplayer</h2>
+    
+    <div id="server-list" style="height: 300px; background: rgba(0,0,0,0.5); border: 1px solid #a0a0a0; margin-bottom: 20px; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 5px;">
+       <!-- Server slots generated here -->
+       <div style="color: #a0a0a0; text-align: center; margin-top: 20px;">Scanning for games on your local network...</div>
+    </div>
+
+    <div class="button-row">
+        <div class="mc-button small" id="btn-join-server">Join Server</div>
+        <div class="mc-button small" id="btn-direct-connect">Direct Connect</div>
+    </div>
+    
+    <div class="button-row" style="margin-top: 10px;">
+        <div class="mc-button small" id="btn-add-server">Add Server</div>
+        <div class="mc-button small" id="btn-edit-server" style="color: #a0a0a0; cursor: default;">Edit</div>
+    </div>
+
+    <div class="button-row" style="margin-top: 10px;">
+        <div class="mc-button small" id="btn-delete-server" style="color: #a0a0a0; cursor: default;">Delete</div>
+        <div class="mc-button small" id="btn-create-server">Create Server</div>
+    </div>
+    
+    <div class="mc-button" id="btn-admin-panel" style="margin-top: 10px; color: #a0a0a0; cursor: default;">Admin Panel</div>
+    
+    <div class="mc-button" id="btn-mp-cancel" style="margin-top: 10px;">Cancel</div>
+  </div>
+
+  <div id="add-server-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6100; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Edit Server Info</h2>
+    
+    <div class="input-group">
+      <label>Server Name</label>
+      <input type="text" id="server-name-input" value="Minecraft Server" class="mc-input">
+    </div>
+    
+    <div class="input-group">
+      <label>Server Address</label>
+      <input type="text" id="server-address-input" placeholder="Enter Server ID" class="mc-input">
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-save-server">Done</div>
+      <div class="mc-button" id="btn-cancel-add-server">Cancel</div>
+    </div>
+  </div>
+
+  <div id="create-server-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6100; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Create Server</h2>
+    
+    <div class="input-group">
+      <label>Server Name</label>
+      <input type="text" id="create-server-name" value="My World" class="mc-input">
+    </div>
+    
+    <div class="input-group" style="margin-top: 10px;">
+      <label>Server Icon (Optional)</label>
+      <input type="file" id="create-server-icon" accept="image/*" class="mc-input" style="padding-top: 5px;">
+    </div>
+    
+    <div class="input-group" style="margin-top: 10px;">
+      <label>Admin Password (Optional)</label>
+      <input type="password" id="create-server-pwd" placeholder="Leave blank for no admin" class="mc-input">
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-do-create-server">Create</div>
+      <div class="mc-button" id="btn-cancel-create-server">Cancel</div>
+    </div>
+  </div>
+
+  <div id="server-created-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6200; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Server Created!</h2>
+    
+    <p style="color: #a0a0a0; margin-bottom: 10px; font-size: 14px;">Share this address with your friends:</p>
+    
+    <div class="input-group">
+      <label>Server Address</label>
+      <input type="text" id="created-server-id" value="" class="mc-input" readonly>
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-created-done">Done</div>
+    </div>
+  </div>
+  
+  <div id="direct-connect-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6100; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Direct Connect</h2>
+    
+    <div class="input-group">
+      <label>Server Address</label>
+      <input type="text" id="direct-server-address" placeholder="Enter Server ID" class="mc-input">
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-join-direct">Join Server</div>
+      <div class="mc-button" id="btn-cancel-direct">Cancel</div>
+    </div>
+  </div>
+
+  <div id="admin-login-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6500; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Admin Login</h2>
+    
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="admin-login-pwd" class="mc-input">
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-admin-login">Login</div>
+      <div class="mc-button" id="btn-admin-cancel">Cancel</div>
+    </div>
+  </div>
+
+  <div id="death-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9000; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 15vh; background: rgba(64, 0, 0, 0.6); backdrop-filter: blur(2px);">
+    <h1 style="color: white; text-shadow: 4px 4px 0 #000; font-size: 48px; margin-bottom: 5px; font-family: 'Minecraft', sans-serif;">You Died!</h1>
+    <div id="death-msg" style="color: white; text-shadow: 2px 2px 0 #000; font-size: 16px; margin-bottom: 5px; font-family: 'Minecraft', sans-serif;"></div>
+    <div style="color: #ffff55; text-shadow: 2px 2px 0 #000; font-size: 16px; margin-bottom: 30px; font-family: 'Minecraft', sans-serif;">Score: <span id="death-score">0</span></div>
+    
+    <div class="menu-content">
+      <div class="mc-button" id="btn-respawn">Respawn</div>
+      <div class="mc-button" id="btn-death-quit">Title Screen</div>
+    </div>
+  </div>
+
+  <div id="admin-panel-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6600; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="dirt-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Server Console</h2>
+    
+    <div id="admin-console-output" style="width: 600px; height: 300px; background: rgba(0,0,0,0.5); border: 1px solid #a0a0a0; margin-bottom: 10px; overflow-y: auto; padding: 5px; color: #ccc; font-family: monospace; font-size: 14px; white-space: pre-wrap;"></div>
+    
+    <div style="display: flex; gap: 10px; width: 600px;">
+       <input type="text" id="admin-console-input" class="mc-input" style="flex: 1; margin-bottom: 0;" placeholder="Enter command (e.g. /op <player>)">
+       <div class="mc-button" id="btn-admin-send" style="width: 100px; margin-bottom: 0;">Send</div>
+    </div>
+
+    <div class="menu-content" style="margin-top: 20px;">
+      <div class="mc-button" id="btn-admin-close">Close</div>
+    </div>
+  </div>
+
+  <div id="mod-menu">
+    <div class="mod-menu-container">
+      <div class="mod-menu-header">Mods</div>
+      <div class="mod-menu-search">
+        <input type="text" id="mod-search-input" class="mc-input" placeholder="Search mods..." style="flex: 1; margin-bottom: 10px;">
+        <div class="mc-button small" id="btn-mod-filter" style="width: 40px; height: 40px; margin-bottom: 0;">Y</div>
+      </div>
+      <div class="mod-menu-content">
+        <div class="mod-list" id="mod-list-container">
+          <!-- Dynamic -->
+        </div>
+        <div class="mod-details">
+          <div class="mod-details-header">
+            <div class="mod-details-header-left">
+              <img src="/grass_block_side_16x16.png" class="mod-details-icon">
+              <div class="mod-details-title">
+                <div class="mod-details-name">Minecraft <span style="color: #777;">Minecraft</span></div>
+                <div class="mod-details-meta">
+                  v1.21.11<br>
+                  By Mojang Studios
+                </div>
+              </div>
+            </div>
+            <div class="mc-button small" id="btn-mod-config" style="width: 180px; margin-bottom: 0; font-size: 12px; height: 32px;">Configuration</div>
+          </div>
+          <div class="mod-details-body">
+            The base game.
+          </div>
+        </div>
+      </div>
+      <div class="mod-menu-footer">
+        <div class="mc-button" id="btn-mod-editor" style="width: 290px;">Mod Editor</div>
+        <div class="mc-button" id="btn-mod-marketplace" style="width: 290px;">Mod Marketplace</div>
+        <div class="mc-button" id="btn-mod-done" style="width: 290px;">Done</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mod-filter-popup">
+    <div style="color: #3f3f3f; text-align: center; margin-bottom: 5px; font-weight: bold; text-shadow: none;">Filter Options</div>
+    <div class="mc-button" id="btn-mod-sort" style="width: 100%; height: 32px; font-size: 12px; margin-bottom: 5px;">Sort: A-Z</div>
+    <div class="mc-button" id="btn-mod-toggle-libs" style="width: 100%; height: 32px; font-size: 12px; margin-bottom: 10px;">Libraries: Hidden</div>
+    <div class="mc-button" id="btn-mod-filter-done" style="width: 100%; height: 32px; font-size: 12px; margin-bottom: 0;">Done</div>
+  </div>
+
+  <div id="donation-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 7500; flex-direction: column; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.85); color: white;">
+    <h2 style="margin-bottom: 20px; text-shadow: 2px 2px 0 #3f3f3f;">Support Creator</h2>
+    <div style="display: flex; flex-direction: column; gap: 15px; width: 400px; max-width: 90vw;">
+       <div class="input-group">
+          <label>Message</label>
+          <input type="text" id="donate-message" placeholder="Type your support message..." class="mc-input" style="width: 100%;">
+       </div>
+       <div class="input-group">
+          <label>Credits (Minimum 10)</label>
+          <input type="number" id="donate-amount" value="100" min="10" step="10" class="mc-input" style="width: 100%;">
+       </div>
+       <div class="input-group">
+          <label>Optional Image Attachment</label>
+          <input type="file" id="donate-image" accept="image/*" class="mc-input" style="width: 100%; padding-top: 5px;">
+       </div>
+       <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: space-between;">
+          <div class="mc-button small" id="btn-donate-confirm">Donate</div>
+          <div class="mc-button small" id="btn-donate-cancel">Cancel</div>
+       </div>
+    </div>
+  </div>
+
+  <div id="options-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 7000; flex-direction: column; align-items: center; justify-content: center;">
+    <h2 style="color: white; text-shadow: 2px 2px 0 #3f3f3f; margin-bottom: 20px;">Options</h2>
+    
+    <div style="display: flex; gap: 10px; width: 600px; margin-bottom: 10px; justify-content: space-between;">
+        <!-- FOV Slider -->
+        <div class="mc-button small" style="position: relative; padding: 0;">
+            <div class="mc-slider-container">
+              <div class="mc-slider-bg" id="fov-label">FOV: Normal</div>
+              <input type="range" id="fov-slider" min="30" max="110" value="70" class="mc-range">
+            </div>
+        </div>
+        
+        <!-- Difficulty / Online -->
+        <div class="mc-button small" id="btn-opt-difficulty">Difficulty: Normal</div>
+        <div class="mc-button small" id="btn-opt-online" style="display: none; color: #a0a0a0; cursor: default;">Online...</div>
+    </div>
+
+    <div style="display: flex; gap: 10px; width: 600px; margin-bottom: 40px; flex-wrap: wrap; justify-content: space-between;">
+        <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Skin Customization...</div>
+        <div class="mc-button small" id="btn-opt-music">Music & Sounds...</div>
+        
+        <div class="mc-button small" id="btn-opt-video">Video Settings...</div>
+        <div class="mc-button small" id="btn-opt-controls">Controls...</div>
+        
+        <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Language...</div>
+        <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Chat Settings...</div>
+        
+        <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Resource Packs...</div>
+        <div class="mc-button small text-fit" style="color: #a0a0a0; cursor: default;">Accessibility Settings...</div>
+
+        <div class="mc-button small" id="btn-opt-debugs">Debugs: OFF</div>
+        <div class="mc-button small text-fit" style="color: #a0a0a0; cursor: default;">Credits & Attribution...</div>
+    </div>
+    
+    <div class="mc-button" id="btn-options-done" style="width: 200px;">Done</div>
+  </div>
+
+  <div id="controls-list-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 7100; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: white;">
+    <h2 style="margin-bottom: 20px;">Controls</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 14px; text-align: left; background: rgba(255,255,255,0.1); padding: 20px; border: 2px solid #555;">
+       <div>Move Forward</div><div>W</div>
+       <div>Move Backward</div><div>S</div>
+       <div>Move Left</div><div>A</div>
+       <div>Move Right</div><div>D</div>
+       <div>Jump</div><div>Space</div>
+       <div>Sneak</div><div>Shift</div>
+       <div>Sprint</div><div>Ctrl</div>
+       <div>Inventory</div><div>E</div>
+       <div>Drop Item</div><div>Q</div>
+       <div>Chat</div><div>T / /</div>
+       <div>Select Slot</div><div>1-9</div>
+       <div>Break Block</div><div>Left Click</div>
+       <div>Place/Interact</div><div>Right Click</div>
+    </div>
+    <div class="mc-button" id="btn-controls-done">Done</div>
+  </div>
+
+  <div id="skin-settings-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 7100; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: white;">
+    <h2 style="margin-bottom: 20px;">Skin Customization</h2>
+    <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+       <div style="width: 128px; height: 128px; background: #555; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <img id="skin-preview" src="" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; display: none;">
+          <div id="skin-preview-placeholder" style="color: #aaa; font-size: 12px; text-align: center;">No Skin<br>Selected</div>
+       </div>
+       
+       <div class="input-group">
+          <label>Upload Skin (PNG)</label>
+          <input type="file" id="skin-upload-input" accept="image/png" class="mc-input">
+       </div>
+       
+       <div class="mc-button" id="btn-skin-save" style="display: none;">Save Skin</div>
+       <div class="mc-button" id="btn-skin-done">Done</div>
+    </div>
+  </div>
+
+  <div id="video-settings-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 7100; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: white;">
+    <h2 style="margin-bottom: 20px;">Video Settings</h2>
+    <div style="display: flex; gap: 10px; width: 600px; flex-wrap: wrap; justify-content: center;">
+       <div class="mc-button small" id="btn-video-fog">Fog: ON</div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Graphics: Fancy</div>
+       <div class="mc-button small" style="position: relative; padding: 0;">
+            <div class="mc-slider-container">
+              <div class="mc-slider-bg" id="render-dist-label">Render Distance: 6 Chunks</div>
+              <input type="range" id="render-dist-slider" min="2" max="16" value="6" class="mc-range">
+            </div>
+       </div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Smooth Lighting: Maximum</div>
+    </div>
+    <div class="mc-button" id="btn-video-done" style="margin-top: 20px;">Done</div>
+  </div>
+
+  <div id="music-settings-menu">
+    <h2 style="margin-bottom: 20px;">Music & Sounds</h2>
+    <div style="display: flex; gap: 10px; width: 600px; flex-wrap: wrap; justify-content: space-between;">
+       <div class="mc-button" style="position: relative; padding: 0;">
+            <div class="mc-slider-container">
+              <div class="mc-slider-bg" id="master-vol-label">Master Volume: 100%</div>
+              <input type="range" id="master-vol-slider" min="0" max="100" value="100" class="mc-range">
+            </div>
+       </div>
+       
+       <div class="mc-button small" style="position: relative; padding: 0;">
+            <div class="mc-slider-container">
+              <div class="mc-slider-bg" id="music-vol-label">Music: 50%</div>
+              <input type="range" id="music-vol-slider" min="0" max="100" value="50" class="mc-range">
+            </div>
+       </div>
+
+       <div class="mc-button small" style="position: relative; padding: 0;">
+            <div class="mc-slider-container">
+              <div class="mc-slider-bg" id="sound-vol-label">Sound: 100%</div>
+              <input type="range" id="sound-vol-slider" min="0" max="100" value="100" class="mc-range">
+            </div>
+       </div>
+       
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Jukebox/Note Blocks: 100%</div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Weather: 100%</div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Hostile Creatures: 100%</div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Friendly Creatures: 100%</div>
+       <div class="mc-button small" style="color: #a0a0a0; cursor: default;">Players: 100%</div>
+    </div>
+    <div class="mc-button" id="btn-music-done" style="margin-top: 20px;">Done</div>
+  </div>
+
+  <div id="drag-item" style="position: absolute; pointer-events: none; z-index: 3000; display: none; width: 32px; height: 32px;">
+    <img id="drag-item-icon" style="width: 100%; height: 100%; image-rendering: pixelated;">
+    <div id="drag-item-count" style="position: absolute; bottom: 0; right: 0; color: white; text-shadow: 1px 1px 0 #000; font-size: 16px; font-family: 'Minecraft', sans-serif;"></div>
+  </div>
+  <div id="damage-flash" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 0, 0, 0); pointer-events: none; z-index: 9999; transition: background 0.1s;"></div>
+  <div id="item-tooltip"></div>
+  <div id="server-tooltip"></div>
+  <div id="chat-container">
+    <div id="chat-history"></div>
+    <div id="chat-input-wrapper">
+      <input type="text" id="chat-input" placeholder="" autocomplete="off">
+      <div id="chat-send-btn">SEND</div>
+    </div>
+  </div>
+  <div id="hud-bottom">
+    <div id="item-name-display"></div>
+    <div id="hud-stats" style="display: flex; justify-content: space-between; width: calc(182px * var(--scale)); margin-bottom: calc(1px * var(--scale));">
+       <div id="hud-health" style="display: flex; gap: 0;"></div>
+       <div id="hud-food" style="display: flex; flex-direction: row-reverse; gap: 0;"></div>
+    </div>
+    <div id="xp-bar"></div>
+    <div id="hotbar"></div>
+  </div>
+  <div id="debug-info">
+    <div id="debug-text"></div>
+    <div id="debug-controls">
+      <label><input type="checkbox" id="fog-toggle" checked style="vertical-align: middle;"> Fog</label>
+      <div style="margin-top: 5px;">
+        <label for="ambient-slider">Ambient Light</label>
+        <input type="range" id="ambient-slider" min="0" max="0.5" step="0.01" value="0.1">
+      </div>
+    </div>
+  </div>
+  <div id="debug-info-right" style="position: absolute; top: 2px; right: 2px; text-align: right; color: #e0e0e0; font-family: 'Minecraft', monospace; font-size: 12px; text-shadow: 1px 1px 0 #3f3f3f; line-height: 1.2; padding: 6px; background-color: rgba(0, 0, 0, 0.6); display: none; z-index: 2000; min-width: 150px;">
+  </div>
+
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://esm.sh/three@0.160.0",
+        "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+        "nipplejs": "https://esm.sh/nipplejs@0.10.1"
+      }
+    }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

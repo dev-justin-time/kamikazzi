@@ -36,14 +36,14 @@
  * quota tuning, dev-mode redaction of PII from `message`/`stack`.
  */
 
+// Route FS operations through the puter-lib wrappers so circuit breaker
+// tracking, deduped warnings, and future instrumentation apply uniformly.
+import { fs, isCloudDisabled } from '../puter-lib.js';
+
 const MAX_BUFFER = 50;
 const FLUSH_BATCH = 20;
 const DEDUP_WINDOW_MS = 5000;
 const FLUSH_DEBOUNCE_MS = 2000;
-// Dedupe the "Puter FS write failed" warn to once per 60s. The underlying
-// puter-lib circuit breaker (3 fails / 30s) throttles the actual writes;
-// this prevents the catch block from re-logging the same outage repeatedly.
-const PUTER_WARN_DEDUPE_MS = 60000;
 
 // Per-project configuration (set by install())
 let logDir = '/Logs';
@@ -55,7 +55,6 @@ const seen = new Map();   // key -> ts (for dedup)
 const buffer = [];
 let flushTimer = null;
 let flushing = false;     // re-entrancy guard
-let lastPuterWarnAt = 0;  // dedupe the [CLIENT-ERROR] Puter FS write failed warn
 
 function makeKey(kind, message) {
   return kind + '|' + String(message || '').slice(0, 200);
@@ -129,8 +128,7 @@ async function flush() {
   flushTimer = null;
   if (flushing) return;
   if (buffer.length === 0) return;
-  if (typeof puter === 'undefined' || !puter || !puter.fs) return;
-  if (typeof puter.isCloudDisabled === 'function' && puter.isCloudDisabled()) { scheduleFlush(); return; }
+  if (isCloudDisabled()) { scheduleFlush(); return; }
   if (!isPuterReady()) { scheduleFlush(); return; }
   flushing = true;
   // Hoisted to prevent ReferenceError crash when an exception fires
@@ -141,22 +139,28 @@ async function flush() {
     const date = new Date().toISOString().slice(0, 10);
     const logPath = logDir + '/errors-' + date + '.jsonl';
     const newContent = toFlush.map(e => JSON.stringify(e)).join('\n') + '\n';
-    let existing = '';
-    try {
-      const file = await puter.fs.read(logPath);
-      if (file && typeof file.text === 'function') existing = await file.text();
-    } catch (_) { /* file doesn't exist yet — fine */ }
+
+    // Route through the fs wrappers so circuit breaker tracking,
+    // deduped warnings, and future instrumentation apply uniformly.
+    const file = await fs.read(logPath);
+    const existing = (file && typeof file.text === 'function')
+      ? await file.text() : '';
+
     const blob = new Blob([existing + newContent], { type: 'text/plain' });
-    await puter.fs.write(logPath, blob);
-  } catch (e) {
-    if (toFlush.length) buffer.unshift(...toFlush);
-    // Dedupe the outage warning (once per 60s). The actual writes are
-    // throttled by the puter-lib circuit breaker (3 fails / 30s).
-    if (Date.now() - lastPuterWarnAt > PUTER_WARN_DEDUPE_MS) {
-      // eslint-disable-next-line no-restricted-imports
-      console.warn('[CLIENT-ERROR] Puter FS write failed:', e);
-      lastPuterWarnAt = Date.now();
+    const ok = await fs.write(logPath, blob);
+    if (!ok) {
+      // fs.write returns false on failure (it records the error via the
+      // circuit breaker and issues its own deduped warn under 'fs' scope).
+      // Re-push entries so they survive the failed flush and are retried
+      // later. The underlying breaker will throttle retries.
+      buffer.unshift(...toFlush);
     }
+  } catch (e) {
+    // Unexpected error — should be rare since the fs wrappers are
+    // non-throwing. Re-push entries so no data is lost.
+    if (toFlush.length) buffer.unshift(...toFlush);
+    // eslint-disable-next-line no-restricted-imports
+    console.warn('[CLIENT-ERROR] flush error:', e);
   } finally {
     flushing = false;
     if (buffer.length > 0) scheduleFlush();

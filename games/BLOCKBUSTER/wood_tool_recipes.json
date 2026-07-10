@@ -1,0 +1,104 @@
+[
+  {
+    "pattern": [
+      6,
+      6,
+      null,
+      6,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 12,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      6,
+      6,
+      6,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 13,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      null,
+      6,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 14,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      6,
+      6,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 15,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      null,
+      6,
+      null,
+      null,
+      6,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 16,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      null,
+      null,
+      null,
+      null,
+      6,
+      null,
+      null,
+      6,
+      null
+    ],
+    "result": {
+      "type": 17,
+      "count": 4
+    }
+  }
+]

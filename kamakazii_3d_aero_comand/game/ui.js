@@ -22,6 +22,7 @@ import { wirePanels } from './ui/panels.js';
 import { wireLobby } from './ui/lobby.js';
 import { wireSkinLab } from './ui/skin-lab.js';
 import { wireSettings } from './ui/settings.js';
+import { setLegalConsent } from './ui/modals.js';
 
 export function setupUI({ world, rendererObj }) {
   const hud = wireHUD({ world });
@@ -39,7 +40,15 @@ export function setupUI({ world, rendererObj }) {
   const panels = wirePanels({ world, rendererObj, computeGrade });
   const lobby = wireLobby({ world });
   wireSkinLab({ world });
-  const settings = wireSettings({ world });
+  const settings = wireSettings({
+    world,
+    onLegalConsentAccepted: () => { setLegalConsent(true); },
+  });
+
+  // Sync initial legal consent state from settings → modals
+  if (settings.legalConsentAccepted) {
+    setLegalConsent(true);
+  }
 
   function quitToMenu() {
     if (!world || !world.state) return;

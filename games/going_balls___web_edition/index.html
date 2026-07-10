@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Going Balls - Web Edition</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #87ceeb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            touch-action: none;
+        }
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+        #overlay h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        #overlay button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #ffcc00;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 0 #ccaa00;
+            transition: transform 0.1s;
+        }
+        #overlay button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #ccaa00;
+        }
+        /* Top UI for Menu/Shop */
+        #top-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Drag / Drop panels and bars */
+        .drag-bar, .drag-panel {
+            position: absolute;
+            z-index: 250;
+            pointer-events: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 6px;
+            background: rgba(0,0,0,0.35);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(4px);
+        }
+        #top-bar {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+        }
+        #bottom-bar {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+        }
+        #left-panel {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+            padding: 10px;
+            max-height: 70vh;
+            overflow: auto;
+        }
+        #right-panel {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+            padding: 10px;
+            max-height: 70vh;
+            overflow: auto;
+        }
+        .drag-item {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            min-height: 56px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: grab;
+            user-select: none;
+        }
+        .drag-item:active { cursor: grabbing; transform: scale(0.98); }
+        .drag-item img { max-width: 100%; max-height: 100%; border-radius: 8px; pointer-events: none; }
+        /* Highlight droppable renderer area when dragging */
+        .drop-highlight {
+            outline: 3px dashed rgba(255,255,0,0.7);
+            outline-offset: -6px;
+        }
+        #top-menu.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .menu-btn {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            border: 3px solid #ffcc00;
+            border-radius: 20px;
+            padding: 20px;
+            width: 80%;
+            max-width: 400px;
+            display: none;
+            flex-direction: column;
+            color: white;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal h2 { margin-top: 0; color: #ffcc00; text-align: center; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .item-card {
+            background: #333;
+            border: 2px solid #555;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+        .item-card:hover {
+            transform: scale(1.02);
+        }
+        .item-card.selected { border-color: #ffcc00; background: #444; }
+        .item-card.locked { opacity: 0.8; }
+        .item-card .price { font-size: 12px; color: #ffcc00; font-weight: bold; }
+        .item-preview {
+            width: 60px;
+            height: 60px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .ball-preview { border-radius: 50%; }
+        .sky-preview { border-radius: 8px; width: 80px; height: 50px; }
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 30px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1100;
+            line-height: 1;
+        }
+        .close-modal:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        #total-coins {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        #joystick-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 180px;
+            height: 180px;
+            pointer-events: auto;
+            z-index: 100;
+        }
+        /* Roblox-style joystick overrides */
+        .nipple .back {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .nipple .front {
+            background: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        #jump-btn {
+            position: absolute;
+            bottom: 60px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: auto;
+            touch-action: none;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        #jump-btn:active {
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div class="stats">
+            <div id="coin-display">Session: 0</div>
+            <div id="distance-display">Progress: 0%</div>
+        </div>
+    </div>
+
+    <div id="total-coins">Wallet: 0</div>
+
+    <div id="top-menu" class="visible">
+        <button class="menu-btn" id="help-btn-open">?</button>
+        <button class="menu-btn" id="store-btn-open">STORE</button>
+        <button class="menu-btn" id="skins-btn-open">SKINS</button>
+        <button class="menu-btn" id="skies-btn-open">SKIES</button>
+        <button class="menu-btn" id="builder-btn-open">BUILDER</button>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <button class="close-modal">&times;</button>
+        <h2>HOW TO PLAY</h2>
+        <p>• <b>Desktop:</b> Use WASD or Arrows to roll. Press T to toggle mouse lock.</p>
+        <p>• <b>Mobile:</b> Use the joystick to roll, Jump button to hop.</p>
+        <p>• <b>Goal:</b> Reach the finish line without falling off!</p>
+        <p>• <b>Shop:</b> Collect coins to unlock new ball styles and sky themes.</p>
+    </div>
+
+    <!-- Skins Modal -->
+    <div id="skins-modal" class="modal">
+        <button class="close-modal">&times;</button>
+        <h2>BALL SHOP</h2>
+        <div class="grid" id="skins-grid"></div>
+    </div>
+
+    <!-- Store Modal (combined shop view) -->
+    <div id="store-modal" class="modal">
+        <button class="close-modal">&times;</button>
+        <h2>STORE</h2>
+        <p style="text-align:center; color:#ddd; margin:0;">Buy ball skins and sky themes with your Wallet / Session coins</p>
+        <h3 style="color:#ffcc00; margin-top:12px; text-align:center;">BALLS</h3>
+        <div class="grid" id="store-skins-grid"></div>
+        <h3 style="color:#ffcc00; margin-top:12px; text-align:center;">SKIES</h3>
+        <div class="grid" id="store-skies-grid"></div>
+    </div>
+
+    <!-- Skies Modal -->
+    <div id="skies-modal" class="modal">
+        <button class="close-modal">&times;</button>
+        <h2>SKY SHOP</h2>
+        <div class="grid" id="skies-grid"></div>
+    </div>
+
+    <!-- Builder Modal -->
+    <div id="builder-modal" class="modal" style="max-width:600px;">
+        <button class="close-modal">&times;</button>
+        <h2>TRACK BUILDER</h2>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="menu-btn" id="builder-add-platform">Add Platform</button>
+            <button class="menu-btn" id="builder-add-ramp">Add Ramp</button>
+            <button class="menu-btn" id="builder-add-gap">Add Gap</button>
+            <button class="menu-btn" id="builder-add-checkpoint">Add Checkpoint</button>
+            <button class="menu-btn" id="builder-set-finish">Place Finish</button>
+            <button class="menu-btn" id="builder-scene-starter">Scene Starter</button>
+            <!-- New Traps / Hazards -->
+            <button class="menu-btn" id="builder-add-spikes">Add Spikes</button>
+            <button class="menu-btn" id="builder-add-pendulum">Add Pendulum Hazard</button>
+            <button class="menu-btn" id="builder-add-spinner">Add Spinner Hazard</button>
+            <button class="menu-btn" id="builder-add-crusher">Add Side Crusher</button>
+            <!-- Additional builder tools -->
+            <button class="menu-btn" id="builder-add-trampoline">Add Trampoline</button>
+            <button class="menu-btn" id="builder-add-coinring">Add Coin Ring</button>
+            <button class="menu-btn" id="builder-add-movingplatform">Add Moving Platform</button>
+            <button class="menu-btn" id="builder-add-spikepit">Add Spike Pit</button>
+            <button class="menu-btn" id="builder-add-seesaw">Add Seesaw</button>
+            <button class="menu-btn" id="builder-add-spring">Add Spring Pad</button>
+
+            <!-- Stunt sections -->
+            <button class="menu-btn" id="builder-add-stunt-ramp">Stunt Ramp</button>
+            <button class="menu-btn" id="builder-add-stunt-loop">Loop</button>
+            <button class="menu-btn" id="builder-add-stunt-grind">Grind Rail</button>
+            <button class="menu-btn" id="builder-add-stunt-donut">Donut</button>
+        </div>
+        <p style="color:#ddd; margin-top:12px; text-align:center;">Click <b>PREVIEW</b> to place elements along the Z axis. Use Save/Load to persist custom tracks.</p>
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:12px;">
+            <button class="menu-btn" id="builder-clear">CLEAR</button>
+            <button class="menu-btn" id="builder-preview">PREVIEW</button>
+            <button class="menu-btn" id="builder-save">SAVE</button>
+            <button class="menu-btn" id="builder-load">LOAD</button>
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
+            <!-- Enter a live builder scene to place items in-world -->
+            <button class="menu-btn" id="builder-enter-scene">ENTER SCENE BUILDER</button>
+        </div>
+        <div style="margin-top:12px; color:#ddd;">
+            <label style="display:block; margin-bottom:6px;">Custom Track Name</label>
+            <input id="builder-name" type="text" placeholder="My Track" style="width:100%; padding:8px; border-radius:8px; border:1px solid #555; background:#222; color:white;">
+        </div>
+        <div style="margin-top:12px; color:#ddd;">
+            <h3 style="color:#ffcc00; margin:0 0 6px 0;">Saved Tracks</h3>
+            <div id="builder-saved-list" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <h1 id="overlay-title">LEVEL COMPLETE!</h1>
+        <button id="next-btn">CONTINUE</button>
+    </div>
+
+    <div id="joystick-container"></div>
+    <div id="jump-btn">JUMP</div>
+
+    <!-- Drag bars and panels -->
+    <div id="top-bar" class="drag-bar" aria-hidden="false">
+        <div class="drag-item" draggable="true" data-item="platform" title="Platform">PLAT</div>
+        <div class="drag-item" draggable="true" data-item="ramp" title="Ramp">RAMP</div>
+        <div class="drag-item" draggable="true" data-item="gap" title="Gap">GAP</div>
+        <div class="drag-item" draggable="true" data-item="checkpoint" title="Checkpoint">CP</div>
+    </div>
+
+    <div id="bottom-bar" class="drag-bar" aria-hidden="false">
+        <div class="drag-item" draggable="true" data-item="spikes" title="Spikes">SPIKE</div>
+        <div class="drag-item" draggable="true" data-item="pendulum" title="Pendulum">PEND</div>
+        <div class="drag-item" draggable="true" data-item="spinner" title="Spinner">SPIN</div>
+        <div class="drag-item" draggable="true" data-item="trampoline" title="Tramp">TRAMP</div>
+    </div>
+
+    <div id="left-panel" class="drag-panel" aria-hidden="false">
+        <div class="drag-item" draggable="true" data-item="coin_ring" title="Coin Ring">COIN</div>
+        <div class="drag-item" draggable="true" data-item="moving_platform" title="Moving Platform">MOVE</div>
+        <div class="drag-item" draggable="true" data-item="spring_pad" title="Spring">SPR</div>
+    </div>
+
+    <div id="right-panel" class="drag-panel" aria-hidden="false">
+        <div class="drag-item" draggable="true" data-item="stunt_ramp" title="Stunt Ramp">SR</div>
+        <div class="drag-item" draggable="true" data-item="stunt_loop" title="Stunt Loop">LOOP</div>
+        <div class="drag-item" draggable="true" data-item="stunt_grind" title="Grind">GRIND</div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.160.0",
+            "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+            "cannon-es": "https://esm.sh/cannon-es@0.20.0",
+            "nipplejs": "https://esm.sh/nipplejs@0.10.1"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

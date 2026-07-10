@@ -537,6 +537,28 @@ export const fs = {
   },
 
   /**
+   * List files in a directory on the Puter virtual drive.
+   * Returns an array of file objects ({name, fullPath, isDir, size, created})
+   * or null if the directory doesn't exist or can't be read.
+   *
+   * @param {string} path — absolute path (e.g. '/CloudAssets').
+   * @returns {Promise<Array|null>}
+   */
+  async readdir(path) {
+    if (isCloudDisabled()) return null;
+    const p = await resolvePuter();
+    if (!p || !p.fs || typeof p.fs.readdir !== 'function') return null;
+    try {
+      const entries = await p.fs.readdir(path);
+      _recordCloudSuccess();
+      return Array.isArray(entries) ? entries : null;
+    } catch (_) {
+      // Directory not found or unreadable — expected, not a backend outage.
+      return null;
+    }
+  },
+
+  /**
    * Read a text file from the Puter virtual drive.
    * Convenience wrapper that calls .text() on the returned file.
    *

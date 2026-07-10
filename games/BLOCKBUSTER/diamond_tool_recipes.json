@@ -1,0 +1,92 @@
+[
+  {
+    "type": "crafting",
+    "pattern": [
+      48,
+      48,
+      null,
+      48,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 33,
+      "count": 1
+    }
+  },
+  {
+    "type": "crafting",
+    "pattern": [
+      48,
+      48,
+      48,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 34,
+      "count": 1
+    }
+  },
+  {
+    "type": "crafting",
+    "pattern": [
+      null,
+      48,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 35,
+      "count": 1
+    }
+  },
+  {
+    "type": "crafting",
+    "pattern": [
+      48,
+      48,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 36,
+      "count": 1
+    }
+  },
+  {
+    "type": "crafting",
+    "pattern": [
+      null,
+      48,
+      null,
+      null,
+      48,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 37,
+      "count": 1
+    }
+  }
+]

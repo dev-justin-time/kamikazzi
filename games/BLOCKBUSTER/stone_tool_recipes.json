@@ -1,0 +1,87 @@
+[
+  {
+    "pattern": [
+      4,
+      4,
+      null,
+      4,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 18,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      4,
+      4,
+      4,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 19,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      null,
+      4,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 20,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      4,
+      4,
+      null,
+      null,
+      17,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 21,
+      "count": 1
+    }
+  },
+  {
+    "pattern": [
+      null,
+      4,
+      null,
+      null,
+      4,
+      null,
+      null,
+      17,
+      null
+    ],
+    "result": {
+      "type": 22,
+      "count": 1
+    }
+  }
+]
