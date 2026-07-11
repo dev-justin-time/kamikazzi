@@ -31,6 +31,7 @@ ehthumbs.db
 *.bak
 *.orig
 *.rej
+_cleanup_backup/
 
 # Local env / secrets
 .env

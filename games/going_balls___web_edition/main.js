@@ -3,6 +3,23 @@ import * as CANNON from 'cannon-es';
 import nipplejs from 'nipplejs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+// --- Extracted modules ---
+import { initAudio, playSound, spawnCoinExplosion, playFootstep } from "./js/audio.js";
+import { getBallMaterial } from "./js/ball-skins.js";
+import {
+  clearLevel, placeFinishModel, createLevel,
+  addPlatform, addTunnelWalls, addRamp, addPendulum, addSpinner,
+  addHammer, addMover, addWall, addCoins, addCheckpoint
+} from "./js/level-gen.js";
+import {
+  renderBuilder, clearBuilderPreview, previewBuilder,
+  loadCustomLevel, enterBuilderScene, exitBuilderScene
+} from "./js/track-builder.js";
+import { setupUI, renderGrids, handlePurchase, updateWalletUI } from "./js/ui.js";
+import { initWolfModel, updateWolfAnimation, resetWolfModel, setWolfRunning } from "./js/wolf-model.js";
+import { initStudio, isStudioActive } from "./js/studio.js";
+
+
 // Global safety: catch unhandled promise rejections to avoid noisy "network error" crashes.
 window.addEventListener('unhandledrejection', (evt) => {
   console.warn('Unhandled promise rejection:', evt.reason);
@@ -29,6 +46,7 @@ class Game {
         this.animate();
         this.setupUI();
         this.updateWalletUI();
+        this.initStudio();
     }
 
     loadData() {
@@ -66,37 +84,37 @@ class Game {
         localStorage.setItem('goingBallsData_v1', JSON.stringify(this.saveData));
         
         this.ballConfigs = {
-            rainbow: { name: 'Rainbow', price: 0, tex: 'Gemini_Generated_Image_dsfkzqdsfkzqdsfk.png', type: 'texture' },
-            gifskin: { name: 'Animated', price: 900, tex: 'IMG_0300.gif', type: 'gif' },
-            wood: { name: 'Wood', price: 50, tex: 'wood_texture.png', type: 'texture' },
-            metal: { name: 'Chrome', price: 150, tex: 'ball_metal.png', type: 'texture' },
-            lava: { name: 'Lava', price: 300, tex: 'ball_lava.png', type: 'texture' },
+            rainbow: { name: 'Rainbow', price: 0, tex: 'assets/image/Gemini_Generated_Image_dsfkzqdsfkzqdsfk.png', type: 'texture' },
+            gifskin: { name: 'Animated', price: 900, tex: 'assets/image/IMG_0300.gif', type: 'gif' },
+            wood: { name: 'Wood', price: 50, tex: 'assets/image/wood_texture.png', type: 'texture' },
+            metal: { name: 'Chrome', price: 150, tex: 'assets/image/ball_metal.png', type: 'texture' },
+            lava: { name: 'Lava', price: 300, tex: 'assets/image/ball_lava.png', type: 'texture' },
             mint: { name: 'Mint', price: 200, type: 'color', color: 0x7fffd4, shininess: 60 },
 
             // Glass-style "image inside sphere" skins (premium)
-            glass_fire:   { name: 'Glass — Flame', price: 5000, tex: 'fire.webp', type: 'glass' },
-            glass_demon:  { name: 'Glass — Red Demon', price: 5500, tex: 'A-60_gif.webp', type: 'glass' },
-            glass_load:   { name: 'Glass — Loading', price: 6000, tex: 'windows-loandig-cargando.gif', type: 'glass' },
-            glass_sack:   { name: 'Glass — Full Sack', price: 7000, tex: 'sack.webp', type: 'glass' },
-            glass_star:   { name: 'Glass — Spinning Star', price: 8000, tex: 'Spinningstar.gif', type: 'glass' },
-            glass_sonic:  { name: 'Glass — Sonic', price: 9000, tex: 'sonicwalk.gif', type: 'glass' },
+            glass_fire:   { name: 'Glass — Flame', price: 5000, tex: 'assets/image/fire.webp', type: 'glass' },
+            glass_demon:  { name: 'Glass — Red Demon', price: 5500, tex: 'assets/image/A-60_gif.webp', type: 'glass' },
+            glass_load:   { name: 'Glass — Loading', price: 6000, tex: 'assets/image/windows-loandig-cargando.gif', type: 'glass' },
+            glass_sack:   { name: 'Glass — Full Sack', price: 7000, tex: 'assets/image/sack.webp', type: 'glass' },
+            glass_star:   { name: 'Glass — Spinning Star', price: 8000, tex: 'assets/image/Spinningstar.gif', type: 'glass' },
+            glass_sonic:  { name: 'Glass — Sonic', price: 9000, tex: 'assets/image/sonicwalk.gif', type: 'glass' },
 
             // New premium glass balls (10000+)
-            glass_windows95: { name: 'Glass — Win95 Kawaii', price: 10000, tex: 'windows95kwaii.gif', type: 'glass' },
-            glass_img0038:   { name: 'Glass — IMG_0038', price: 10500, tex: 'IMG_0038.gif', type: 'glass' },
-            glass_jfreddy:   { name: 'Glass — JFreddy Power', price: 11000, tex: 'Jfreddypower.gif', type: 'glass' },
-            glass_lays:      { name: 'Glass — Lays Logo', price: 11500, tex: 'Lays_brand_logo.png', type: 'glass' },
-            glass_portal:    { name: 'Glass — Portal', price: 12000, tex: 'portal.gif', type: 'glass' },
-            glass_baldi:     { name: 'Glass — Baldi Dance', price: 12500, tex: 'BaldiDanceV2.gif', type: 'glass' },
-            glass_dancing:   { name: 'Glass — Dancing Groovy', price: 13000, tex: 'dancing-groovy.webp', type: 'glass' },
-            glass_epicface:  { name: 'Glass — Epic Face Spin', price: 13500, tex: 'epicfacespin (2).gif', type: 'glass' }
+            glass_windows95: { name: 'Glass — Win95 Kawaii', price: 10000, tex: 'assets/image/windows95kwaii.gif', type: 'glass' },
+            glass_img0038:   { name: 'Glass — IMG_0038', price: 10500, tex: 'assets/image/IMG_0038.gif', type: 'glass' },
+            glass_jfreddy:   { name: 'Glass — JFreddy Power', price: 11000, tex: 'assets/image/Jfreddypower.gif', type: 'glass' },
+            glass_lays:      { name: 'Glass — Lays Logo', price: 11500, tex: 'assets/image/Lays_brand_logo.png', type: 'glass' },
+            glass_portal:    { name: 'Glass — Portal', price: 12000, tex: 'assets/image/portal.gif', type: 'glass' },
+            glass_baldi:     { name: 'Glass — Baldi Dance', price: 12500, tex: 'assets/image/BaldiDanceV2.gif', type: 'glass' },
+            glass_dancing:   { name: 'Glass — Dancing Groovy', price: 13000, tex: 'assets/image/dancing-groovy.webp', type: 'glass' },
+            glass_epicface:  { name: 'Glass — Epic Face Spin', price: 13500, tex: 'assets/image/epicfacespin (2).gif', type: 'glass' }
         };
 
         this.skyConfigs = {
-            day: { name: 'Blue Sky', price: 0, tex: 'sky_day.png', color: 0x87ceeb },
-            sunset: { name: 'Sunset', price: 100, tex: 'sky_sunset.png', color: 0xff7f50 },
-            night: { name: 'Midnight', price: 250, tex: 'sky_night.png', color: 0x0a0a2a },
-            void: { name: 'Cosmic', price: 500, tex: 'sky_void.png', color: 0x000000 }
+            day: { name: 'Blue Sky', price: 0, tex: 'assets/image/sky_day.png', color: 0x87ceeb },
+            sunset: { name: 'Sunset', price: 100, tex: 'assets/image/sky_sunset.png', color: 0xff7f50 },
+            night: { name: 'Midnight', price: 250, tex: 'assets/image/sky_night.png', color: 0x0a0a2a },
+            void: { name: 'Cosmic', price: 500, tex: 'assets/image/sky_void.png', color: 0x000000 }
         };
     }
 
@@ -104,26 +122,38 @@ class Game {
         localStorage.setItem('goingBallsData_v1', JSON.stringify(this.saveData));
     }
 
-    initAudio() {
-        this.rollSound = new Audio('rolling_loop.mp3');
-        this.rollSound.loop = true;
-        this.rollSound.volume = 0;
-        this.rollSoundStarted = false;
+    // --- Module-delegated methods ---
+    initAudio() { initAudio(this); }
+    getBallMaterial() { return getBallMaterial(this); }
+    clearLevel() { clearLevel(this); }
+    placeFinishModel() { placeFinishModel(this); }
+    createLevel() { createLevel(this); }
+    addPlatform(x, y, z, w, l, c) { addPlatform(this, x, y, z, w, l, c); }
+    addTunnelWalls(x, y, z, w, l) { addTunnelWalls(this, x, y, z, w, l); }
+    addRamp(x, y, z, w, l, h) { addRamp(this, x, y, z, w, l, h); }
+    addPendulum(x, y, z, s) { addPendulum(this, x, y, z, s); }
+    addSpinner(x, y, z, s) { addSpinner(this, x, y, z, s); }
+    addHammer(x, y, z, s) { addHammer(this, x, y, z, s); }
+    addMover(x, y, z, w, h, d, sid, s) { addMover(this, x, y, z, w, h, d, sid, s); }
+    addWall(x, y, z, w, l, r) { addWall(this, x, y, z, w, l, r); }
+    addCoins(x, y, z, l, c) { addCoins(this, x, y, z, l, c); }
+    addCheckpoint(x, y, z, w) { addCheckpoint(this, x, y, z, w); }
+    renderBuilder() { renderBuilder(this); }
+    clearBuilderPreview() { clearBuilderPreview(this); }
+    previewBuilder() { previewBuilder(this); }
+    loadCustomLevel(c) { loadCustomLevel(this, c); }
+    enterBuilderScene() { enterBuilderScene(this); }
+    exitBuilderScene() { exitBuilderScene(this); }
+    setupUI() { setupUI(this); }
+    renderGrids() { renderGrids(this); }
+    handlePurchase(t, k, p) { handlePurchase(this, t, k, p); }
+    updateWalletUI() { updateWalletUI(this); }
+    playSound(n) { playSound(this, n); }
+    spawnCoinExplosion(o, v) { spawnCoinExplosion(this, o, v); }
+    playFootstep(s) { playFootstep(this, s); }
+    initStudio() { initStudio(this); }
 
-        // Resume audio context on first interaction
-        const resumeAudio = () => {
-            if (!this.rollSoundStarted) {
-                this.rollSound.play().catch(() => {});
-                this.rollSoundStarted = true;
-            }
-            window.removeEventListener('keydown', resumeAudio);
-            window.removeEventListener('mousedown', resumeAudio);
-            window.removeEventListener('touchstart', resumeAudio);
-        };
-        window.addEventListener('keydown', resumeAudio);
-        window.addEventListener('mousedown', resumeAudio);
-        window.addEventListener('touchstart', resumeAudio);
-    }
+
 
     initScene() {
         this.scene = new THREE.Scene();
@@ -173,29 +203,17 @@ class Game {
 
         this.gltfLoader = new GLTFLoader();
         this.finishModel = null;
-        this.gltfLoader.load(
-            '.glb',
-            (gltf) => {
-                this.finishModel = gltf.scene;
-                this.placeFinishModel();
-            },
-            undefined,
-            (err) => {
-                console.warn('GLTF load failed for .glb:', err);
-                // no model available — continue gracefully
-                this.finishModel = null;
-            }
-        );
+        // No finish .glb model present — finishModel stays null, finish line uses procedural mesh
 
         // static textures (with error fallbacks)
         this.ballTexture = this.textureLoader.load(
-            'Gemini_Generated_Image_dsfkzqdsfkzqdsfk.png',
+            'assets/image/Gemini_Generated_Image_dsfkzqdsfkzqdsfk.png',
             (tex) => {},
             undefined,
             (err) => { console.warn('Ball texture load failed:', err); }
         );
         this.woodTexture = this.textureLoader.load(
-            'wood_texture.png',
+            'assets/image/wood_texture.png',
             (tex) => {
                 tex.wrapS = THREE.RepeatWrapping;
                 tex.wrapT = THREE.RepeatWrapping;
@@ -222,7 +240,7 @@ class Game {
         // special handling for animated GIF skin (use Image -> Texture so browser handles GIF frames; update when loaded)
         this.gifImage = new Image();
         this.gifImage.crossOrigin = 'anonymous';
-        this.gifImage.src = 'IMG_0300.gif';
+        this.gifImage.src = 'assets/image/IMG_0300.gif';
         this.gifTexture = new THREE.Texture(this.gifImage);
         // Only mark texture for update once the browser has loaded a frame of the GIF
         this.gifImage.onload = () => { 
@@ -430,14 +448,19 @@ class Game {
             angularDamping: 0.95, // High damping for control
             linearDamping: 0.5     // Reduced slightly for smoother rolling
         });
-        this.ballBody.position.set(0, 1, 0); // Lowered spawn to prevent bouncing on start
+        this.ballBody.position.set(0, 1, -3); // Slightly forward to show track ahead
         this.world.addBody(this.ballBody);
 
-        const sphereGeo = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
-        this.ballMesh = new THREE.Mesh(sphereGeo, this.getBallMaterial());
-        this.ballMesh.castShadow = true;
-        this.scene.add(this.ballMesh);
+        initWolfModel(this);
+        // Set initial rotation so wolf faces forward (-Z) on first frame
+        this.ballMesh.rotation.y = Math.PI;
 
+        this.dustParticles = [];
+        this.dustSpawnTimer = 0;
+        this._dustGeo = new THREE.CircleGeometry(0.1, 6);
+        this._dustMat = new THREE.MeshBasicMaterial({
+            color: 0xc2a66e, transparent: true, opacity: 0.6, depthWrite: false
+        });
         this.coins = [];
         this.score = 0;
         this.levelLength = 0;
@@ -491,24 +514,8 @@ class Game {
         jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); });
         jumpBtn.addEventListener('mousedown', (e) => this.jump());
 
-        // Pointer Lock and Camera Controls
-        this.cameraYaw = 0;
-        this.cameraPitch = 0.4;
-        this.cameraDistance = 8;
-
-        document.addEventListener('mousemove', (e) => {
-            // Allow rotation if cursor is locked OR if left mouse button is held
-            if (document.pointerLockElement === document.body || (e.buttons & 1)) {
-                // Filter out large erratic movements and ignore tiny jitter
-                const mx = Math.abs(e.movementX) > 150 ? 0 : e.movementX;
-                const my = Math.abs(e.movementY) > 150 ? 0 : e.movementY;
-                
-                if (Math.abs(mx) > 0.1 || Math.abs(my) > 0.1) {
-                    this.cameraYaw -= mx * 0.0025;
-                    this.cameraPitch = Math.max(0.1, Math.min(1.4, this.cameraPitch + my * 0.0025));
-                }
-            }
-        });
+        // Side-scrolling camera: left-side view for Jack running
+        this.sideCamOffset = new THREE.Vector3(14, 7, 0); // right side camera → ball on LEFT of screen
 
         // Unified interaction listener for UI visibility and pointer lock
         const handleInteraction = (e) => {
@@ -557,594 +564,20 @@ class Game {
         });
     }
 
-    clearLevel() {
-        this.levelObjects.forEach(obj => {
-            if (obj.body) this.world.removeBody(obj.body);
-            if (obj.mesh) this.scene.remove(obj.mesh);
-        });
-        this.coins.forEach(coin => this.scene.remove(coin));
-        this.pendulums.forEach(p => {
-            if (p.body) this.world.removeBody(p.body);
-            this.scene.remove(p.mesh);
-            if (p.line) this.scene.remove(p.line);
-        });
-        this.spinners.forEach(s => {
-            if (s.body) this.world.removeBody(s.body);
-            this.scene.remove(s.mesh);
-        });
-        this.movers.forEach(m => {
-            if (m.body) this.world.removeBody(m.body);
-            this.scene.remove(m.mesh);
-        });
-        this.checkpoints = [];
-        this.levelObjects = [];
-        this.coins = [];
-        this.pendulums = [];
-        this.spinners = [];
-        this.movers = [];
-    }
 
-    placeFinishModel() {
-        if (!this.finishModel || this.finishZ === undefined) return;
-        const model = this.finishModel.clone();
-        model.position.set(this.finishX || 0, (this.finishY || 0), this.finishZ);
-        model.scale.set(0.1, 0.1, 0.1);
-        // Apply a "downwards right" tilted rotation
-        model.rotation.set(Math.PI / 2, 0, -Math.PI / 4);
-        this.scene.add(model);
-        this.levelObjects.push({ mesh: model });
-    }
 
     // --- Procedural Level Generators ---
-    getBallMaterial() {
-        const conf = this.ballConfigs[this.saveData.selectedBall] || this.ballConfigs.rainbow;
 
-        // GIF animated skin: use the Image-based texture (browser advances GIF frames)
-        if (conf.type === 'gif') {
-            if (this.gifTexture) {
-                return new THREE.MeshBasicMaterial({
-                    map: this.gifTexture,
-                });
-            }
-            return new THREE.MeshBasicMaterial({ color: 0xffffff });
-        }
 
-        // Regular static textures
-        if (conf.type === 'texture') {
-            const tex = this.textureLoader.load(conf.tex);
-            return new THREE.MeshPhongMaterial({ map: tex });
-        } else if (conf.type === 'color') {
-            return new THREE.MeshPhongMaterial({ color: conf.color, shininess: conf.shininess });
-        } else if (conf.type === 'emissive') {
-            return new THREE.MeshPhongMaterial({ color: conf.color, emissive: conf.emissive });
-        }
 
-        // "Glass" materials: simulate an inner 2D image seen through a glossy/transmissive sphere.
-        if (conf.type === 'glass') {
-            // load the inner image as a texture
-            const innerTex = this.textureLoader.load(conf.tex);
-            innerTex.encoding = THREE.sRGBEncoding;
 
-            // base layer: slightly glossy reflective outer shell
-            const glassMat = new THREE.MeshPhysicalMaterial({
-                color: 0xffffff,
-                metalness: 0.0,
-                roughness: 0.15,
-                transmission: 0.9,      // glass-like transparency
-                thickness: 0.6,
-                envMapIntensity: 0.7,
-                clearcoat: 0.4,
-                clearcoatRoughness: 0.05,
-                reflectivity: 0.6,
-                transparent: true,
-                side: THREE.FrontSide
-            });
 
-            // inner decal: rendered by using a second material that maps the image and is slightly emissive
-            // We'll create a MultiMaterial-style Mesh with same geometry when applying; since Ball uses a single mesh,
-            // return a special object describing both materials and let caller handle assignment:
-            // To keep compatibility, create a Shader-like approach by combining map into a standard material with slight emissive.
-            const innerMat = new THREE.MeshBasicMaterial({
-                map: innerTex,
-                transparent: true,
-                depthWrite: false,
-                toneMapped: false
-            });
 
-            // To approximate "image inside glass" with a single mesh, create a grouped material using MeshPhysical for lighting
-            // but mix in the inner texture as an emissiveMap to make it visible under glass.
-            const combined = new THREE.MeshPhysicalMaterial({
-                map: innerTex,
-                emissiveMap: innerTex,
-                emissiveIntensity: 0.08,
-                color: 0xffffff,
-                metalness: 0.0,
-                roughness: 0.3,
-                transmission: 0.85,
-                thickness: 0.5,
-                clearcoat: 0.4,
-                clearcoatRoughness: 0.05,
-                envMapIntensity: 0.6,
-                reflectivity: 0.6,
-                transparent: true
-            });
 
-            return combined;
-        }
 
-        return new THREE.MeshPhongMaterial({ color: 0xffffff });
-    }
 
-    createLevel() {
-        this.clearLevel();
-        this.lastCheckpointPos.set(0, 5, 0);
-        
-        let currentZ = 0;
-        let currentX = 0;
-        let currentY = 0;
 
-        // Start platform
-        this.addPlatform(0, 0, 0, 8, 15);
-        currentZ -= 7.5;
 
-        const currentSky = this.skyConfigs[this.saveData.selectedSky] || this.skyConfigs.day;
-
-        // Massive variety of segment types for "infinite" combinations
-        const segmentTypes = [
-            'straight', 'ramp', 'narrow', 'pendulum', 'zigzag', 'gap', 
-            'bumpy', 'spinner', 'thin_bridge', 'stairs', 'tunnel', 
-            'archipelago', 'sloped_turn', 'speed_boost', 'checkerboard',
-            'hammer_gauntlet', 'moving_rects', 'speed_strip', 'halfpipe',
-            'funnel', 'spiral_staircase', 'side_crusher',
-            'jump_gap', 'double_jump_gap', 'triple_jump_gap', 'climb'
-        ];
-
-        // Difficulty Chart logic
-        const difficultyTiers = [
-            { level: 1, color: 0x7cfc00, label: "EASY", types: ['straight', 'ramp', 'tunnel', 'speed_strip', 'jump_gap'] },
-            { level: 4, color: 0x32cd32, label: "NORMAL", types: ['straight', 'ramp', 'tunnel', 'zigzag', 'bumpy', 'jump_gap', 'climb'] },
-            { level: 7, color: 0x1e90ff, label: "CHALLENGING", types: ['zigzag', 'gap', 'archipelago', 'spinner', 'double_jump_gap', 'climb'] },
-            { level: 10, color: 0xffff00, label: "HARD", types: ['gap', 'spinner', 'pendulum', 'stairs', 'halfpipe', 'double_jump_gap'] },
-            { level: 13, color: 0xffa500, label: "TOUGH", types: ['pendulum', 'hammer_gauntlet', 'moving_rects', 'checkerboard', 'triple_jump_gap'] },
-            { level: 16, color: 0xff4500, label: "EXPERT", types: ['hammer_gauntlet', 'side_crusher', 'narrow', 'moving_rects', 'triple_jump_gap'] },
-            { level: 19, color: 0x8b0000, label: "EXTREME", types: ['narrow', 'side_crusher', 'checkerboard', 'archipelago', 'triple_jump_gap'] },
-            { level: 22, color: 0x4b0082, label: "INSANE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap'] },
-            { level: 25, color: 0x000000, label: "IMPOSSIBLE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap'] }
-        ];
-
-        let tier = difficultyTiers[0];
-        for (let t of difficultyTiers) {
-            if (this.currentLevel >= t.level) tier = t;
-        }
-
-        // Apply tier visual (fog matches difficulty tier, background stays as selected sky)
-        const selectedSky = this.skyConfigs[this.saveData.selectedSky] || this.skyConfigs.day;
-        if (selectedSky.tex) {
-            this.textureLoader.load(
-                selectedSky.tex,
-                (tex) => {
-                    tex.mapping = THREE.EquirectangularReflectionMapping;
-                    this.scene.background = tex;
-                },
-                undefined,
-                (err) => {
-                    console.warn('Selected sky texture failed:', selectedSky.tex, err);
-                    this.scene.background = new THREE.Color(tier.color || 0x000000);
-                }
-            );
-        } else {
-            this.scene.background = new THREE.Color(tier.color);
-        }
-        
-        if (this.scene.fog) {
-            this.scene.fog.color.setHex(tier.color);
-        }
-        document.body.style.backgroundColor = `#${tier.color.toString(16).padStart(6, '0')}`;
-
-        // Level scaling
-        const numSegments = 15 + Math.floor(this.currentLevel * 2.5);
-        const checkpointInterval = Math.floor(numSegments / 3);
-        const baseWidth = Math.max(0.7, 7 - (this.currentLevel * 0.3));
-        const hazardSpeedMult = 1 + (this.currentLevel * 0.15);
-        
-        for (let i = 0; i < numSegments; i++) {
-            // Add checkpoint every few segments
-            if (i > 0 && i % checkpointInterval === 0) {
-                this.addCheckpoint(currentX, currentY, currentZ, baseWidth);
-                currentZ -= 4;
-            }
-
-            const type = tier.types[Math.floor(Math.random() * tier.types.length)];
-            
-            // Each case is a "sub-generator"
-            switch(type) {
-                case 'straight': {
-                    const len = 15 + Math.random() * 20;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth, len);
-                    this.addCoins(currentX, currentY + 1, currentZ, len, 3);
-                    currentZ -= len;
-                    break;
-                }
-                case 'ramp': {
-                    const rampH = 4 + Math.random() * 4;
-                    const rampL = 15 + Math.random() * 10;
-                    this.addRamp(currentX, currentY, currentZ, baseWidth + 1, rampL, rampH);
-                    currentZ -= rampL;
-                    currentY += rampH;
-                    break;
-                }
-                case 'narrow': {
-                    const len = 20;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth * 0.4, len);
-                    this.addCoins(currentX, currentY + 1.2, currentZ, len, 4);
-                    currentZ -= len;
-                    break;
-                }
-                case 'pendulum': {
-                    this.addPlatform(currentX, currentY, currentZ - 10, baseWidth + 3, 20);
-                    this.addPendulum(currentX, currentY, currentZ - 10, hazardSpeedMult);
-                    currentZ -= 20;
-                    break;
-                }
-                case 'zigzag': {
-                    const zzLen = 12;
-                    const offset = 4;
-                    const dir = Math.random() > 0.5 ? 1 : -1;
-                    this.addPlatform(currentX, currentY, currentZ - zzLen/2, baseWidth, zzLen);
-                    currentZ -= zzLen;
-                    currentX += offset * dir;
-                    this.addPlatform(currentX, currentY, currentZ - zzLen/2, baseWidth, zzLen);
-                    currentZ -= zzLen;
-                    break;
-                }
-                case 'gap': {
-                    const gapSize = 5 + Math.random() * 3;
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    currentZ -= (10 + gapSize);
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    currentZ -= 10;
-                    break;
-                }
-                case 'bumpy': {
-                    for(let b=0; b<6; b++) {
-                        const bH = Math.random() * 0.7;
-                        this.addPlatform(currentX, currentY + bH, currentZ - 3, baseWidth + 1.5, 6);
-                        currentZ -= 6;
-                    }
-                    break;
-                }
-                case 'spinner': {
-                    this.addPlatform(currentX, currentY, currentZ - 12, baseWidth + 4, 24);
-                    this.addSpinner(currentX, currentY + 0.5, currentZ - 12, hazardSpeedMult);
-                    currentZ -= 24;
-                    break;
-                }
-                case 'stairs': {
-                    const stepCount = 5;
-                    const stepLen = 4;
-                    const stepH = 0.8;
-                    for(let s=0; s<stepCount; s++) {
-                        this.addPlatform(currentX, currentY, currentZ - stepLen/2, baseWidth + 2, stepLen);
-                        currentZ -= stepLen;
-                        currentY += stepH;
-                    }
-                    break;
-                }
-                case 'tunnel': {
-                    const tLen = 30;
-                    this.addPlatform(currentX, currentY, currentZ - tLen/2, baseWidth + 2, tLen);
-                    this.addTunnelWalls(currentX, currentY, currentZ - tLen/2, baseWidth + 2, tLen);
-                    currentZ -= tLen;
-                    break;
-                }
-                case 'archipelago': {
-                    const count = 5;
-                    const dist = 8;
-                    for(let a=0; a<count; a++) {
-                        const offX = (Math.random() - 0.5) * 6;
-                        this.addPlatform(currentX + offX, currentY, currentZ - dist/2, 3, 3);
-                        this.addCoins(currentX + offX, currentY + 1, currentZ - dist/2, 1, 1);
-                        currentZ -= dist;
-                    }
-                    break;
-                }
-                case 'checkerboard': {
-                    const rows = 4;
-                    const cSize = 3;
-                    for(let r=0; r<rows; r++) {
-                        const offX = (r % 2 === 0) ? -2 : 2;
-                        this.addPlatform(currentX + currentX + offX, currentY, currentZ - cSize/2, cSize, cSize);
-                        currentZ -= cSize + 2;
-                    }
-                    break;
-                }
-                case 'hammer_gauntlet': {
-                    this.addPlatform(currentX, currentY, currentZ - 15, baseWidth + 4, 30);
-                    for(let h=0; h<3; h++) {
-                        this.addHammer(currentX, currentY, currentZ - 8 - h*8, hazardSpeedMult);
-                    }
-                    currentZ -= 30;
-                    break;
-                }
-                case 'moving_rects': {
-                    const len = 25;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 2, len);
-                    for(let m=0; m<4; m++) {
-                        this.addMover(currentX, currentY + 0.5, currentZ - 5 - m*5, 3, 1, 2, false, hazardSpeedMult);
-                    }
-                    currentZ -= len;
-                    break;
-                }
-                case 'speed_strip': {
-                    const len = 20;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 1, len, 0xffff00);
-                    currentZ -= len;
-                    break;
-                }
-                case 'halfpipe': {
-                    const len = 20;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 6, len);
-                    // Sidewalls as ramps
-                    this.addRamp(currentX - (baseWidth/2 + 3), currentY + 1.5, currentZ, 1, len, 0); // Flat visual but physics box...
-                    // Better to just add static tilted boxes
-                    this.addWall(currentX - baseWidth/2 - 2, currentY + 1, currentZ - len/2, 1, len, Math.PI/4);
-                    this.addWall(currentX + baseWidth/2 + 2, currentY + 1, currentZ - len/2, 1, len, -Math.PI/4);
-                    currentZ -= len;
-                    break;
-                }
-                case 'side_crusher': {
-                    const len = 15;
-                    this.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 2, len);
-                    this.addMover(currentX - 3, currentY + 1, currentZ - len/2, 4, 2, len, true, hazardSpeedMult);
-                    this.addMover(currentX + 3, currentY + 1, currentZ - len/2, 4, 2, len, true, hazardSpeedMult);
-                    currentZ -= len;
-                    break;
-                }
-                case 'jump_gap': {
-                    const gap = 8; // Reduced gap for lower max speed
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    this.addCoins(currentX, currentY + 2, currentZ - 5 - gap/2, 1, 1);
-                    currentZ -= (10 + gap);
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    currentZ -= 10;
-                    break;
-                }
-                case 'double_jump_gap': {
-                    const gap = 16; // Reduced gap for lower max speed
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    this.addCoins(currentX, currentY + 2.5, currentZ - 5 - gap/3, 1, 1);
-                    this.addCoins(currentX, currentY + 4, currentZ - 5 - (2*gap/3), 1, 1);
-                    currentZ -= (10 + gap);
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    currentZ -= 10;
-                    break;
-                }
-                case 'triple_jump_gap': {
-                    const gap = 24; // Reduced gap for lower max speed
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    this.addCoins(currentX, currentY + 2, currentZ - 5 - gap/4, 1, 1);
-                    this.addCoins(currentX, currentY + 5, currentZ - 5 - (2*gap/4), 1, 1);
-                    this.addCoins(currentX, currentY + 3, currentZ - 5 - (3*gap/4), 1, 1);
-                    currentZ -= (10 + gap);
-                    this.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
-                    currentZ -= 10;
-                    break;
-                }
-                case 'climb': {
-                    const stepL = 10;
-                    const stepH = 4.5;
-                    const stepGap = 6;
-                    for(let c=0; c<3; c++) {
-                        this.addPlatform(currentX, currentY, currentZ - stepL/2, baseWidth + 3, stepL);
-                        this.addCoins(currentX, currentY + 2, currentZ - stepL - stepGap/2, 1, 1);
-                        currentZ -= (stepL + stepGap);
-                        currentY += stepH;
-                    }
-                    break;
-                }
-                default: { // fallback straight
-                    this.addPlatform(currentX, currentY, currentZ - 10, baseWidth, 20);
-                    currentZ -= 20;
-                }
-            }
-        }
-
-        // Finish line
-        const finishLen = 30;
-        this.addPlatform(currentX, currentY, currentZ - finishLen/2, 8, finishLen, 0x00ff00);
-        this.finishX = currentX;
-        this.finishY = currentY;
-        this.finishZ = currentZ - finishLen + 10;
-        this.placeFinishModel();
-        currentZ -= finishLen;
-
-        this.levelLength = Math.abs(currentZ);
-    }
-
-    addPlatform(x, y, z, width, length, color = null) {
-        const shape = new CANNON.Box(new CANNON.Vec3(width / 2, 0.5, length / 2));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        body.position.set(x, y - 0.5, z);
-        this.world.addBody(body);
-
-        const geo = new THREE.BoxGeometry(width, 1, length);
-        const mat = color ? this.sharedMaterials.finish : this.sharedMaterials.wood;
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.copy(body.position);
-        mesh.receiveShadow = true;
-        this.scene.add(mesh);
-        this.levelObjects.push({ mesh, body });
-    }
-
-    addTunnelWalls(x, y, z, width, length) {
-        const wallH = 2;
-        const wallW = 0.2;
-        
-        // Left wall
-        const shapeL = new CANNON.Box(new CANNON.Vec3(wallW/2, wallH/2, length/2));
-        const bodyL = new CANNON.Body({ mass: 0, shape: shapeL });
-        bodyL.position.set(x - width/2 - wallW/2, y + wallH/2, z);
-        this.world.addBody(bodyL);
-
-        const geo = new THREE.BoxGeometry(wallW, wallH, length);
-        const meshL = new THREE.Mesh(geo, this.sharedMaterials.wall);
-        meshL.position.copy(bodyL.position);
-        this.scene.add(meshL);
-
-        // Right wall
-        const bodyR = new CANNON.Body({ mass: 0, shape: shapeL });
-        bodyR.position.set(x + width/2 + wallW/2, y + wallH/2, z);
-        this.world.addBody(bodyR);
-        const meshR = new THREE.Mesh(geo, this.sharedMaterials.wall);
-        meshR.position.copy(bodyR.position);
-        this.scene.add(meshR);
-
-        this.levelObjects.push({ mesh: meshL, body: bodyL }, { mesh: meshR, body: bodyR });
-    }
-
-    addRamp(x, y, z, width, length, height) {
-        const angle = Math.atan2(height, length);
-        const rampLen = Math.sqrt(length*length + height*height);
-        const shape = new CANNON.Box(new CANNON.Vec3(width / 2, 0.5, rampLen / 2));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        const posZ = z - length/2;
-        const posY = y + height/2 - 0.5;
-        body.position.set(x, posY, posZ);
-        body.quaternion.setFromEuler(angle, 0, 0);
-        this.world.addBody(body);
-
-        const geo = new THREE.BoxGeometry(width, 1, rampLen);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-        mesh.position.copy(body.position);
-        mesh.quaternion.copy(body.quaternion);
-        mesh.receiveShadow = true;
-        this.scene.add(mesh);
-        this.levelObjects.push({ mesh, body });
-    }
-
-    addPendulum(x, y, z, speedMult = 1) {
-        const pivotHeight = y + 8;
-        const ballSize = 1.6;
-        const shape = new CANNON.Sphere(ballSize);
-        const body = new CANNON.Body({ mass: 10, shape: shape });
-        body.position.set(x, pivotHeight - 5, z);
-        this.world.addBody(body);
-
-        const geo = new THREE.SphereGeometry(ballSize, 20, 20);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.pendulum);
-        this.scene.add(mesh);
-
-        const linePoints = [new THREE.Vector3(x, pivotHeight, z), new THREE.Vector3(x, pivotHeight - 5, z)];
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
-        lineGeo.attributes.position.setUsage(THREE.DynamicDrawUsage);
-        const line = new THREE.Line(lineGeo, this.sharedMaterials.rope);
-        this.scene.add(line);
-
-        this.pendulums.push({ body, mesh, line, pivot: new THREE.Vector3(x, pivotHeight, z), startTime: Math.random() * Math.PI * 2, speedMult });
-    }
-
-    addSpinner(x, y, z, speedMult = 1) {
-        const w = 10, h = 0.6, d = 1.0;
-        const shape = new CANNON.Box(new CANNON.Vec3(w/2, h/2, d/2));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        body.position.set(x, y + 0.5, z);
-        this.world.addBody(body);
-
-        const geo = new THREE.BoxGeometry(w, h, d);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.spinner);
-        this.scene.add(mesh);
-        this.spinners.push({ body, mesh, speed: (2.5 + Math.random() * 1.5) * speedMult });
-    }
-
-    addHammer(x, y, z, speedMult = 1) {
-        const hSize = 2;
-        const shape = new CANNON.Box(new CANNON.Vec3(hSize, hSize, 0.5));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        body.position.set(x, y + 2, z);
-        this.world.addBody(body);
-        const geo = new THREE.BoxGeometry(hSize*2, hSize*2, 1);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.pendulum);
-        this.scene.add(mesh);
-        this.movers.push({ body, mesh, type: 'hammer', basePos: new THREE.Vector3(x, y + 2, z), offset: Math.random() * Math.PI, speedMult });
-    }
-
-    addMover(x, y, z, w, h, d, sideways = false, speedMult = 1) {
-        const shape = new CANNON.Box(new CANNON.Vec3(w/2, h/2, d/2));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        body.position.set(x, y, z);
-        this.world.addBody(body);
-        const geo = new THREE.BoxGeometry(w, h, d);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.spinner);
-        this.scene.add(mesh);
-        this.movers.push({ body, mesh, type: sideways ? 'side' : 'slide', basePos: new THREE.Vector3(x, y, z), offset: Math.random() * Math.PI, speedMult });
-    }
-
-    addWall(x, y, z, w, l, rotZ) {
-        const h = 2;
-        const shape = new CANNON.Box(new CANNON.Vec3(w/2, h/2, l/2));
-        const body = new CANNON.Body({ mass: 0, shape: shape });
-        body.position.set(x, y, z);
-        body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), rotZ);
-        this.world.addBody(body);
-        const geo = new THREE.BoxGeometry(w, h, l);
-        const mesh = new THREE.Mesh(geo, this.sharedMaterials.wall);
-        mesh.position.copy(body.position);
-        mesh.quaternion.copy(body.quaternion);
-        this.scene.add(mesh);
-        this.levelObjects.push({ body, mesh });
-    }
-
-    addCoins(x, y, startZ, length, count) {
-        // Create coins with varied sizes, shades and values between 1 and 50.
-        const step = length / (count + 1);
-        for(let i=1; i<=count; i++) {
-            // Determine a value distribution: mix of small (1-5), medium (6-20), large (21-50)
-            const r = Math.random();
-            let value;
-            if (r < 0.5) value = 1 + Math.floor(Math.random() * 5);         // common small coins 1-5
-            else if (r < 0.85) value = 6 + Math.floor(Math.random() * 15);  // medium 6-20
-            else value = 21 + Math.floor(Math.random() * 30);               // rare big 21-50
-
-            // Map value to visual size and shade
-            const scale = THREE.MathUtils.lerp(0.6, 1.4, (value - 1) / 49); // size from 0.6..1.4
-            let colorHex = 0xffd700; // gold default
-            if (value <= 5) colorHex = 0xcd7f32;       // bronze-ish for small
-            else if (value <= 20) colorHex = 0xc0c0c0; // silver-ish for medium
-            else colorHex = 0xffd700;                  // gold for large/high value
-
-            // Create geometry with a bit of thickness
-            const coinGeo = new THREE.CylinderGeometry(0.4 * scale, 0.4 * scale, 0.12 * scale, 24);
-            const mat = new THREE.MeshPhongMaterial({ color: colorHex, shininess: 80, emissive: 0x000000 });
-            const coin = new THREE.Mesh(coinGeo, mat);
-            coin.rotation.x = Math.PI / 2;
-            // slight random offset so coins aren't perfectly aligned
-            const px = x + (Math.random() - 0.5) * Math.min(3, scale * 2);
-            const pz = startZ - i * step + (Math.random() - 0.5) * 0.6;
-            const py = y + 0.4 + (scale - 1) * 0.5;
-            coin.position.set(px, py, pz);
-
-            // store value and a tiny glow intensity for visual variety
-            coin.userData = { value: value };
-            // subtle pulse via scale baseline stored for later animation if desired
-            coin.userData.baseScale = scale;
-
-            this.scene.add(coin);
-            this.coins.push(coin);
-        }
-    }
-
-    addCheckpoint(x, y, z, width) {
-        const length = 6;
-        // Physical platform (Cyan color for checkpoint)
-        this.addPlatform(x, y, z - length/2, width + 2, length, 0x00ffff);
-        
-        // Logic object
-        this.checkpoints.push({
-            z: z,
-            pos: new CANNON.Vec3(x, y + 2, z - length/2),
-            reached: false
-        });
-    }
 
     jump() {
         if (this.jumpCount < 3 && !this.isGameOver) {
@@ -1155,50 +588,8 @@ class Game {
         }
     }
 
-    playSound(name) {
-        const audio = new Audio(`${name}.mp3`);
-        audio.volume = 0.4;
-        audio.play().catch(() => {});
-    }
 
     // Spawn a visual coin-explosion "confetti" effect and animate it (non-physics)
-    spawnCoinExplosion(origin, totalValue) {
-        // limit number of pieces so it's performant
-        const pieces = Math.min(30, Math.max(5, Math.floor(totalValue / 2)));
-        if (!this._coinExplosions) this._coinExplosions = [];
-        for (let i = 0; i < pieces; i++) {
-            const frac = i / Math.max(1, pieces);
-            const size = THREE.MathUtils.lerp(0.25, 0.9, Math.random());
-            const value = Math.max(1, Math.round(totalValue / pieces));
-            const geo = new THREE.CylinderGeometry(0.4 * size, 0.4 * size, 0.08 * size, 16);
-            const colorHex = (value > 20) ? 0xffd700 : (value > 6 ? 0xc0c0c0 : 0xcd7f32);
-            const mat = new THREE.MeshPhongMaterial({ color: colorHex, shininess: 80 });
-            const coin = new THREE.Mesh(geo, mat);
-            coin.rotation.x = Math.PI / 2;
-            coin.position.copy(origin);
-            this.scene.add(coin);
-
-            // random velocity and angular velocity for playful scatter
-            const vel = new THREE.Vector3(
-                (Math.random() - 0.5) * 8,
-                Math.random() * 8 + 4,
-                (Math.random() - 0.5) * 8
-            );
-            const angular = new THREE.Vector3(
-                (Math.random() - 0.5) * 10,
-                (Math.random() - 0.5) * 10,
-                (Math.random() - 0.5) * 10
-            );
-
-            this._coinExplosions.push({
-                mesh: coin,
-                velocity: vel,
-                angular: angular,
-                life: 0,
-                maxLife: 3 + Math.random() * 2
-            });
-        }
-    }
 
     updatePhysics() {
         this.world.step(1/60);
@@ -1222,10 +613,22 @@ class Game {
 
         if (this.isGrounded) {
             this.jumpCount = 0;
+            // Play footstep sounds when Jack is running on the ground
+            const v = this.ballBody.velocity;
+            const footstepSpeed = Math.sqrt(v.x**2 + v.z**2);
+            if (footstepSpeed > 0.5 && !this.isGameOver) {
+                this.playFootstep(footstepSpeed);
+            }
         }
 
         this.ballMesh.position.copy(this.ballBody.position);
-        this.ballMesh.quaternion.copy(this.ballBody.quaternion);
+        // Don't copy quaternion — Jack runs upright, doesn't roll like a ball
+        // Only rotate Y to face direction of movement
+        const vel = this.ballBody.velocity;
+        if (Math.abs(vel.x) > 0.1 || Math.abs(vel.z) > 0.1) {
+            const moveAngle = Math.atan2(vel.x, vel.z);
+            this.ballMesh.rotation.y = moveAngle;
+        }
 
         if (this.keys['ArrowUp'] || this.keys['KeyW']) this.inputZ = -1;
         if (this.keys['ArrowDown'] || this.keys['KeyS']) this.inputZ = 1;
@@ -1235,24 +638,12 @@ class Game {
         this.inputX += this.joystickInput.x;
         this.inputZ -= this.joystickInput.y;
 
-        // Apply control relative to camera rotation
         const airMult = this.isGrounded ? 1.0 : 0.25;
         
-        // Calculate movement direction based on camera yaw
-        const forward = new THREE.Vector3(0, 0, this.inputZ).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
-        const right = new THREE.Vector3(this.inputX, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
-        
-        // Snap the camera yaw to track alignment when nearly straight to prevent drift
-        const normalizedYaw = ((this.cameraYaw % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
-        const isAligned = normalizedYaw < 0.3 || normalizedYaw > (Math.PI * 2 - 0.3) || 
-                          (normalizedYaw > Math.PI - 0.3 && normalizedYaw < Math.PI + 0.3);
-        
-        // When mostly aligned and not actively steering, lock movement to the Z-axis
-        if (isAligned && Math.abs(this.inputX) < 0.1) {
-            forward.x = 0;
-            right.x = 0;
-            right.z = 0;
-        }
+        // Side-scrolling: controls are screen-relative
+        // Left/Right keys move along X, Up/Down move along -Z/+Z (track direction)
+        const forward = new THREE.Vector3(0, 0, this.inputZ); // inputZ is -1 when pressing W (forward = -Z)
+        const right = new THREE.Vector3(this.inputX, 0, 0);
 
         const combinedMove = forward.add(right);
         const force = new CANNON.Vec3(
@@ -1278,18 +669,10 @@ class Game {
         }
 
         const speed = Math.sqrt(velocity.x**2 + velocity.z**2);
-        
-        // Update rolling sound
-        if (this.rollSound) {
-            if (this.isGrounded && !this.isGameOver && speed > 0.5) {
-                const targetVol = Math.min(0.6, speed / MAX_VELOCITY);
-                this.rollSound.volume += (targetVol - this.rollSound.volume) * 0.1;
-                this.rollSound.playbackRate = 0.5 + (speed / MAX_VELOCITY) * 1.0;
-            } else {
-                this.rollSound.volume *= 0.9;
-            }
-        }
 
+        // Switch wolf animation: run when moving, idle when still
+        setWolfRunning(this, speed > 1.0 && this.isGrounded);
+        
         if (speed > MAX_VELOCITY) {
             const ratio = MAX_VELOCITY / speed;
             this.ballBody.velocity.x *= ratio;
@@ -1333,9 +716,6 @@ class Game {
         });
     }
 
-    updateWalletUI() {
-        document.getElementById('total-coins').innerText = `Wallet: ${this.saveData.totalCoins}`;
-    }
 
     checkGameState() {
         this.coins.forEach(coin => {
@@ -1418,6 +798,13 @@ class Game {
         this.ballBody.position.y += 1;
         this.ballBody.velocity.set(0, 0, 0);
         this.ballBody.angularVelocity.set(0, 0, 0);
+        resetWolfModel(this);
+
+        // Clean up dust particles
+        this.dustParticles.forEach(p => { this.scene.remove(p.mesh); p.mesh.material.dispose(); });
+        this.dustParticles.length = 0;
+        this.dustSpawnTimer = 0;
+
         this.isGameOver = false;
         this.isWin = false;
         this.score = 0;
@@ -1426,825 +813,16 @@ class Game {
         this.coins.forEach(c => c.visible = true);
     }
 
-    setupUI() {
-        document.getElementById('next-btn').addEventListener('click', () => this.reset());
-
-        const setupModal = (btnId, modalId) => {
-            const btn = document.getElementById(btnId);
-            const modal = document.getElementById(modalId);
-            const close = modal.querySelector('.close-modal');
-            btn.addEventListener('click', () => {
-                // If opening builder, render builder UI; else render grids
-                if (modalId === 'builder-modal') {
-                    this.renderBuilder();
-                } else {
-                    this.renderGrids();
-                }
-                modal.style.display = 'flex';
-                // Ensure pointer lock is released when menu opens
-                if (document.pointerLockElement) {
-                    document.exitPointerLock();
-                }
-            });
-            close.addEventListener('click', (e) => {
-                e.stopPropagation();
-                modal.style.display = 'none';
-                // clear preview objects when closing builder
-                if (modalId === 'builder-modal') this.clearBuilderPreview();
-            });
-        };
-
-        setupModal('help-btn-open', 'help-modal');
-        setupModal('store-btn-open', 'store-modal');
-        setupModal('skins-btn-open', 'skins-modal');
-        setupModal('skies-btn-open', 'skies-modal');
-        setupModal('builder-btn-open', 'builder-modal');
-    }
 
     // --- Builder: simple track editor (store as array of segments with type and params) ---
-    renderBuilder() {
-        // Prepare builder state
-        if (!this.builder) {
-            this.builder = {
-                segments: [], // each: {type:'platform'|'ramp'|'gap'|'checkpoint'|'finish', len, width, height}
-                cursorZ: -5
-            };
-        }
-        // Populate saved list
-        const list = document.getElementById('builder-saved-list');
-        list.innerHTML = '';
-        const saved = JSON.parse(localStorage.getItem('goingBalls_customTracks_v1') || '[]');
-        saved.forEach((t, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'menu-btn';
-            btn.style.padding = '6px 10px';
-            btn.innerText = t.name || `Track ${idx+1}`;
-            btn.onclick = () => {
-                this.builder.segments = JSON.parse(JSON.stringify(t.segments || []));
-                this.builder.cursorZ = -5;
-                this.clearBuilderPreview();
-                this.previewBuilder();
-            };
-            list.appendChild(btn);
-        });
 
-        // Wire up builder controls
-        document.getElementById('builder-add-platform').onclick = () => {
-            this.builder.segments.push({ type: 'platform', width: 6, len: 12, y: 0 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-ramp').onclick = () => {
-            this.builder.segments.push({ type: 'ramp', width: 6, len: 12, height: 3 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-gap').onclick = () => {
-            this.builder.segments.push({ type: 'gap', len: 8 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-checkpoint').onclick = () => {
-            this.builder.segments.push({ type: 'checkpoint', width: 6, len: 6 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-set-finish').onclick = () => {
-            // ensure only one finish at end
-            this.builder.segments = this.builder.segments.filter(s => s.type !== 'finish');
-            this.builder.segments.push({ type: 'finish', width: 8, len: 12 });
-            this.previewBuilder();
-        };
 
-        // New trap/hazard buttons
-        document.getElementById('builder-add-spikes').onclick = () => {
-            // spikes segment: narrow row of spikes across track
-            this.builder.segments.push({ type: 'spikes', width: 6, len: 6, count: 6 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-pendulum').onclick = () => {
-            // pendulum hazard that swings across the track
-            this.builder.segments.push({ type: 'pendulum', width: 6, len: 12, intensity: 1 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-spinner').onclick = () => {
-            // spinner hazard: rotating bar
-            this.builder.segments.push({ type: 'spinner', width: 8, len: 12, speedMult: 1 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-crusher').onclick = () => {
-            // side crusher: movers that slide inward/outward
-            this.builder.segments.push({ type: 'crusher', width: 8, len: 12, force: 1 });
-            this.previewBuilder();
-        };
 
-        // Scene starter / decorative start area
-        document.getElementById('builder-scene-starter').onclick = () => {
-            this.builder.segments.unshift({ type: 'scene_starter', width: 10, len: 10 });
-            this.previewBuilder();
-        };
-
-        // Additional builder tools
-        document.getElementById('builder-add-trampoline').onclick = () => {
-            this.builder.segments.push({ type: 'trampoline', width: 4, len: 4, bounce: 18 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-coinring').onclick = () => {
-            this.builder.segments.push({ type: 'coin_ring', radius: 3, count: 10 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-movingplatform').onclick = () => {
-            this.builder.segments.push({ type: 'moving_platform', width: 4, len: 8, travel: 6, axis: 'x' });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-spikepit').onclick = () => {
-            this.builder.segments.push({ type: 'spike_pit', width: 6, len: 6, depth: 1.2, count: 8 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-seesaw').onclick = () => {
-            this.builder.segments.push({ type: 'seesaw', width: 6, len: 8 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-spring').onclick = () => {
-            this.builder.segments.push({ type: 'spring_pad', width: 2, len: 2, boost: 22 });
-            this.previewBuilder();
-        };
-
-        // Stunt section buttons
-        document.getElementById('builder-add-stunt-ramp').onclick = () => {
-            this.builder.segments.push({ type: 'stunt_ramp', width: 8, len: 18, height: 6 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-stunt-loop').onclick = () => {
-            this.builder.segments.push({ type: 'stunt_loop', radius: 4, segments: 16 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-stunt-grind').onclick = () => {
-            this.builder.segments.push({ type: 'stunt_grind', width: 0.6, len: 20, height: 1.2 });
-            this.previewBuilder();
-        };
-        document.getElementById('builder-add-stunt-donut').onclick = () => {
-            this.builder.segments.push({ type: 'stunt_donut', outer: 6, inner: 3, thickness: 0.8 });
-            this.previewBuilder();
-        };
-
-        document.getElementById('builder-clear').onclick = () => {
-            this.builder.segments = [];
-            this.builder.cursorZ = -5;
-            this.clearBuilderPreview();
-        };
-        document.getElementById('builder-preview').onclick = () => {
-            this.clearBuilderPreview();
-            this.previewBuilder();
-        };
-        document.getElementById('builder-save').onclick = () => {
-            const nameInput = document.getElementById('builder-name').value || 'Custom Track';
-            const saved = JSON.parse(localStorage.getItem('goingBalls_customTracks_v1') || '[]');
-            saved.push({ name: nameInput, segments: this.builder.segments });
-            localStorage.setItem('goingBalls_customTracks_v1', JSON.stringify(saved));
-            this.renderBuilder();
-        };
-        document.getElementById('builder-load').onclick = () => {
-            // load first saved (if any) into current level immediately
-            const saved = JSON.parse(localStorage.getItem('goingBalls_customTracks_v1') || '[]');
-            if (saved.length > 0) {
-                this.loadCustomLevel(saved[0]);
-                document.getElementById('builder-modal').style.display = 'none';
-            }
-        };
-
-        // Enter-live scene builder button (places platform segments directly in the world)
-        const enterBtn = document.getElementById('builder-enter-scene');
-        if (enterBtn) {
-            enterBtn.onclick = () => {
-                this.enterBuilderScene();
-            };
-        }
-    }
-
-    clearBuilderPreview() {
-        if (!this.builderPreview) this.builderPreview = [];
-        this.builderPreview.forEach(o => {
-            if (o.mesh) this.scene.remove(o.mesh);
-        });
-        this.builderPreview = [];
-    }
-
-    previewBuilder() {
-        if (!this.builder) return;
-        const startX = 0;
-        let curY = 0;
-        let curZ = -5;
-        this.clearBuilderPreview();
-        this.builder.segments.forEach(seg => {
-            if (seg.type === 'platform') {
-                const geo = new THREE.BoxGeometry(seg.width, 1, seg.len);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                mesh.position.set(startX, curY - 0.5, curZ - seg.len/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'platform' });
-                curZ -= seg.len;
-            } else if (seg.type === 'ramp') {
-                const geo = new THREE.BoxGeometry(seg.width, 1, Math.sqrt(seg.len*seg.len + (seg.height||3)*(seg.height||3)));
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                // tilt for visual
-                mesh.position.set(startX, curY + (seg.height||3)/2 - 0.5, curZ - seg.len/2);
-                mesh.rotation.x = -Math.atan2((seg.height||3), seg.len);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'ramp' });
-                curY += (seg.height||3);
-                curZ -= seg.len;
-            } else if (seg.type === 'gap') {
-                // just move cursor forward by gap length
-                curZ -= (seg.len || 8);
-            } else if (seg.type === 'checkpoint') {
-                const geo = new THREE.BoxGeometry((seg.width||6)+2, 1, seg.len||6);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.finish);
-                mesh.position.set(startX, curY - 0.5, curZ - (seg.len||6)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'checkpoint' });
-                curZ -= (seg.len || 6);
-            } else if (seg.type === 'spikes') {
-                // preview spikes as small thin tall boxes across the track
-                const count = seg.count || 6;
-                const spacing = (seg.width || 6) / count;
-                for (let s = 0; s < count; s++) {
-                    const spikeGeo = new THREE.ConeGeometry(0.2, 0.8, 6);
-                    const spike = new THREE.Mesh(spikeGeo, this.sharedMaterials.hazard);
-                    const px = startX - (seg.width||6)/2 + spacing * (s + 0.5);
-                    spike.position.set(px, curY + 0.2, curZ - (seg.len||6)/2);
-                    spike.rotation.x = Math.PI;
-                    this.scene.add(spike);
-                    this.builderPreview.push({ mesh: spike, kind: 'spike' });
-                }
-                curZ -= (seg.len || 6);
-            } else if (seg.type === 'pendulum') {
-                // preview pendulum as a hanging sphere + line
-                const geo = new THREE.SphereGeometry(0.6, 12, 12);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.pendulum);
-                mesh.position.set(startX, curY + 4, curZ - (seg.len||12)/2);
-                this.scene.add(mesh);
-                const points = [ new THREE.Vector3(startX, curY + 6, curZ - (seg.len||12)/2), new THREE.Vector3(startX, curY + 4, curZ - (seg.len||12)/2) ];
-                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-                const line = new THREE.Line(lineGeo, this.sharedMaterials.rope);
-                this.scene.add(line);
-                this.builderPreview.push({ mesh, line, kind: 'pendulum' });
-                curZ -= (seg.len || 12);
-            } else if (seg.type === 'spinner') {
-                // preview spinner as a rotating bar
-                const geo = new THREE.BoxGeometry(6, 0.5, 0.8);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.spinner);
-                mesh.position.set(startX, curY + 0.5, curZ - (seg.len||12)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'spinner' });
-                curZ -= (seg.len || 12);
-            } else if (seg.type === 'crusher') {
-                // preview side crushers as two sliding walls
-                const leftGeo = new THREE.BoxGeometry(1, 2, seg.len || 12);
-                const left = new THREE.Mesh(leftGeo, this.sharedMaterials.pendulum);
-                left.position.set(startX - (seg.width||8)/2 - 0.6, curY + 1, curZ - (seg.len||12)/2);
-                const right = left.clone();
-                right.position.set(startX + (seg.width||8)/2 + 0.6, curY + 1, curZ - (seg.len||12)/2);
-                this.scene.add(left);
-                this.scene.add(right);
-                this.builderPreview.push({ mesh: left, kind: 'crusher' });
-                this.builderPreview.push({ mesh: right, kind: 'crusher' });
-                curZ -= (seg.len || 12);
-            } else if (seg.type === 'stunt_ramp') {
-                // big stunt ramp preview (taller ramp)
-                const geo = new THREE.BoxGeometry(seg.width||8, 1, Math.sqrt((seg.len||18)*(seg.len||18) + (seg.height||6)*(seg.height||6)));
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                mesh.position.set(startX, curY + (seg.height||6)/2 - 0.5, curZ - (seg.len||18)/2);
-                mesh.rotation.x = -Math.atan2((seg.height||6), seg.len||18);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'stunt_ramp' });
-                curY += (seg.height||6);
-                curZ -= (seg.len || 18);
-            } else if (seg.type === 'stunt_loop') {
-                // loop preview as ring of small platforms
-                const segCount = seg.segments || 16;
-                const r = seg.radius || 4;
-                for (let i=0;i<segCount;i++){
-                    const a = (i/segCount)*Math.PI*2;
-                    const px = startX + Math.cos(a)*r;
-                    const pz = curZ - (seg.radius||4) + Math.sin(a)*r - 2;
-                    const geo = new THREE.BoxGeometry(1.2, 0.6, 1.2);
-                    const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                    mesh.position.set(px, curY + Math.sin(a) * (r*0.15) + r*0.2, pz);
-                    mesh.rotation.z = Math.cos(a)*0.2;
-                    this.scene.add(mesh);
-                    this.builderPreview.push({ mesh, kind: 'stunt_loop' });
-                }
-                curZ -= (seg.radius || 6) * 2;
-            } else if (seg.type === 'stunt_grind') {
-                // grind rail preview as a thin elevated plank
-                const geo = new THREE.BoxGeometry(seg.width||0.6, 0.2, seg.len||20);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.coin);
-                mesh.position.set(startX, curY + (seg.height||1.2), curZ - (seg.len||20)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'stunt_grind' });
-                curZ -= (seg.len || 20);
-            } else if (seg.type === 'stunt_donut') {
-                // donut preview as torus
-                const torusGeo = new THREE.TorusGeometry(seg.outer||6, (seg.outer-seg.inner||3)/2 || 1, 16, 64);
-                const torus = new THREE.Mesh(torusGeo, this.sharedMaterials.wood);
-                torus.position.set(startX, curY + 1.0, curZ - 4);
-                torus.rotation.x = Math.PI/2;
-                this.scene.add(torus);
-                this.builderPreview.push({ mesh: torus, kind: 'stunt_donut' });
-                curZ -= 10;
-            } else if (seg.type === 'trampoline') {
-                const geo = new THREE.CylinderGeometry((seg.width||4)/2, (seg.width||4)/2, 0.6, 16);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.speed);
-                mesh.rotation.x = Math.PI / 2;
-                mesh.position.set(startX, curY + 0.2, curZ - (seg.len||4)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'trampoline' });
-                curZ -= (seg.len || 4);
-            } else if (seg.type === 'coin_ring') {
-                const count = seg.count || 8;
-                const radius = seg.radius || 3;
-                for (let i=0;i<count;i++){
-                    const a = (i / count) * Math.PI * 2;
-                    const cx = startX + Math.cos(a) * radius;
-                    const cz = curZ - 4 + Math.sin(a) * radius;
-                    const coinGeo = new THREE.CylinderGeometry(0.3,0.3,0.08,16);
-                    const coin = new THREE.Mesh(coinGeo, this.sharedMaterials.coin);
-                    coin.rotation.x = Math.PI/2;
-                    coin.position.set(cx, curY + 1.2, cz);
-                    this.scene.add(coin);
-                    this.builderPreview.push({ mesh: coin, kind: 'coin' });
-                }
-                curZ -= 4;
-            } else if (seg.type === 'moving_platform') {
-                const geo = new THREE.BoxGeometry(seg.width||4, 1, seg.len||8);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                mesh.position.set(startX, curY - 0.5, curZ - (seg.len||8)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'moving_platform' });
-                curZ -= (seg.len || 8);
-            } else if (seg.type === 'spike_pit') {
-                const count = seg.count || 6;
-                const spacing = (seg.width || 6) / count;
-                for (let s=0; s<count; s++){
-                    const px = startX - (seg.width||6)/2 + spacing*(s+0.5);
-                    const spikeGeo = new THREE.ConeGeometry(0.25, 0.8, 6);
-                    const spike = new THREE.Mesh(spikeGeo, this.sharedMaterials.hazard);
-                    spike.position.set(px, curY - 0.2, curZ - (seg.len||6)/2);
-                    spike.rotation.x = Math.PI;
-                    this.scene.add(spike);
-                    this.builderPreview.push({ mesh: spike, kind: 'spike_pit' });
-                }
-                curZ -= (seg.len || 6);
-            } else if (seg.type === 'seesaw') {
-                const base = new THREE.BoxGeometry(0.6, 0.6, 1.2);
-                const plank = new THREE.BoxGeometry(seg.width||6, 0.3, 1.2);
-                const baseMesh = new THREE.Mesh(base, this.sharedMaterials.pendulum);
-                baseMesh.position.set(startX, curY + 0.3, curZ - (seg.len||8)/2);
-                const plankMesh = new THREE.Mesh(plank, this.sharedMaterials.wood);
-                plankMesh.position.set(startX, curY + 0.8, curZ - (seg.len||8)/2);
-                this.scene.add(baseMesh); this.scene.add(plankMesh);
-                this.builderPreview.push({ mesh: baseMesh, kind: 'seesaw' });
-                this.builderPreview.push({ mesh: plankMesh, kind: 'seesaw_plank' });
-                curZ -= (seg.len || 8);
-            } else if (seg.type === 'spring_pad') {
-                const geo = new THREE.CircleGeometry((seg.width||2)/2, 16);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.speed);
-                mesh.rotation.x = -Math.PI/2;
-                mesh.position.set(startX, curY + 0.01, curZ - (seg.len||2)/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'spring' });
-                curZ -= (seg.len || 2);
-            } else if (seg.type === 'scene_starter') {
-                const geo = new THREE.BoxGeometry(seg.width||10, 1, seg.len||10);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.finish);
-                mesh.position.set(startX, curY - 0.5, curZ - (seg.len||10)/2);
-                this.scene.add(mesh);
-                const bannerGeo = new THREE.PlaneGeometry(4,1);
-                const banner = new THREE.Mesh(bannerGeo, this.sharedMaterials.coin);
-                banner.position.set(startX, curY + 1.5, curZ - (seg.len||10)/2);
-                this.scene.add(banner);
-                this.builderPreview.push({ mesh, banner, kind: 'scene_starter' });
-                curZ -= (seg.len || 10);
-            } else if (seg.type === 'finish') {
-                const geo = new THREE.BoxGeometry(seg.width, 1, seg.len);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.finish);
-                mesh.position.set(startX, curY - 0.5, curZ - seg.len/2);
-                this.scene.add(mesh);
-                this.builderPreview.push({ mesh, kind: 'finish' });
-                curZ -= seg.len;
-            }
-        });
-    }
-
-    loadCustomLevel(custom) {
-        // Clear current level and build from segments
-        this.clearLevel();
-        this.lastCheckpointPos.set(0, 5, 0);
-        let currentZ = 0;
-        let currentX = 0;
-        let currentY = 0;
-
-        // start platform
-        this.addPlatform(0, 0, 0, 8, 15);
-        currentZ -= 7.5;
-
-        (custom.segments || []).forEach(seg => {
-            switch(seg.type) {
-                case 'platform':
-                    this.addPlatform(currentX, currentY, currentZ - (seg.len||12)/2, seg.width||6, seg.len||12);
-                    currentZ -= (seg.len||12);
-                    break;
-                case 'ramp':
-                    this.addRamp(currentX, currentY, currentZ, seg.width||6, seg.len||12, seg.height||3);
-                    currentZ -= seg.len||12;
-                    currentY += seg.height||3;
-                    break;
-                case 'gap':
-                    currentZ -= seg.len||8;
-                    break;
-                case 'checkpoint':
-                    this.addCheckpoint(currentX, currentY, currentZ - (seg.len||6)/2, seg.width||6);
-                    currentZ -= seg.len||6;
-                    break;
-                case 'finish':
-                    this.addPlatform(currentX, currentY, currentZ - (seg.len||12)/2, seg.width||8, seg.len||12, 0x00ff00);
-                    this.finishX = currentX;
-                    this.finishY = currentY;
-                    this.finishZ = currentZ - (seg.len||12) + 10;
-                    this.placeFinishModel();
-                    currentZ -= seg.len||12;
-                    break;
-                case 'spikes':
-                    // create a row of thin spike colliders (use thin walls/cones approximated by thin boxes)
-                    const spikeCount = seg.count || 6;
-                    const spacing = (seg.width || 6) / spikeCount;
-                    for (let s=0; s<spikeCount; s++) {
-                        const px = currentX - (seg.width||6)/2 + spacing * (s + 0.5);
-                        // tall thin box that acts as hazard (player will collide and be knocked)
-                        this.addWall(px, currentY + 0.5, currentZ - (seg.len||6)/2, 0.2, seg.len || 6, 0);
-                    }
-                    currentZ -= (seg.len || 6);
-                    break;
-                case 'pendulum':
-                    // add a pendulum hazard centered in this segment
-                    this.addPendulum(currentX, currentY, currentZ - (seg.len||12)/2, seg.intensity || 1);
-                    currentZ -= (seg.len || 12);
-                    break;
-                case 'spinner':
-                    // add a spinner hazard
-                    this.addSpinner(currentX, currentY + 0.5, currentZ - (seg.len||12)/2, seg.speedMult || 1);
-                    currentZ -= (seg.len || 12);
-                    break;
-                case 'crusher':
-                    // add two movers that slide inward/outward as crushers
-                    this.addMover(currentX - (seg.width||8)/2 - 1, currentY + 1, currentZ - (seg.len||12)/2, 1.2, 2, seg.len || 12, true, seg.force || 1);
-                    this.addMover(currentX + (seg.width||8)/2 + 1, currentY + 1, currentZ - (seg.len||12)/2, 1.2, 2, seg.len || 12, true, seg.force || 1);
-                    currentZ -= (seg.len || 12);
-                    break;
-                case 'stunt_ramp':
-                    // create a physical stunt ramp (use addRamp)
-                    this.addRamp(currentX, currentY, currentZ, seg.width||8, seg.len||18, seg.height||6);
-                    currentZ -= (seg.len || 18);
-                    currentY += seg.height || 6;
-                    break;
-                case 'stunt_loop':
-                    // approximate a loop by placing multiple short platforms in a circular arrangement
-                    const loopSegs = seg.segments || 16;
-                    const loopR = seg.radius || 4;
-                    for (let i=0;i<loopSegs;i++){
-                        const a = (i/loopSegs)*Math.PI*2;
-                        const px = currentX + Math.cos(a)*loopR;
-                        const pz = currentZ - loopR + Math.sin(a)*loopR;
-                        // small platforms to approximate loop surface
-                        this.addPlatform(px, currentY + Math.sin(a)*0.6, pz, 1.2, 1.2);
-                    }
-                    currentZ -= loopR*2;
-                    break;
-                case 'stunt_grind':
-                    // grind rail as a thin elevated physics platform (narrow long box)
-                    this.addPlatform(currentX, currentY + (seg.height||1.2), currentZ - (seg.len||20)/2, seg.width||0.6, seg.len||20);
-                    currentZ -= (seg.len || 20);
-                    break;
-                case 'stunt_donut':
-                    // donut approximated by ring of small platforms around center
-                    const outer = seg.outer || 6;
-                    const inner = seg.inner || 3;
-                    const donutSegs = 20;
-                    for (let i=0;i<donutSegs;i++){
-                        const a = (i/donutSegs)*Math.PI*2;
-                        const r = (outer+inner)/2;
-                        const px = currentX + Math.cos(a)*r;
-                        const pz = currentZ - 4 + Math.sin(a)*r;
-                        this.addPlatform(px, currentY + 0.6, pz, 1.0, 1.0);
-                    }
-                    currentZ -= 10;
-                    break;
-            }
-        });
-
-        // finalize
-        this.levelLength = Math.abs(currentZ);
-    }
 
     // --- Live in-world scene builder: overhead camera, grid, cursor and simple controls ---
-    enterBuilderScene() {
-        if (this.inBuilderScene) return;
-        this.inBuilderScene = true;
-        // hide UI menus
-        document.getElementById('builder-modal').style.display = 'none';
-        if (!this.builder) this.builder = { segments: [], cursorZ: -5 };
 
-        // save previous camera state
-        this._savedCamera = {
-            position: this.camera.position.clone(),
-            yaw: this.cameraYaw,
-            pitch: this.cameraPitch,
-            distance: this.cameraDistance
-        };
 
-        // set overhead camera
-        this.cameraYaw = 0;
-        this.cameraPitch = 1.45; // almost top-down
-        this.cameraDistance = 18;
 
-        // create a grid plane for visual placement
-        const size = 100;
-        if (!this._builderGrid) {
-            const grid = new THREE.GridHelper(size, size / 1, 0x444444, 0x222222);
-            grid.rotation.x = 0;
-            this.scene.add(grid);
-            this._builderGrid = grid;
-        }
-
-        // create placement cursor (a semi-transparent box)
-        if (!this._builderCursor) {
-            const geo = new THREE.BoxGeometry(6, 0.6, 6);
-            const mat = new THREE.MeshPhongMaterial({ color: 0x00ff88, transparent: true, opacity: 0.6 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(0, 0.3, this.builder.cursorZ || -5);
-            this.scene.add(mesh);
-            this._builderCursor = mesh;
-            this._builderCursor.userData = { width: 6, len: 6, rotation: 0 };
-        }
-
-        // place a small HUD indicator
-        if (!this._builderHint) {
-            const el = document.createElement('div');
-            el.id = 'builder-hint';
-            el.style.position = 'absolute';
-            el.style.left = '10px';
-            el.style.bottom = '10px';
-            el.style.padding = '8px 12px';
-            el.style.background = 'rgba(0,0,0,0.6)';
-            el.style.color = 'white';
-            el.style.fontSize = '13px';
-            el.style.borderRadius = '8px';
-            el.style.zIndex = 2000;
-            el.innerText = 'Builder: Arrows move • Q/E rotate • +/- size • P place • Esc exit';
-            document.body.appendChild(el);
-            this._builderHint = el;
-        }
-
-        // Key handlers for builder placement
-        this._builderKeyHandler = (e) => {
-            if (!this.inBuilderScene) return;
-            const step = 0.5;
-            if (e.code === 'ArrowUp') {
-                this._builderCursor.position.z -= step;
-            } else if (e.code === 'ArrowDown') {
-                this._builderCursor.position.z += step;
-            } else if (e.code === 'ArrowLeft') {
-                this._builderCursor.position.x -= step;
-            } else if (e.code === 'ArrowRight') {
-                this._builderCursor.position.x += step;
-            } else if (e.code === 'KeyQ') {
-                this._builderCursor.rotation.y += 0.12;
-            } else if (e.code === 'KeyE') {
-                this._builderCursor.rotation.y -= 0.12;
-            } else if (e.code === 'Equal' || e.key === '+') {
-                // increase size
-                this._builderCursor.scale.x += 0.05;
-                this._builderCursor.scale.z += 0.05;
-            } else if (e.code === 'Minus' || e.key === '-') {
-                // decrease size but clamp
-                this._builderCursor.scale.x = Math.max(0.4, this._builderCursor.scale.x - 0.05);
-                this._builderCursor.scale.z = Math.max(0.4, this._builderCursor.scale.z - 0.05);
-            } else if (e.code === 'KeyP') {
-                // Place a platform segment at cursor — push into builder.segments
-                const w = Math.round(6 * this._builderCursor.scale.x * 10) / 10;
-                const l = Math.round(6 * this._builderCursor.scale.z * 10) / 10;
-                const seg = { type: 'platform', width: w, len: l, y: 0, x: this._builderCursor.position.x, z: this._builderCursor.position.z, rotY: this._builderCursor.rotation.y };
-                this.builder.segments.push(seg);
-                // also create a preview object so the user sees immediate placement
-                const geo = new THREE.BoxGeometry(w, 1, l);
-                const mesh = new THREE.Mesh(geo, this.sharedMaterials.wood);
-                mesh.position.set(seg.x, 0 - 0.5, seg.z);
-                mesh.rotation.y = seg.rotY;
-                this.scene.add(mesh);
-                this.builderPreview = this.builderPreview || [];
-                this.builderPreview.push({ mesh, kind: 'platform' });
-            } else if (e.code === 'Escape') {
-                this.exitBuilderScene();
-            }
-        };
-
-        window.addEventListener('keydown', this._builderKeyHandler);
-    }
-
-    exitBuilderScene() {
-        if (!this.inBuilderScene) return;
-        this.inBuilderScene = false;
-        // restore camera
-        if (this._savedCamera) {
-            this.cameraYaw = this._savedCamera.yaw;
-            this.cameraPitch = this._savedCamera.pitch;
-            this.cameraDistance = this._savedCamera.distance;
-            this.camera.position.copy(this._savedCamera.position);
-            this._savedCamera = null;
-        }
-        // remove helper objects
-        if (this._builderGrid) { this.scene.remove(this._builderGrid); this._builderGrid = null; }
-        if (this._builderCursor) { this.scene.remove(this._builderCursor); this._builderCursor = null; }
-        if (this._builderHint) { document.body.removeChild(this._builderHint); this._builderHint = null; }
-        if (this._builderKeyHandler) { window.removeEventListener('keydown', this._builderKeyHandler); this._builderKeyHandler = null; }
-
-        // update preview in modal / builder UI to reflect placed segments
-        this.clearBuilderPreview();
-        this.previewBuilder();
-
-        // reopen builder modal so user can save/load or fine-tune
-        document.getElementById('builder-modal').style.display = 'flex';
-    }
-
-    renderGrids() {
-        // Primary skins grid (used by SKINS modal)
-        const skinsGrid = document.getElementById('skins-grid');
-        if (skinsGrid) {
-            skinsGrid.innerHTML = '';
-            Object.keys(this.ballConfigs).forEach(key => {
-                const conf = this.ballConfigs[key];
-                const isUnlocked = this.saveData.unlockedBalls.includes(key);
-                const isSelected = this.saveData.selectedBall === key;
-                
-                const card = document.createElement('div');
-                card.className = `item-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-                
-                let previewStyle = '';
-                if (conf.tex) {
-                    previewStyle = `background-image: url(${conf.tex});`;
-                } else {
-                    const colorHex = `#${conf.color.toString(16).padStart(6, '0')}`;
-                    previewStyle = `background-color: ${colorHex};`;
-                }
-
-                card.innerHTML = `
-                    <div class="item-preview ball-preview" style="${previewStyle}"></div>
-                    <div style="font-size: 14px; margin-top: 5px;">${conf.name}</div>
-                    <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
-                `;
-                card.onclick = () => this.handlePurchase('ball', key, conf.price);
-                skinsGrid.appendChild(card);
-            });
-        }
-
-        // Primary skies grid (used by SKIES modal)
-        const skiesGrid = document.getElementById('skies-grid');
-        if (skiesGrid) {
-            skiesGrid.innerHTML = '';
-            Object.keys(this.skyConfigs).forEach(key => {
-                const conf = this.skyConfigs[key];
-                const isUnlocked = this.saveData.unlockedSkies.includes(key);
-                const isSelected = this.saveData.selectedSky === key;
-
-                const card = document.createElement('div');
-                card.className = `item-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-                
-                let previewStyle = '';
-                if (conf.tex) {
-                    previewStyle = `background-image: url(${conf.tex});`;
-                } else {
-                    const colorHex = `#${conf.color.toString(16).padStart(6, '0')}`;
-                    previewStyle = `background-color: ${colorHex};`;
-                }
-
-                card.innerHTML = `
-                    <div class="item-preview sky-preview" style="${previewStyle}"></div>
-                    <div style="font-size: 14px; margin-top: 5px;">${conf.name}</div>
-                    <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
-                `;
-                card.onclick = () => this.handlePurchase('sky', key, conf.price);
-                skiesGrid.appendChild(card);
-            });
-        }
-
-        // Store modal grids (combined shop)
-        const storeSkins = document.getElementById('store-skins-grid');
-        if (storeSkins) {
-            storeSkins.innerHTML = '';
-            Object.keys(this.ballConfigs).forEach(key => {
-                const conf = this.ballConfigs[key];
-                const isUnlocked = this.saveData.unlockedBalls.includes(key);
-                const isSelected = this.saveData.selectedBall === key;
-                const card = document.createElement('div');
-                card.className = `item-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-                let previewStyle = '';
-                if (conf.tex) previewStyle = `background-image: url(${conf.tex});`; 
-                else previewStyle = `background-color: #${conf.color.toString(16).padStart(6,'0')};`;
-                card.innerHTML = `
-                    <div class="item-preview ball-preview" style="${previewStyle}"></div>
-                    <div style="font-size: 14px; margin-top: 5px;">${conf.name}</div>
-                    <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
-                `;
-                card.onclick = () => this.handlePurchase('ball', key, conf.price);
-                storeSkins.appendChild(card);
-            });
-        }
-
-        const storeSkies = document.getElementById('store-skies-grid');
-        if (storeSkies) {
-            storeSkies.innerHTML = '';
-            Object.keys(this.skyConfigs).forEach(key => {
-                const conf = this.skyConfigs[key];
-                const isUnlocked = this.saveData.unlockedSkies.includes(key);
-                const isSelected = this.saveData.selectedSky === key;
-                const card = document.createElement('div');
-                card.className = `item-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-                let previewStyle = '';
-                if (conf.tex) previewStyle = `background-image: url(${conf.tex});`; 
-                else previewStyle = `background-color: #${conf.color.toString(16).padStart(6,'0')};`;
-                card.innerHTML = `
-                    <div class="item-preview sky-preview" style="${previewStyle}"></div>
-                    <div style="font-size: 14px; margin-top: 5px;">${conf.name}</div>
-                    <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
-                `;
-                card.onclick = () => this.handlePurchase('sky', key, conf.price);
-                storeSkies.appendChild(card);
-            });
-        }
-    }
-
-    handlePurchase(type, key, price) {
-        // Helper to attempt payment from wallet (totalCoins) then session (score)
-        const tryPay = (amount) => {
-            let remaining = amount;
-            // Use wallet first
-            const fromWallet = Math.min(this.saveData.totalCoins, remaining);
-            remaining -= fromWallet;
-            this.saveData.totalCoins -= fromWallet;
-            // If still needed, use session score
-            if (remaining > 0) {
-                const fromSession = Math.min(this.score, remaining);
-                remaining -= fromSession;
-                this.score -= fromSession;
-            }
-            // If fully paid remaining === 0 -> success; otherwise restore deducted amounts and fail
-            if (remaining === 0) return true;
-            // restore if failed
-            this.saveData.totalCoins += (amount - remaining) - Math.max(0, amount - remaining - this.score);
-            return false;
-        };
-
-        if (type === 'ball') {
-            if (this.saveData.unlockedBalls.includes(key)) {
-                this.saveData.selectedBall = key;
-                this.ballMesh.material = this.getBallMaterial();
-            } else {
-                // Allow buying with Wallet OR Session coins combined
-                if (tryPay(price)) {
-                    this.saveData.unlockedBalls.push(key);
-                    this.saveData.selectedBall = key;
-                    this.ballMesh.material = this.getBallMaterial();
-                } else {
-                    // Not enough combined funds — simple feedback: flash the shop (re-render will show unchanged funds)
-                }
-            }
-        } else {
-            const updateSky = (skyKey) => {
-                this.saveData.selectedSky = skyKey;
-                const sky = this.skyConfigs[skyKey];
-                if (sky.tex) {
-                    this.textureLoader.load(sky.tex, (tex) => {
-                        tex.mapping = THREE.EquirectangularReflectionMapping;
-                        this.scene.background = tex;
-                    });
-                } else {
-                    this.scene.background = new THREE.Color(sky.color);
-                }
-                this.scene.fog.color = new THREE.Color(sky.color);
-            };
-
-            if (this.saveData.unlockedSkies.includes(key)) {
-                updateSky(key);
-            } else {
-                if (tryPay(price)) {
-                    this.saveData.unlockedSkies.push(key);
-                    updateSky(key);
-                } else {
-                    // insufficient funds
-                }
-            }
-        }
-        this.save();
-        this.updateWalletUI();
-        this.renderGrids();
-    }
 
     onWindowResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -2254,30 +832,26 @@ class Game {
 
     animate() {
         requestAnimationFrame(() => this.animate());
+        // Skip physics/rendering when the studio overlay is open
+        if (typeof isStudioActive === 'function' && isStudioActive()) return;
         if (!this.isGameOver) {
             this.updatePhysics();
             this.checkGameState();
         }
 
-        // Calculate orbiting camera position
-        const offsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
-        const offsetY = Math.sin(this.cameraPitch) * this.cameraDistance;
-        const offsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
-
+        // Side-scrolling camera: Jack runs on the left side of screen
         const targetCamPos = new THREE.Vector3(
-            this.ballMesh.position.x + offsetX,
-            this.ballMesh.position.y + offsetY,
-            this.ballMesh.position.z + offsetZ
+            this.ballMesh.position.x + this.sideCamOffset.x,
+            this.ballMesh.position.y + this.sideCamOffset.y,
+            this.ballMesh.position.z + this.sideCamOffset.z
         );
-
-        this.camera.position.lerp(targetCamPos, 0.2);
-        this.camera.lookAt(this.ballMesh.position.x, this.ballMesh.position.y, this.ballMesh.position.z);
-        
-        // Auto-align camera yaw slowly if moving forward and not touching controls
-        if (Math.abs(this.inputZ || 0) > 0.5 && Math.abs(this.inputX || 0) < 0.1 && !this.keys['KeyA'] && !this.keys['KeyD']) {
-            const shortestAngle = ((this.cameraYaw + Math.PI) % (Math.PI * 2)) - Math.PI;
-            this.cameraYaw -= shortestAngle * 0.02;
-        }
+        this.camera.position.lerp(targetCamPos, 0.15);
+        // Look at Jack from the side — slightly ahead to show track
+        this.camera.lookAt(
+            this.ballMesh.position.x,
+            this.ballMesh.position.y + 0.5,
+            this.ballMesh.position.z - 6
+        );
 
         // Ensure animated GIF texture updates each frame (browser advances GIF frames on the Image element)
         if (this.gifTexture) {
@@ -2309,6 +883,54 @@ class Game {
                     try { this.scene.remove(p.mesh); } catch (e) {}
                     this._coinExplosions.splice(i, 1);
                 }
+            }
+        }
+
+        const now = performance.now();
+        const wolfDelta = (now - (this._lastWolfFrame || now)) / 1000;
+        this._lastWolfFrame = now;
+        const wolfSpeed = Math.sqrt(this.ballBody.velocity.x**2 + this.ballBody.velocity.z**2);
+        updateWolfAnimation(this, wolfDelta, wolfSpeed);
+
+        // --- Dust particles under Jack's feet while running ---
+        if (!this.isGameOver && this.isGrounded) {
+            const spd = Math.sqrt(this.ballBody.velocity.x**2 + this.ballBody.velocity.z**2);
+            if (spd > 1.0) {
+                this.dustSpawnTimer += wolfDelta;
+                const spawnInterval = Math.max(0.04, 0.12 - spd * 0.005);
+                while (this.dustSpawnTimer >= spawnInterval && this.dustParticles.length < 30) {
+                    this.dustSpawnTimer -= spawnInterval;
+                    const dust = new THREE.Mesh(this._dustGeo, this._dustMat.clone());
+                    dust.rotation.x = -Math.PI / 2;
+                    dust.position.set(
+                        this.ballMesh.position.x + (Math.random() - 0.5) * 0.6,
+                        0.05,
+                        this.ballMesh.position.z + (Math.random() - 0.5) * 0.4 + 0.3
+                    );
+                    this.scene.add(dust);
+                    this.dustParticles.push({
+                        mesh: dust,
+                        life: 0,
+                        maxLife: 0.4 + Math.random() * 0.3,
+                        vy: 0.3 + Math.random() * 0.5,
+                        vx: (Math.random() - 0.5) * 0.8
+                    });
+                }
+            }
+        }
+        // Animate dust particles
+        for (let i = this.dustParticles.length - 1; i >= 0; i--) {
+            const p = this.dustParticles[i];
+            p.life += wolfDelta;
+            p.mesh.position.y += p.vy * wolfDelta;
+            p.mesh.position.x += p.vx * wolfDelta;
+            const t = p.life / p.maxLife;
+            p.mesh.material.opacity = 0.6 * (1 - t);
+            p.mesh.scale.setScalar(1 + t * 2);
+            if (p.life >= p.maxLife) {
+                this.scene.remove(p.mesh);
+                p.mesh.material.dispose();
+                this.dustParticles.splice(i, 1);
             }
         }
 

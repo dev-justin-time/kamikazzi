@@ -1,0 +1,11 @@
+Model Information:
+* title:	Jack the wolf
+* source:	https://sketchfab.com/3d-models/jack-the-wolf-d1ba09521e2b4564912d390d71d543fd
+* author:	JohnTheRobotCat (https://sketchfab.com/JohnTheRobotCat)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Jack the wolf" (https://sketchfab.com/3d-models/jack-the-wolf-d1ba09521e2b4564912d390d71d543fd) by JohnTheRobotCat (https://sketchfab.com/JohnTheRobotCat) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
