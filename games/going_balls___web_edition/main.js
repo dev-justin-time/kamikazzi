@@ -9,13 +9,14 @@ import { getBallMaterial } from "./js/ball-skins.js";
 import {
   clearLevel, placeFinishModel, createLevel,
   addPlatform, addTunnelWalls, addRamp, addPendulum, addSpinner,
-  addHammer, addMover, addWall, addCoins, addCheckpoint
+  addHammer, addMover, addWall, addCoins, addCheckpoint,
+  TRACK_ANGLE
 } from "./js/level-gen.js";
 import {
   renderBuilder, clearBuilderPreview, previewBuilder,
   loadCustomLevel, enterBuilderScene, exitBuilderScene
 } from "./js/track-builder.js";
-import { setupUI, renderGrids, handlePurchase, updateWalletUI } from "./js/ui.js";
+import { setupUI, renderGrids, handlePurchase, updateWalletUI, showToast } from "./js/ui.js";
 import { initWolfModel, updateWolfAnimation, resetWolfModel, setWolfRunning } from "./js/wolf-model.js";
 import { initStudio, isStudioActive } from "./js/studio.js";
 
@@ -41,7 +42,30 @@ class Game {
         this.initAudio();
         this.initScene();
         this.initPhysics();
+        // Track rotation: compute forward direction and rotation quaternion
+        this.trackAngle = TRACK_ANGLE;
+        this._trackQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), TRACK_ANGLE);
+        this.trackForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this._trackQuat);
         this.initControls();
+
+        // Pause resume button
+        const pauseResumeBtn = document.getElementById('pause-resume-btn');
+        if (pauseResumeBtn) {
+            pauseResumeBtn.addEventListener('click', () => this.togglePause());
+        }
+
+        // Mute button
+        this.audioMuted = false;
+        const savedMuted = localStorage.getItem('gb_audioMuted');
+        if (savedMuted === 'true') {
+            this.audioMuted = true;
+        }
+        this._syncMuteButton();
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => this.toggleMute());
+        }
+
         this.createLevel();
         this.animate();
         this.setupUI();
@@ -55,10 +79,20 @@ class Game {
             unlockedBalls: ['rainbow'],
             unlockedSkies: ['day'],
             selectedBall: 'rainbow',
-            selectedSky: 'day'
+            selectedSky: 'day',
+            bestLevel: 1,
+            deaths: 0,
+            totalPlayTime: 0,
+            lifetimeCoins: 0
         };
         // Load saved data, fall back to default
         this.saveData = JSON.parse(localStorage.getItem('goingBallsData_v1')) || defaultData;
+
+        // Backfill stats fields if missing from older saved data
+        if (this.saveData.bestLevel == null) this.saveData.bestLevel = 1;
+        if (this.saveData.deaths == null) this.saveData.deaths = 0;
+        if (this.saveData.totalPlayTime == null) this.saveData.totalPlayTime = 0;
+        if (this.saveData.lifetimeCoins == null) this.saveData.lifetimeCoins = 0;
 
         // Ensure core defaults are always available and selection is valid
         if (!Array.isArray(this.saveData.unlockedBalls)) this.saveData.unlockedBalls = ['rainbow'];
@@ -127,7 +161,10 @@ class Game {
     getBallMaterial() { return getBallMaterial(this); }
     clearLevel() { clearLevel(this); }
     placeFinishModel() { placeFinishModel(this); }
-    createLevel() { createLevel(this); }
+    createLevel() {
+        createLevel(this);
+        this.levelStartTime = performance.now();
+    }
     addPlatform(x, y, z, w, l, c) { addPlatform(this, x, y, z, w, l, c); }
     addTunnelWalls(x, y, z, w, l) { addTunnelWalls(this, x, y, z, w, l); }
     addRamp(x, y, z, w, l, h) { addRamp(this, x, y, z, w, l, h); }
@@ -151,6 +188,7 @@ class Game {
     playSound(n) { playSound(this, n); }
     spawnCoinExplosion(o, v) { spawnCoinExplosion(this, o, v); }
     playFootstep(s) { playFootstep(this, s); }
+    renderStats() { _renderStats(this); }
     initStudio() { initStudio(this); }
 
 
@@ -197,8 +235,11 @@ class Game {
         sunLight.shadow.camera.right = 100;
         sunLight.shadow.camera.top = 100;
         sunLight.shadow.camera.bottom = -100;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
+        // Shadow map: 1024 on phones/small tablets, 2048 on desktop
+        const isMobile = 'ontouchstart' in window && window.innerWidth < 1024;
+        const shadowRes = isMobile ? 1024 : 2048;
+        sunLight.shadow.mapSize.width = shadowRes;
+        sunLight.shadow.mapSize.height = shadowRes;
         this.scene.add(sunLight);
 
         this.gltfLoader = new GLTFLoader();
@@ -251,6 +292,7 @@ class Game {
             // avoid trying to use a broken gif texture
             this.gifTexture = null;
         };
+        this._lastGifUpdate = 0;
 
         this.sharedMaterials = {
             wood: new THREE.MeshPhongMaterial({ map: this.woodTexture }),
@@ -448,7 +490,11 @@ class Game {
             angularDamping: 0.95, // High damping for control
             linearDamping: 0.5     // Reduced slightly for smoother rolling
         });
-        this.ballBody.position.set(0, 1, -3); // Slightly forward to show track ahead
+        // Rotate starting position to match track angle
+        const _sv = new THREE.Vector3(0, 1, -3).applyQuaternion(
+            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), TRACK_ANGLE)
+        );
+        this.ballBody.position.set(_sv.x, _sv.y, _sv.z);
         this.world.addBody(this.ballBody);
 
         initWolfModel(this);
@@ -479,9 +525,17 @@ class Game {
 
     initControls() {
         this.keys = {};
+        this.isPaused = false;
+        
+        // Detect touch capability and add class to body
+        if (!('ontouchstart' in window)) {
+            document.body.classList.add('no-touch');
+        }
+        
         window.addEventListener('keydown', (e) => {
             this.keys[e.code] = true;
             if (e.code === 'Space') this.jump();
+            if (e.code === 'Escape') this.togglePause();
         });
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
@@ -514,8 +568,8 @@ class Game {
         jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); });
         jumpBtn.addEventListener('mousedown', (e) => this.jump());
 
-        // Side-scrolling camera: left-side view for Jack running
-        this.sideCamOffset = new THREE.Vector3(14, 7, 0); // right side camera → ball on LEFT of screen
+        // Chase camera: behind the ball, looking forward along the track
+        // Offset is computed per-frame in animate() using trackForward
 
         // Unified interaction listener for UI visibility and pointer lock
         const handleInteraction = (e) => {
@@ -529,13 +583,8 @@ class Game {
             // Toggle UI visibility when tapping anywhere else
             const isVisible = topMenu.classList.toggle('visible');
 
-            // Handle pointer lock logic: lock only if UI was just hidden and we aren't in a menu
-            if (!isVisible && !this.isGameOver && !isControlClick) {
-                // Mobile browsers do not support requestPointerLock
-                if (typeof this.renderer.domElement.requestPointerLock === 'function') {
-                    this.renderer.domElement.requestPointerLock();
-                }
-            }
+            // Let mouse move freely — no pointer lock (keyboard + joystick only)
+            // Mobile browsers do not support requestPointerLock anyway
             
             // Auto-hide menu after 4 seconds of inactivity if shown
             if (this.menuHideTimeout) clearTimeout(this.menuHideTimeout);
@@ -642,8 +691,8 @@ class Game {
         
         // Side-scrolling: controls are screen-relative
         // Left/Right keys move along X, Up/Down move along -Z/+Z (track direction)
-        const forward = new THREE.Vector3(0, 0, this.inputZ); // inputZ is -1 when pressing W (forward = -Z)
-        const right = new THREE.Vector3(this.inputX, 0, 0);
+        const forward = new THREE.Vector3(0, 0, this.inputZ).applyQuaternion(this._trackQuat);
+        const right = new THREE.Vector3(this.inputX, 0, 0).applyQuaternion(this._trackQuat);
 
         const combinedMove = forward.add(right);
         const force = new CANNON.Vec3(
@@ -683,9 +732,11 @@ class Game {
         this.pendulums.forEach(p => {
             const t = time * p.speedMult;
             const angle = Math.sin(t + p.startTime) * 1.3;
-            const px = p.pivot.x + Math.sin(angle) * 6;
+            const localOff = Math.sin(angle) * 6;
+            const px = p.pivot.x + localOff * Math.cos(this.trackAngle);
+            const pz = p.pivot.z - localOff * Math.sin(this.trackAngle);
             const py = p.pivot.y - Math.cos(angle) * 6;
-            p.body.position.set(px, py, p.pivot.z);
+            p.body.position.set(px, py, pz);
             p.mesh.position.copy(p.body.position);
             const pos = p.line.geometry.attributes.position.array;
             pos[3] = p.body.position.x; pos[4] = p.body.position.y; pos[5] = p.body.position.z;
@@ -701,16 +752,17 @@ class Game {
 
         this.movers.forEach(m => {
             const t = (time + m.offset) * m.speedMult;
+            const cosT = Math.cos(this.trackAngle);
+            const sinT = Math.sin(this.trackAngle);
             if (m.type === 'hammer') {
-                const offX = Math.sin(t * 3) * 5;
-                m.body.position.set(m.basePos.x + offX, m.basePos.y, m.basePos.z);
+                const lo = Math.sin(t * 3) * 5;
+                m.body.position.set(m.basePos.x + lo * cosT, m.basePos.y, m.basePos.z - lo * sinT);
             } else if (m.type === 'slide') {
-                const offX = Math.sin(t * 2) * 3;
-                m.body.position.set(m.basePos.x + offX, m.basePos.y, m.basePos.z);
+                const lo = Math.sin(t * 2) * 3;
+                m.body.position.set(m.basePos.x + lo * cosT, m.basePos.y, m.basePos.z - lo * sinT);
             } else if (m.type === 'side') {
-                const offX = Math.sin(t * 2.5) * 2;
-                const dir = m.basePos.x > 0 ? 1 : -1;
-                m.body.position.set(m.basePos.x + offX * dir, m.basePos.y, m.basePos.z);
+                const lo = Math.sin(t * 2.5) * 2 * (m.basePos.x > 0 ? 1 : -1);
+                m.body.position.set(m.basePos.x + lo * cosT, m.basePos.y, m.basePos.z - lo * sinT);
             }
             m.mesh.position.copy(m.body.position);
         });
@@ -724,6 +776,7 @@ class Game {
                 const val = (coin.userData && coin.userData.value) ? coin.userData.value : 10;
                 this.score += val;
                 this.saveData.totalCoins += val;
+                this.saveData.lifetimeCoins += val;
                 this.save();
                 this.updateWalletUI();
                 this.playSound('coin_collect');
@@ -738,37 +791,51 @@ class Game {
         });
 
         if (this.ballBody.position.y < -10 && !this.isGameOver) this.gameOver(false);
-        if (this.ballBody.position.z < this.finishZ && !this.isGameOver) this.gameOver(true);
 
-        // Check for checkpoints
+        // Project ball position onto track direction for progress/distance checks
+        const ballProj = this.ballBody.position.x * this.trackForward.x + this.ballBody.position.z * this.trackForward.z;
+        const finishProj = this.finishX * this.trackForward.x + this.finishZ * this.trackForward.z;
+        if (ballProj > finishProj && !this.isGameOver) this.gameOver(true);
+
+        // Check for checkpoints using track-direction projection
         this.checkpoints.forEach(cp => {
-            if (!cp.reached && this.ballBody.position.z < cp.z) {
-                cp.reached = true;
-                this.lastCheckpointPos.copy(cp.pos);
-                // Subtle feedback for checkpoint reached
-                this.playSound('coin_collect');
+            if (!cp.reached) {
+                const cpProj = cp.pos.x * this.trackForward.x + cp.pos.z * this.trackForward.z;
+                if (ballProj > cpProj) {
+                    cp.reached = true;
+                    this.lastCheckpointPos.copy(cp.pos);
+                    this.playSound('coin_collect');
+                }
             }
         });
 
-        const progress = Math.min(100, Math.max(0, Math.floor((Math.abs(this.ballBody.position.z) / this.levelLength) * 100)));
+        const progress = Math.min(100, Math.max(0, Math.floor((ballProj / this.levelLength) * 100)));
         document.getElementById('distance-display').innerText = `Distance: ${progress}%`;
+
+        // Update visual progress bar
+        const progBar = document.getElementById('progress-bar-fill');
+        if (progBar) {
+            progBar.style.width = progress + '%';
+        }
     }
 
     gameOver(win) {
         this.isGameOver = true;
         this.isWin = win;
-        const overlay = document.getElementById('overlay');
-        const title = document.getElementById('overlay-title');
-        const btn = document.getElementById('next-btn');
-        overlay.style.display = 'flex';
         if (win) {
-            title.innerText = "LEVEL " + this.currentLevel + " COMPLETE!";
-            btn.innerText = "NEXT LEVEL";
             this.playSound('finish_line');
+            this._showCelebration();
         } else {
+            const overlay = document.getElementById('overlay');
+            const title = document.getElementById('overlay-title');
+            const btn = document.getElementById('next-btn');
+            overlay.style.display = 'flex';
             title.innerText = "CRASHED!";
             btn.innerText = "TRY AGAIN";
             this.playSound('fall_off');
+
+            // Track death stat
+            this.saveData.deaths++;
 
             // Lose session-collected coins (they were already added to wallet at collection time).
             // Subtract the current run score from totalCoins to "drop" them; clamp at zero.
@@ -776,7 +843,7 @@ class Game {
             if (lost > 0) {
                 // visual origin for explosion: slightly above the ball
                 const origin = new THREE.Vector3().copy(this.ballMesh.position).add(new THREE.Vector3(0, 1, 0));
-                this.spawnCoinExplosion(origin, this.score || lost);
+                this.spawnCoinExplosion(origin, this.score || lost, 'loss');
 
                 // remove lost coins from wallet
                 this.saveData.totalCoins = Math.max(0, this.saveData.totalCoins - lost);
@@ -784,6 +851,56 @@ class Game {
                 this.updateWalletUI();
             }
         }
+    }
+
+    _showCelebration() {
+        const overlay = document.getElementById('celebration-overlay');
+
+        // Update best level stat
+        if (this.currentLevel > this.saveData.bestLevel) {
+            this.saveData.bestLevel = this.currentLevel;
+            this.save();
+        }
+
+        // Compute stats
+        const elapsed = this.levelStartTime ? (performance.now() - this.levelStartTime) / 1000 : 0;
+        const mins = Math.floor(elapsed / 60);
+        const secs = Math.floor(elapsed % 60);
+        // Use track-direction projection (matches HUD calculation)
+        const ballProj = this.ballBody.position.x * this.trackForward.x + this.ballBody.position.z * this.trackForward.z;
+        const progress = Math.min(100, Math.max(0, Math.floor((ballProj / Math.max(1, this.levelLength)) * 100)));
+
+        document.getElementById('celebration-level').textContent = this.currentLevel;
+        document.getElementById('celebration-coins').textContent = this.score;
+        document.getElementById('celebration-time').textContent = mins + ':' + String(secs).padStart(2, '0');
+        document.getElementById('celebration-distance').textContent = progress + '%';
+
+        overlay.classList.add('visible');
+
+        // Auto-advance after 2.5 seconds
+        this._celebrationTimeout = setTimeout(() => this._dismissCelebration(), 2500);
+
+        // Skip on click or keypress
+        const skip = () => this._dismissCelebration();
+        this._celebrationSkip = skip;
+        overlay.addEventListener('click', skip, { once: true });
+        window.addEventListener('keydown', skip, { once: true });
+    }
+
+    _dismissCelebration() {
+        if (this._celebrationTimeout) {
+            clearTimeout(this._celebrationTimeout);
+            this._celebrationTimeout = null;
+        }
+        const overlay = document.getElementById('celebration-overlay');
+        overlay.classList.remove('visible');
+        // Remove skip listeners
+        if (this._celebrationSkip) {
+            overlay.removeEventListener('click', this._celebrationSkip);
+            window.removeEventListener('keydown', this._celebrationSkip);
+            this._celebrationSkip = null;
+        }
+        this.reset();
     }
 
     reset() {
@@ -807,9 +924,14 @@ class Game {
 
         this.isGameOver = false;
         this.isWin = false;
+        this.isPaused = false;
+        document.getElementById('pause-overlay').classList.remove('visible');
         this.score = 0;
-        document.getElementById('coin-display').innerText = `Coins: 0`;
+        document.getElementById('coin-display').innerText = `Session: 0`;
         document.getElementById('overlay').style.display = 'none';
+        // Reset progress bar
+        const progBar = document.getElementById('progress-bar-fill');
+        if (progBar) progBar.style.width = '0%';
         this.coins.forEach(c => c.visible = true);
     }
 
@@ -830,32 +952,73 @@ class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    togglePause() {
+        if (this.isGameOver) return;
+        this.isPaused = !this.isPaused;
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (this.isPaused) {
+            pauseOverlay.classList.add('visible');
+        } else {
+            pauseOverlay.classList.remove('visible');
+        }
+    }
+
+    toggleMute() {
+        this.audioMuted = !this.audioMuted;
+        localStorage.setItem('gb_audioMuted', this.audioMuted);
+        this._syncMuteButton();
+        showToast(this.audioMuted ? 'Audio muted' : 'Audio on', this.audioMuted ? 'info' : 'success');
+    }
+
+    _syncMuteButton() {
+        const btn = document.getElementById('mute-btn');
+        if (!btn) return;
+        if (this.audioMuted) {
+            btn.textContent = '🔇';
+            btn.classList.add('muted');
+        } else {
+            btn.textContent = '🔊';
+            btn.classList.remove('muted');
+        }
+    }
+
+    setBuilderActive(active) {
+        document.body.classList.toggle('builder-active', active);
+    }
+
     animate() {
         requestAnimationFrame(() => this.animate());
         // Skip physics/rendering when the studio overlay is open
         if (typeof isStudioActive === 'function' && isStudioActive()) return;
+        // Skip physics/rendering when paused
+        if (this.isPaused) return;
         if (!this.isGameOver) {
             this.updatePhysics();
             this.checkGameState();
         }
 
-        // Side-scrolling camera: Jack runs on the left side of screen
+        // Chase camera: behind Jack looking forward along track
+        const behindVec = new THREE.Vector3().copy(this.trackForward).multiplyScalar(-8);
         const targetCamPos = new THREE.Vector3(
-            this.ballMesh.position.x + this.sideCamOffset.x,
-            this.ballMesh.position.y + this.sideCamOffset.y,
-            this.ballMesh.position.z + this.sideCamOffset.z
+            this.ballMesh.position.x + behindVec.x,
+            this.ballMesh.position.y + 5,
+            this.ballMesh.position.z + behindVec.z
         );
-        this.camera.position.lerp(targetCamPos, 0.15);
-        // Look at Jack from the side — slightly ahead to show track
+        this.camera.position.lerp(targetCamPos, 0.08);
+        // Look ahead along track
         this.camera.lookAt(
-            this.ballMesh.position.x,
-            this.ballMesh.position.y + 0.5,
-            this.ballMesh.position.z - 6
+            this.ballMesh.position.x + this.trackForward.x * 6,
+            this.ballMesh.position.y + 1,
+            this.ballMesh.position.z + this.trackForward.z * 6
         );
 
-        // Ensure animated GIF texture updates each frame (browser advances GIF frames on the Image element)
+        // Throttle GIF texture updates to ~20fps (browser decodes new GIF frames every ~50ms)
         if (this.gifTexture) {
-            this.gifTexture.needsUpdate = true;
+            const now = performance.now();
+            if (now - this._lastGifUpdate > 50) {
+                this.gifTexture.needsUpdate = true;
+                this._lastGifUpdate = now;
+            }
         }
 
         // Update any active coin-explosion confetti pieces
@@ -891,6 +1054,16 @@ class Game {
         this._lastWolfFrame = now;
         const wolfSpeed = Math.sqrt(this.ballBody.velocity.x**2 + this.ballBody.velocity.z**2);
         updateWolfAnimation(this, wolfDelta, wolfSpeed);
+
+        // Accumulate play time stat (save every ~5s to avoid excessive localStorage writes)
+        if (!this.isGameOver && !this.isPaused) {
+            this.saveData.totalPlayTime += wolfDelta;
+            this._statsSaveTimer = (this._statsSaveTimer || 0) + wolfDelta;
+            if (this._statsSaveTimer > 5) {
+                this._statsSaveTimer = 0;
+                this.save();
+            }
+        }
 
         // --- Dust particles under Jack's feet while running ---
         if (!this.isGameOver && this.isGrounded) {
@@ -936,6 +1109,41 @@ class Game {
 
         this.renderer.render(this.scene, this.camera);
     }
+}
+
+/**
+ * Render lifetime stats into the stats modal.
+ */
+function _renderStats(game) {
+    const el = document.getElementById('stats-content');
+    if (!el) return;
+    const d = game.saveData;
+    const playSecs = Math.floor(d.totalPlayTime || 0);
+    const hrs = Math.floor(playSecs / 3600);
+    const mins = Math.floor((playSecs % 3600) / 60);
+    const secs = playSecs % 60;
+    const timeStr = hrs > 0
+        ? hrs + 'h ' + mins + 'm'
+        : mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+
+    el.innerHTML = `
+        <div class="stats-row">
+            <span class="stats-label">🏆 Best Level</span>
+            <span class="stats-value">${d.bestLevel || 1}</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">🪙 Lifetime Coins Earned</span>
+            <span class="stats-value">${(d.lifetimeCoins || 0).toLocaleString()}</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">⏱ Total Play Time</span>
+            <span class="stats-value">${timeStr}</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">💀 Deaths</span>
+            <span class="stats-value">${(d.deaths || 0).toLocaleString()}</span>
+        </div>
+    `;
 }
 
 new Game();

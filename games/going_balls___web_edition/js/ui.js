@@ -1,5 +1,54 @@
 import * as THREE from 'three';
 
+// --- Focus trap helpers ---
+const FOCUSABLE = 'button, [tabindex="0"], input, select, textarea, a[href]';
+
+function trapFocus(modal) {
+    // Focus first element on open
+    const initial = modal.querySelectorAll(FOCUSABLE);
+    if (initial.length > 0) initial[0].focus();
+
+    modal._trapHandler = (e) => {
+        if (e.key === 'Escape') {
+            modal.querySelector('.close-modal').click();
+            return;
+        }
+        if (e.key === 'Tab') {
+            // Query dynamically so it stays correct after DOM changes (e.g., purchases re-render grid)
+            const els = modal.querySelectorAll(FOCUSABLE);
+            if (els.length === 0) return;
+            const first = els[0];
+            const last = els[els.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    };
+    modal.addEventListener('keydown', modal._trapHandler);
+}
+
+function untrapFocus(modal) {
+    if (modal._trapHandler) {
+        modal.removeEventListener('keydown', modal._trapHandler);
+        modal._trapHandler = null;
+    }
+}
+
+function makeCardFocusable(card) {
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
+        }
+    });
+}
+
 /**
  * setupUI
  */
@@ -11,24 +60,32 @@ export function setupUI(game) {
             const modal = document.getElementById(modalId);
             const close = modal.querySelector('.close-modal');
             btn.addEventListener('click', () => {
-                // If opening builder, render builder UI; else render grids
                 if (modalId === 'builder-modal') {
                     game.renderBuilder();
                 } else {
                     game.renderGrids();
                 }
                 modal.style.display = 'flex';
-                // Ensure pointer lock is released when menu opens
+                trapFocus(modal);
+                if (modalId === 'builder-modal') {
+                    document.body.classList.add('builder-active');
+                }
                 if (document.pointerLockElement) {
                     document.exitPointerLock();
                 }
             });
-            close.addEventListener('click', (e) => {
-                e.stopPropagation();
+            const closeModal = (e) => {
+                if (e) e.stopPropagation();
                 modal.style.display = 'none';
-                // clear preview objects when closing builder
-                if (modalId === 'builder-modal') game.clearBuilderPreview();
-            });
+                untrapFocus(modal);
+                if (modalId === 'builder-modal') {
+                    document.body.classList.remove('builder-active');
+                    game.clearBuilderPreview();
+                }
+                // Refocus the button that opened the modal
+                btn.focus();
+            };
+            close.addEventListener('click', closeModal);
         };
 
         setupModal('help-btn-open', 'help-modal');
@@ -36,6 +93,24 @@ export function setupUI(game) {
         setupModal('skins-btn-open', 'skins-modal');
         setupModal('skies-btn-open', 'skies-modal');
         setupModal('builder-btn-open', 'builder-modal');
+
+        // Stats modal
+        const statsBtn = document.getElementById('stats-btn-open');
+        const statsModal = document.getElementById('stats-modal');
+        if (statsBtn && statsModal) {
+            statsBtn.addEventListener('click', () => {
+                game.renderStats();
+                statsModal.style.display = 'flex';
+                trapFocus(statsModal);
+                if (document.pointerLockElement) document.exitPointerLock();
+            });
+            statsModal.querySelector('.close-modal').addEventListener('click', (e) => {
+                e.stopPropagation();
+                statsModal.style.display = 'none';
+                untrapFocus(statsModal);
+                statsBtn.focus();
+            });
+        }
 }
 
 /**
@@ -68,6 +143,7 @@ export function renderGrids(game) {
                     <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
                 `;
                 card.onclick = () => game.handlePurchase('ball', key, conf.price);
+                makeCardFocusable(card);
                 skinsGrid.appendChild(card);
             });
         }
@@ -98,6 +174,7 @@ export function renderGrids(game) {
                     <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
                 `;
                 card.onclick = () => game.handlePurchase('sky', key, conf.price);
+                makeCardFocusable(card);
                 skiesGrid.appendChild(card);
             });
         }
@@ -121,6 +198,7 @@ export function renderGrids(game) {
                     <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
                 `;
                 card.onclick = () => game.handlePurchase('ball', key, conf.price);
+                makeCardFocusable(card);
                 storeSkins.appendChild(card);
             });
         }
@@ -143,6 +221,7 @@ export function renderGrids(game) {
                     <div class="price">${isUnlocked ? (isSelected ? 'EQUIPPED' : 'OWNED') : conf.price + ' 🪙'}</div>
                 `;
                 card.onclick = () => game.handlePurchase('sky', key, conf.price);
+                makeCardFocusable(card);
                 storeSkies.appendChild(card);
             });
         }
@@ -183,7 +262,7 @@ export function handlePurchase(game, type, key, price) {
                     game.saveData.selectedBall = key;
                     game.ballMesh.material = game.getBallMaterial();
                 } else {
-                    // Not enough combined funds — simple feedback: flash the shop (re-render will show unchanged funds)
+                    showToast('Not enough coins!', 'error');
                 }
             }
         } else {
@@ -208,7 +287,7 @@ export function handlePurchase(game, type, key, price) {
                     game.saveData.unlockedSkies.push(key);
                     updateSky(key);
                 } else {
-                    // insufficient funds
+                    showToast('Not enough coins!', 'error');
                 }
             }
         }
@@ -222,5 +301,25 @@ export function handlePurchase(game, type, key, price) {
  */
 export function updateWalletUI(game) {
         document.getElementById('total-coins').innerText = `Wallet: ${game.saveData.totalCoins}`;
+}
+
+/**
+ * Show a brief toast notification (success or error).
+ */
+let _toastTimeout = null;
+export function showToast(msg, type = 'info') {
+    let el = document.getElementById('game-toast');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'game-toast';
+        document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.className = 'toast toast-' + type;
+    // Force reflow so the animation restarts
+    void el.offsetWidth;
+    el.classList.add('toast-show');
+    if (_toastTimeout) clearTimeout(_toastTimeout);
+    _toastTimeout = setTimeout(() => { el.classList.remove('toast-show'); }, 2000);
 }
 

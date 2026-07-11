@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 
+/** Track rotation angle in radians (40° counter-clockwise). */
+export const TRACK_ANGLE = 40 * Math.PI / 180;
+
 /**
  * clearLevel
  */
@@ -72,17 +75,17 @@ export function createLevel(game) {
             'jump_gap', 'double_jump_gap', 'triple_jump_gap', 'climb'
         ];
 
-        // Difficulty Chart logic
+        // Expanded difficulty tiers — 8+ types each for variety
         const difficultyTiers = [
-            { level: 1, color: 0x7cfc00, label: "EASY", types: ['straight', 'ramp', 'tunnel', 'speed_strip', 'jump_gap'] },
-            { level: 4, color: 0x32cd32, label: "NORMAL", types: ['straight', 'ramp', 'tunnel', 'zigzag', 'bumpy', 'jump_gap', 'climb'] },
-            { level: 7, color: 0x1e90ff, label: "CHALLENGING", types: ['zigzag', 'gap', 'archipelago', 'spinner', 'double_jump_gap', 'climb'] },
-            { level: 10, color: 0xffff00, label: "HARD", types: ['gap', 'spinner', 'pendulum', 'stairs', 'halfpipe', 'double_jump_gap'] },
-            { level: 13, color: 0xffa500, label: "TOUGH", types: ['pendulum', 'hammer_gauntlet', 'moving_rects', 'checkerboard', 'triple_jump_gap'] },
-            { level: 16, color: 0xff4500, label: "EXPERT", types: ['hammer_gauntlet', 'side_crusher', 'narrow', 'moving_rects', 'triple_jump_gap'] },
-            { level: 19, color: 0x8b0000, label: "EXTREME", types: ['narrow', 'side_crusher', 'checkerboard', 'archipelago', 'triple_jump_gap'] },
-            { level: 22, color: 0x4b0082, label: "INSANE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap'] },
-            { level: 25, color: 0x000000, label: "IMPOSSIBLE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap'] }
+            { level: 1, color: 0x7cfc00, label: "EASY", types: ['straight', 'ramp', 'tunnel', 'speed_strip', 'jump_gap', 'speed_boost', 'stairs', 'bumpy'] },
+            { level: 4, color: 0x32cd32, label: "NORMAL", types: ['straight', 'ramp', 'zigzag', 'bumpy', 'jump_gap', 'climb', 'thin_bridge', 'sloped_turn'] },
+            { level: 7, color: 0x1e90ff, label: "CHALLENGING", types: ['zigzag', 'gap', 'archipelago', 'spinner', 'double_jump_gap', 'climb', 'funnel', 'spiral_staircase'] },
+            { level: 10, color: 0xffff00, label: "HARD", types: ['gap', 'spinner', 'pendulum', 'stairs', 'double_jump_gap', 'hammer_gauntlet', 'moving_rects', 'halfpipe'] },
+            { level: 13, color: 0xffa500, label: "TOUGH", types: ['pendulum', 'hammer_gauntlet', 'moving_rects', 'checkerboard', 'triple_jump_gap', 'narrow', 'side_crusher', 'spinner'] },
+            { level: 16, color: 0xff4500, label: "EXPERT", types: ['hammer_gauntlet', 'side_crusher', 'narrow', 'moving_rects', 'triple_jump_gap', 'pendulum', 'checkerboard', 'gap'] },
+            { level: 19, color: 0x8b0000, label: "EXTREME", types: ['narrow', 'side_crusher', 'checkerboard', 'triple_jump_gap', 'hammer_gauntlet', 'pendulum', 'double_jump_gap', 'spinner'] },
+            { level: 22, color: 0x4b0082, label: "INSANE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap', 'pendulum', 'archipelago', 'moving_rects'] },
+            { level: 25, color: 0x000000, label: "IMPOSSIBLE", types: ['narrow', 'side_crusher', 'hammer_gauntlet', 'checkerboard', 'triple_jump_gap', 'pendulum', 'archipelago', 'moving_rects'] }
         ];
 
         let tier = difficultyTiers[0];
@@ -114,26 +117,43 @@ export function createLevel(game) {
         }
         document.body.style.backgroundColor = `#${tier.color.toString(16).padStart(6, '0')}`;
 
-        // Level scaling
-        const numSegments = 15 + Math.floor(game.currentLevel * 2.5);
-        const checkpointInterval = Math.floor(numSegments / 3);
-        const baseWidth = Math.max(0.7, 7 - (game.currentLevel * 0.3));
+        // Level scaling — longer levels with more checkpoints
+        const numSegments = 25 + Math.floor(game.currentLevel * 4);
+        const checkpointInterval = 8; // checkpoint every 8 segments
         const hazardSpeedMult = 1 + (game.currentLevel * 0.15);
+
+        // Smooth width: starts wide, tapers per segment
+        let currentWidth = Math.max(2.0, 7 - (game.currentLevel * 0.1));
+
+        // Alternating safe/hazard pattern — no consecutive hazard segments
+        const safeTypes = ['straight', 'ramp', 'tunnel', 'speed_strip', 'stairs', 'bumpy', 'halfpipe'];
+        let lastWasHazard = false;
         
         for (let i = 0; i < numSegments; i++) {
             // Add checkpoint every few segments
             if (i > 0 && i % checkpointInterval === 0) {
-                game.addCheckpoint(currentX, currentY, currentZ, baseWidth);
+                game.addCheckpoint(currentX, currentY, currentZ, currentWidth);
                 currentZ -= 4;
             }
 
-            const type = tier.types[Math.floor(Math.random() * tier.types.length)];
+            // Alternating safe/hazard: force safe segment after each hazard
+            let type;
+            if (lastWasHazard) {
+                type = safeTypes[Math.floor(Math.random() * safeTypes.length)];
+                lastWasHazard = false;
+            } else {
+                type = tier.types[Math.floor(Math.random() * tier.types.length)];
+                lastWasHazard = !safeTypes.includes(type);
+            }
+
+            // Taper width each segment
+            currentWidth = Math.max(0.7, currentWidth - 0.04);
             
             // Each case is a "sub-generator"
             switch(type) {
                 case 'straight': {
                     const len = 15 + Math.random() * 20;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth, len);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth, len);
                     game.addCoins(currentX, currentY + 1, currentZ, len, 3);
                     currentZ -= len;
                     break;
@@ -141,20 +161,20 @@ export function createLevel(game) {
                 case 'ramp': {
                     const rampH = 4 + Math.random() * 4;
                     const rampL = 15 + Math.random() * 10;
-                    game.addRamp(currentX, currentY, currentZ, baseWidth + 1, rampL, rampH);
+                    game.addRamp(currentX, currentY, currentZ, currentWidth + 1, rampL, rampH);
                     currentZ -= rampL;
                     currentY += rampH;
                     break;
                 }
                 case 'narrow': {
                     const len = 20;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth * 0.4, len);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth * 0.4, len);
                     game.addCoins(currentX, currentY + 1.2, currentZ, len, 4);
                     currentZ -= len;
                     break;
                 }
                 case 'pendulum': {
-                    game.addPlatform(currentX, currentY, currentZ - 10, baseWidth + 3, 20);
+                    game.addPlatform(currentX, currentY, currentZ - 10, currentWidth + 3, 20);
                     game.addPendulum(currentX, currentY, currentZ - 10, hazardSpeedMult);
                     currentZ -= 20;
                     break;
@@ -163,31 +183,31 @@ export function createLevel(game) {
                     const zzLen = 12;
                     const offset = 4;
                     const dir = Math.random() > 0.5 ? 1 : -1;
-                    game.addPlatform(currentX, currentY, currentZ - zzLen/2, baseWidth, zzLen);
+                    game.addPlatform(currentX, currentY, currentZ - zzLen/2, currentWidth, zzLen);
                     currentZ -= zzLen;
                     currentX += offset * dir;
-                    game.addPlatform(currentX, currentY, currentZ - zzLen/2, baseWidth, zzLen);
+                    game.addPlatform(currentX, currentY, currentZ - zzLen/2, currentWidth, zzLen);
                     currentZ -= zzLen;
                     break;
                 }
                 case 'gap': {
                     const gapSize = 5 + Math.random() * 3;
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     currentZ -= (10 + gapSize);
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     currentZ -= 10;
                     break;
                 }
                 case 'bumpy': {
                     for(let b=0; b<6; b++) {
                         const bH = Math.random() * 0.7;
-                        game.addPlatform(currentX, currentY + bH, currentZ - 3, baseWidth + 1.5, 6);
+                        game.addPlatform(currentX, currentY + bH, currentZ - 3, currentWidth + 1.5, 6);
                         currentZ -= 6;
                     }
                     break;
                 }
                 case 'spinner': {
-                    game.addPlatform(currentX, currentY, currentZ - 12, baseWidth + 4, 24);
+                    game.addPlatform(currentX, currentY, currentZ - 12, currentWidth + 4, 24);
                     game.addSpinner(currentX, currentY + 0.5, currentZ - 12, hazardSpeedMult);
                     currentZ -= 24;
                     break;
@@ -197,7 +217,7 @@ export function createLevel(game) {
                     const stepLen = 4;
                     const stepH = 0.8;
                     for(let s=0; s<stepCount; s++) {
-                        game.addPlatform(currentX, currentY, currentZ - stepLen/2, baseWidth + 2, stepLen);
+                        game.addPlatform(currentX, currentY, currentZ - stepLen/2, currentWidth + 2, stepLen);
                         currentZ -= stepLen;
                         currentY += stepH;
                     }
@@ -205,8 +225,8 @@ export function createLevel(game) {
                 }
                 case 'tunnel': {
                     const tLen = 30;
-                    game.addPlatform(currentX, currentY, currentZ - tLen/2, baseWidth + 2, tLen);
-                    game.addTunnelWalls(currentX, currentY, currentZ - tLen/2, baseWidth + 2, tLen);
+                    game.addPlatform(currentX, currentY, currentZ - tLen/2, currentWidth + 2, tLen);
+                    game.addTunnelWalls(currentX, currentY, currentZ - tLen/2, currentWidth + 2, tLen);
                     currentZ -= tLen;
                     break;
                 }
@@ -226,13 +246,13 @@ export function createLevel(game) {
                     const cSize = 3;
                     for(let r=0; r<rows; r++) {
                         const offX = (r % 2 === 0) ? -2 : 2;
-                        game.addPlatform(currentX + currentX + offX, currentY, currentZ - cSize/2, cSize, cSize);
+                        game.addPlatform(currentX + offX, currentY, currentZ - cSize/2, cSize, cSize);
                         currentZ -= cSize + 2;
                     }
                     break;
                 }
                 case 'hammer_gauntlet': {
-                    game.addPlatform(currentX, currentY, currentZ - 15, baseWidth + 4, 30);
+                    game.addPlatform(currentX, currentY, currentZ - 15, currentWidth + 4, 30);
                     for(let h=0; h<3; h++) {
                         game.addHammer(currentX, currentY, currentZ - 8 - h*8, hazardSpeedMult);
                     }
@@ -241,7 +261,7 @@ export function createLevel(game) {
                 }
                 case 'moving_rects': {
                     const len = 25;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 2, len);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth + 2, len);
                     for(let m=0; m<4; m++) {
                         game.addMover(currentX, currentY + 0.5, currentZ - 5 - m*5, 3, 1, 2, false, hazardSpeedMult);
                     }
@@ -250,24 +270,23 @@ export function createLevel(game) {
                 }
                 case 'speed_strip': {
                     const len = 20;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 1, len, 0xffff00);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth + 1, len, 0xffff00);
                     currentZ -= len;
                     break;
                 }
                 case 'halfpipe': {
                     const len = 20;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 6, len);
-                    // Sidewalls as ramps
-                    game.addRamp(currentX - (baseWidth/2 + 3), currentY + 1.5, currentZ, 1, len, 0); // Flat visual but physics box...
-                    // Better to just add static tilted boxes
-                    game.addWall(currentX - baseWidth/2 - 2, currentY + 1, currentZ - len/2, 1, len, Math.PI/4);
-                    game.addWall(currentX + baseWidth/2 + 2, currentY + 1, currentZ - len/2, 1, len, -Math.PI/4);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth + 6, len);
+                    // Sidewalls as ramps — static tilted walls
+                    game.addRamp(currentX - (currentWidth/2 + 3), currentY + 1.5, currentZ, 1, len, 0);
+                    game.addWall(currentX - currentWidth/2 - 2, currentY + 1, currentZ - len/2, 1, len, Math.PI/4);
+                    game.addWall(currentX + currentWidth/2 + 2, currentY + 1, currentZ - len/2, 1, len, -Math.PI/4);
                     currentZ -= len;
                     break;
                 }
                 case 'side_crusher': {
                     const len = 15;
-                    game.addPlatform(currentX, currentY, currentZ - len/2, baseWidth + 2, len);
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth + 2, len);
                     game.addMover(currentX - 3, currentY + 1, currentZ - len/2, 4, 2, len, true, hazardSpeedMult);
                     game.addMover(currentX + 3, currentY + 1, currentZ - len/2, 4, 2, len, true, hazardSpeedMult);
                     currentZ -= len;
@@ -275,31 +294,31 @@ export function createLevel(game) {
                 }
                 case 'jump_gap': {
                     const gap = 8; // Reduced gap for lower max speed
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     game.addCoins(currentX, currentY + 2, currentZ - 5 - gap/2, 1, 1);
                     currentZ -= (10 + gap);
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     currentZ -= 10;
                     break;
                 }
                 case 'double_jump_gap': {
-                    const gap = 16; // Reduced gap for lower max speed
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    const gap = 16;
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     game.addCoins(currentX, currentY + 2.5, currentZ - 5 - gap/3, 1, 1);
                     game.addCoins(currentX, currentY + 4, currentZ - 5 - (2*gap/3), 1, 1);
                     currentZ -= (10 + gap);
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     currentZ -= 10;
                     break;
                 }
                 case 'triple_jump_gap': {
-                    const gap = 24; // Reduced gap for lower max speed
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    const gap = 24;
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     game.addCoins(currentX, currentY + 2, currentZ - 5 - gap/4, 1, 1);
                     game.addCoins(currentX, currentY + 5, currentZ - 5 - (2*gap/4), 1, 1);
                     game.addCoins(currentX, currentY + 3, currentZ - 5 - (3*gap/4), 1, 1);
                     currentZ -= (10 + gap);
-                    game.addPlatform(currentX, currentY, currentZ - 5, baseWidth + 2, 10);
+                    game.addPlatform(currentX, currentY, currentZ - 5, currentWidth + 2, 10);
                     currentZ -= 10;
                     break;
                 }
@@ -308,15 +327,60 @@ export function createLevel(game) {
                     const stepH = 4.5;
                     const stepGap = 6;
                     for(let c=0; c<3; c++) {
-                        game.addPlatform(currentX, currentY, currentZ - stepL/2, baseWidth + 3, stepL);
+                        game.addPlatform(currentX, currentY, currentZ - stepL/2, currentWidth + 3, stepL);
                         game.addCoins(currentX, currentY + 2, currentZ - stepL - stepGap/2, 1, 1);
                         currentZ -= (stepL + stepGap);
                         currentY += stepH;
                     }
                     break;
                 }
+                // New segment: thin bridge (used in normal+ tiers)
+                case 'thin_bridge': {
+                    const len = 25;
+                    game.addPlatform(currentX, currentY, currentZ - len/2, 1.0, len);
+                    game.addCoins(currentX, currentY + 1.5, currentZ, len, 5);
+                    currentZ -= len;
+                    break;
+                }
+                // New segment: sloped turn (curved ramp)
+                case 'sloped_turn': {
+                    const len = 18;
+                    const h = 3;
+                    game.addRamp(currentX, currentY, currentZ, currentWidth + 2, len, h);
+                    currentZ -= len;
+                    currentY += h;
+                    currentX += (Math.random() > 0.5 ? 1 : -1) * 4;
+                    break;
+                }
+                // New segment: funnel (narrowing corridor)
+                case 'funnel': {
+                    for (let f = 0; f < 5; f++) {
+                        const fw = 5 - f * 0.9;
+                        game.addPlatform(currentX, currentY, currentZ - 3, fw, 6);
+                        currentZ -= 6;
+                    }
+                    break;
+                }
+                // New segment: spiral staircase
+                case 'spiral_staircase': {
+                    for (let s = 0; s < 8; s++) {
+                        const angle = s * Math.PI / 4;
+                        game.addPlatform(currentX + Math.cos(angle) * 4, currentY, currentZ - 2, 3, 4);
+                        currentZ -= 4;
+                        currentY += 1.2;
+                    }
+                    break;
+                }
+                // New segment: speed boost (faster movement)
+                case 'speed_boost': {
+                    const len = 20;
+                    game.addPlatform(currentX, currentY, currentZ - len/2, currentWidth + 2, len, 0xffff00);
+                    game.addCoins(currentX, currentY + 2, currentZ, len, 6);
+                    currentZ -= len;
+                    break;
+                }
                 default: { // fallback straight
-                    game.addPlatform(currentX, currentY, currentZ - 10, baseWidth, 20);
+                    game.addPlatform(currentX, currentY, currentZ - 10, currentWidth, 20);
                     currentZ -= 20;
                 }
             }
@@ -328,10 +392,13 @@ export function createLevel(game) {
         game.finishX = currentX;
         game.finishY = currentY;
         game.finishZ = currentZ - finishLen + 10;
-        game.placeFinishModel();
         currentZ -= finishLen;
 
         game.levelLength = Math.abs(currentZ);
+
+        // Rotate entire level 40° counter-clockwise around Y axis
+        rotateLevel(game, TRACK_ANGLE);
+        game.placeFinishModel();
 }
 
 /**
@@ -495,15 +562,17 @@ export function addWall(game, x, y, z, w, l, rotZ) {
  * addCoins
  */
 export function addCoins(game, x, y, startZ, length, count) {
-        // Create coins with varied sizes, shades and values between 1 and 50.
-        const step = length / (count + 1);
-        for(let i=1; i<=count; i++) {
-            // Determine a value distribution: mix of small (1-5), medium (6-20), large (21-50)
-            const r = Math.random();
+        // Scale coin count and value with level for better rewards
+        const levelBonus = Math.floor((game.currentLevel || 1) * 0.3);
+        const totalCount = count + levelBonus;
+        const step = length / (totalCount + 1);
+        for(let i=1; i<=totalCount; i++) {
+            // Higher levels boost chance of better coin values
+            const luck = Math.random() + ((game.currentLevel || 1) * 0.015);
             let value;
-            if (r < 0.5) value = 1 + Math.floor(Math.random() * 5);         // common small coins 1-5
-            else if (r < 0.85) value = 6 + Math.floor(Math.random() * 15);  // medium 6-20
-            else value = 21 + Math.floor(Math.random() * 30);               // rare big 21-50
+            if (luck < 0.5) value = 1 + Math.floor(Math.random() * 5);
+            else if (luck < 0.85) value = 6 + Math.floor(Math.random() * 15);
+            else value = 21 + Math.floor(Math.random() * 30);
 
             // Map value to visual size and shade
             const scale = THREE.MathUtils.lerp(0.6, 1.4, (value - 1) / 49); // size from 0.6..1.4
@@ -547,5 +616,99 @@ export function addCheckpoint(game, x, y, z, width) {
             pos: new CANNON.Vec3(x, y + 2, z - length/2),
             reached: false
         });
+}
+
+/**
+ * Rotate all level objects around the Y axis by the given angle.
+ * Rotates meshes, physics bodies, coins, pendulums, spinners,
+ * movers, checkpoints, and finish position.
+ */
+export function rotateLevel(game, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    function rX(ox, oz) { return ox * cos + oz * sin; }
+    function rZ(ox, oz) { return -ox * sin + oz * cos; }
+
+    // Level objects (platforms, ramps, walls, etc.)
+    game.levelObjects.forEach(obj => {
+        if (obj.body) {
+            const ox = obj.body.position.x, oz = obj.body.position.z;
+            obj.body.position.x = rX(ox, oz);
+            obj.body.position.z = rZ(ox, oz);
+            const q = new CANNON.Quaternion().setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
+            obj.body.quaternion = q.mult(obj.body.quaternion);
+        }
+        if (obj.mesh) {
+            const ox = obj.mesh.position.x, oz = obj.mesh.position.z;
+            obj.mesh.position.x = rX(ox, oz);
+            obj.mesh.position.z = rZ(ox, oz);
+            const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            obj.mesh.quaternion.premultiply(q);
+        }
+    });
+
+    // Coins
+    game.coins.forEach(coin => {
+        const ox = coin.position.x, oz = coin.position.z;
+        coin.position.x = rX(ox, oz);
+        coin.position.z = rZ(ox, oz);
+    });
+
+    // Pendulums
+    game.pendulums.forEach(p => {
+        const bx = p.body.position.x, bz = p.body.position.z;
+        p.body.position.x = rX(bx, bz);
+        p.body.position.z = rZ(bx, bz);
+        const mx = p.mesh.position.x, mz = p.mesh.position.z;
+        p.mesh.position.x = rX(mx, mz);
+        p.mesh.position.z = rZ(mx, mz);
+        const px = p.pivot.x, pz = p.pivot.z;
+        p.pivot.x = rX(px, pz);
+        p.pivot.z = rZ(px, pz);
+        // Rotate line geometry vertices
+        const pos = p.line.geometry.attributes.position.array;
+        const v0x = pos[0], v0z = pos[2];
+        pos[0] = rX(v0x, v0z); pos[2] = rZ(v0x, v0z);
+        const v1x = pos[3], v1z = pos[5];
+        pos[3] = rX(v1x, v1z); pos[5] = rZ(v1x, v1z);
+        p.line.geometry.attributes.position.needsUpdate = true;
+    });
+
+    // Spinners
+    game.spinners.forEach(s => {
+        const bx = s.body.position.x, bz = s.body.position.z;
+        s.body.position.x = rX(bx, bz);
+        s.body.position.z = rZ(bx, bz);
+        const mx = s.mesh.position.x, mz = s.mesh.position.z;
+        s.mesh.position.x = rX(mx, mz);
+        s.mesh.position.z = rZ(mx, mz);
+    });
+
+    // Movers (hammers, slides, side crushers)
+    game.movers.forEach(m => {
+        const bx = m.body.position.x, bz = m.body.position.z;
+        m.body.position.x = rX(bx, bz);
+        m.body.position.z = rZ(bx, bz);
+        const mx = m.mesh.position.x, mz = m.mesh.position.z;
+        m.mesh.position.x = rX(mx, mz);
+        m.mesh.position.z = rZ(mx, mz);
+        const bpx = m.basePos.x, bpz = m.basePos.z;
+        m.basePos.x = rX(bpx, bpz);
+        m.basePos.z = rZ(bpx, bpz);
+    });
+
+    // Checkpoints
+    game.checkpoints.forEach(cp => {
+        const cx = cp.pos.x, cz = cp.pos.z;
+        cp.pos.x = rX(cx, cz);
+        cp.pos.z = rZ(cx, cz);
+    });
+
+    // Finish position
+    if (game.finishX !== undefined) {
+        const fx = game.finishX, fz = game.finishZ;
+        game.finishX = rX(fx, fz);
+        game.finishZ = rZ(fx, fz);
+    }
 }
 

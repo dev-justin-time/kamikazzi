@@ -7,6 +7,21 @@ const WOLF_Y_OFFSET = 0;
 const WOLF_RUN_INDEX = 8;   // wolf__default__run
 const WOLF_IDLE_INDEX = 28; // wolf__default__idle
 const CROSSFADE_SPEED = 4;  // crossfade blend speed
+let _splashDismissed = false;
+let _splashFill = null;
+let _splashStatus = null;
+
+/**
+ * Dismiss the loading splash screen with a fade-out transition.
+ */
+function dismissSplash() {
+  if (_splashDismissed) return;
+  _splashDismissed = true;
+  const el = document.getElementById('loading-screen');
+  if (!el) return;
+  el.classList.add('fade-out');
+  setTimeout(() => { el.classList.add('hidden'); }, 600);
+}
 
 /**
  * Load the Jack the Wolf GLTF model as the ball mesh child.
@@ -56,6 +71,9 @@ export function initWolfModel(game) {
         game._fallbackMesh = null;
       }
 
+      // Dismiss the splash screen now that the model is ready
+      dismissSplash();
+
       if (gltf.animations && gltf.animations.length > Math.max(WOLF_RUN_INDEX, WOLF_IDLE_INDEX)) {
         game._wolfMixer = new THREE.AnimationMixer(wolfModel);
 
@@ -75,11 +93,18 @@ export function initWolfModel(game) {
     (progress) => {
       if (progress.total > 0) {
         const pct = Math.round((progress.loaded / progress.total) * 100);
+        // Cache DOM elements once, then update directly
+        if (!_splashFill) _splashFill = document.getElementById('loading-bar-fill');
+        if (!_splashStatus) _splashStatus = document.getElementById('loading-status');
+        if (_splashFill) _splashFill.style.width = pct + '%';
+        if (_splashStatus) _splashStatus.textContent = 'Loading Jack… ' + pct + '%';
         if (pct % 25 === 0) console.log('[Jack] Loading:', pct + '%', '(' + Math.round(progress.loaded / 1048576) + 'MB/' + Math.round(progress.total / 1048576) + 'MB)');
       }
     },
     (err) => {
       console.error('[Jack] Model FAILED to load:', WOLF_MODEL_PATH, err);
+      // Dismiss splash even on error so the game is still playable
+      dismissSplash();
     }
   );
 }

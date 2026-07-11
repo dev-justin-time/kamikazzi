@@ -7,43 +7,74 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Loading Splash Screen -->
+    <div id="loading-screen">
+        <div id="loading-content">
+            <h1 id="loading-title">GOING BALLS</h1>
+            <p id="loading-sub">Web Edition</p>
+            <div id="loading-bar-track">
+                <div id="loading-bar-fill"></div>
+            </div>
+            <p id="loading-status">Loading assets…</p>
+        </div>
+    </div>
+
     <div id="ui">
         <div class="stats">
             <div id="coin-display">Session: 0</div>
-            <div id="distance-display">Progress: 0%</div>
+            <div id="distance-display">Distance: 0%</div>
         </div>
     </div>
 
     <div id="total-coins">Wallet: 0</div>
 
     <div id="top-menu" class="visible">
-        <button class="menu-btn" id="help-btn-open">?</button>
-        <button class="menu-btn" id="store-btn-open">STORE</button>
-        <button class="menu-btn" id="skins-btn-open">SKINS</button>
-        <button class="menu-btn" id="skies-btn-open">SKIES</button>
-        <button class="menu-btn" id="builder-btn-open">BUILDER</button>
+        <button class="menu-btn" id="mute-btn" aria-label="Toggle audio mute">🔊</button>
+        <button class="menu-btn" id="help-btn-open" aria-label="How to play">?</button>
+        <button class="menu-btn" id="store-btn-open" aria-label="Open store">STORE</button>
+        <button class="menu-btn" id="skins-btn-open" aria-label="Ball skins shop">SKINS</button>
+        <button class="menu-btn" id="skies-btn-open" aria-label="Sky themes shop">SKIES</button>
+        <button class="menu-btn" id="builder-btn-open" aria-label="Open track builder">BUILDER</button>
+        <button class="menu-btn" id="stats-btn-open" aria-label="View lifetime stats">STATS</button>
     </div>
 
     <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <button class="close-modal">&times;</button>
+    <div id="help-modal" class="modal" role="dialog" aria-label="How to play">
+        <button class="close-modal" aria-label="Close help">&times;</button>
         <h2>HOW TO PLAY</h2>
-        <p>• <b>Desktop:</b> Use WASD or Arrows to roll. Press T to toggle mouse lock.</p>
-        <p>• <b>Mobile:</b> Use the joystick to roll, Jump button to hop.</p>
-        <p>• <b>Goal:</b> Reach the finish line without falling off!</p>
-        <p>• <b>Shop:</b> Collect coins to unlock new ball styles and sky themes.</p>
+        <h3 style="color:#ffcc00; margin:12px 0 6px;">🎮 Controls</h3>
+        <p>• <b>Desktop:</b> WASD or Arrow keys to move. Space to jump (up to 3× in air). Escape to pause.</p>
+        <p>• <b>Mouse:</b> Click anywhere to lock the cursor, then drag to steer. Press T to exit lock.</p>
+        <p>• <b>Mobile:</b> Use the on-screen joystick to steer. Tap the JUMP button to hop.</p>
+        <h3 style="color:#ffcc00; margin:12px 0 6px;">🎯 Goal</h3>
+        <p>• Roll Jack the Wolf through each level and reach the green finish line without falling off!</p>
+        <p>• Collect gold coins along the way to buy skins and sky themes.</p>
+        <h3 style="color:#ffcc00; margin:12px 0 6px;">🛒 Shop</h3>
+        <p>• Open STORE, SKINS, or SKIES to spend coins on ball skins and sky themes.</p>
+        <p>• Purchases use your Wallet first, then Session coins. Coins are lost on death!</p>
+        <h3 style="color:#ffcc00; margin:12px 0 6px;">💡 Tips</h3>
+        <p>• Jump right before ramps to catch extra air.</p>
+        <p>• Pendulums and spinners follow patterns — watch their timing before charging through.</p>
+        <p>• Use the BUILDER to create and share your own custom tracks!</p>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal" role="dialog" aria-label="Lifetime stats" style="max-width:420px;">
+        <button class="close-modal" aria-label="Close stats">&times;</button>
+        <h2>📊 YOUR STATS</h2>
+        <div id="stats-content"></div>
     </div>
 
     <!-- Skins Modal -->
-    <div id="skins-modal" class="modal">
-        <button class="close-modal">&times;</button>
+    <div id="skins-modal" class="modal" role="dialog" aria-label="Ball skins shop">
+        <button class="close-modal" aria-label="Close skins shop">&times;</button>
         <h2>BALL SHOP</h2>
         <div class="grid" id="skins-grid"></div>
     </div>
 
     <!-- Store Modal (combined shop view) -->
-    <div id="store-modal" class="modal">
-        <button class="close-modal">&times;</button>
+    <div id="store-modal" class="modal" role="dialog" aria-label="Store">
+        <button class="close-modal" aria-label="Close store">&times;</button>
         <h2>STORE</h2>
         <p style="text-align:center; color:#ddd; margin:0;">Buy ball skins and sky themes with your Wallet / Session coins</p>
         <h3 style="color:#ffcc00; margin-top:12px; text-align:center;">BALLS</h3>
@@ -53,15 +84,15 @@
     </div>
 
     <!-- Skies Modal -->
-    <div id="skies-modal" class="modal">
-        <button class="close-modal">&times;</button>
+    <div id="skies-modal" class="modal" role="dialog" aria-label="Sky themes shop">
+        <button class="close-modal" aria-label="Close sky shop">&times;</button>
         <h2>SKY SHOP</h2>
         <div class="grid" id="skies-grid"></div>
     </div>
 
     <!-- Builder Modal -->
-    <div id="builder-modal" class="modal" style="max-width:600px;">
-        <button class="close-modal">&times;</button>
+    <div id="builder-modal" class="modal" style="max-width:600px;" role="dialog" aria-label="Track builder">
+        <button class="close-modal" aria-label="Close builder">&times;</button>
         <h2>TRACK BUILDER</h2>
         <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
             <button class="menu-btn" id="builder-add-platform">Add Platform</button>
@@ -111,9 +142,46 @@
         </div>
     </div>
 
+    <!-- Level Complete Celebration Screen -->
+    <div id="celebration-overlay">
+        <div id="celebration-content">
+            <div id="celebration-stars">
+                <span class="star s1">★</span>
+                <span class="star s2">★</span>
+                <span class="star s3">★</span>
+                <span class="star s4">✦</span>
+                <span class="star s5">✦</span>
+            </div>
+            <h1 id="celebration-title">LEVEL <span id="celebration-level">1</span> COMPLETE!</h1>
+            <div id="celebration-stats">
+                <div class="celebration-stat">
+                    <span class="celebration-stat-value" id="celebration-coins">0</span>
+                    <span class="celebration-stat-label">Coins Collected</span>
+                </div>
+                <div class="celebration-stat">
+                    <span class="celebration-stat-value" id="celebration-time">0:00</span>
+                    <span class="celebration-stat-label">Time</span>
+                </div>
+                <div class="celebration-stat">
+                    <span class="celebration-stat-value" id="celebration-distance">0%</span>
+                    <span class="celebration-stat-label">Distance</span>
+                </div>
+            </div>
+            <p id="celebration-hint">Click or press any key to continue…</p>
+        </div>
+    </div>
+
     <div id="overlay">
         <h1 id="overlay-title">LEVEL COMPLETE!</h1>
         <button id="next-btn">CONTINUE</button>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div id="pause-overlay">
+        <div id="pause-content">
+            <h1 id="pause-title">PAUSED</h1>
+            <button id="pause-resume-btn">RESUME</button>
+        </div>
     </div>
 
     <!-- Studio Gear Icon (viewport corner) -->
@@ -200,8 +268,13 @@
         </div>
     </div>
 
-    <div id="joystick-container"></div>
-    <div id="jump-btn">JUMP</div>
+    <!-- Visual progress bar -->
+    <div id="progress-bar-container">
+        <div id="progress-bar-fill"></div>
+    </div>
+
+    <div id="joystick-container" role="application" aria-label="Joystick control"></div>
+    <div id="jump-btn" role="button" aria-label="Jump">JUMP</div>
 
     <!-- Drag bars and panels -->
     <div id="top-bar" class="drag-bar" aria-hidden="false">

@@ -42,6 +42,7 @@ export function initAudio(game) {
  * playSound
  */
 export function playSound(game, name) {
+        if (game.audioMuted) return;
         const audio = new Audio(`assets/audio/${name}.mp3`);
         audio.volume = 0.4;
         audio.play().catch(() => {});
@@ -54,6 +55,7 @@ export function playSound(game, name) {
  * @param {number} speed - current movement speed (0-18 range)
  */
 export function playFootstep(game, speed) {
+        if (game.audioMuted) return;
         if (!game._footstepCtx || speed < 0.5) return;
         const now = game._footstepCtx.currentTime;
         if (now < game._footstepNextTime) return;
@@ -95,29 +97,45 @@ export function playFootstep(game, speed) {
 
 /**
  * spawnCoinExplosion
+ * @param {object} game - game instance
+ * @param {THREE.Vector3} origin - world position to spawn from
+ * @param {number} totalValue - total value represented
+ * @param {string} type - 'gain' (default) or 'loss' (red/silver implosion)
  */
-export function spawnCoinExplosion(game, origin, totalValue) {
+export function spawnCoinExplosion(game, origin, totalValue, type = 'gain') {
+        const isLoss = type === 'loss';
         // limit number of pieces so it's performant
-        const pieces = Math.min(30, Math.max(5, Math.floor(totalValue / 2)));
+        const pieces = Math.min(30, Math.max(8, Math.floor(totalValue / 2)));
         if (!game._coinExplosions) game._coinExplosions = [];
         for (let i = 0; i < pieces; i++) {
             const frac = i / Math.max(1, pieces);
             const size = THREE.MathUtils.lerp(0.25, 0.9, Math.random());
             const value = Math.max(1, Math.round(totalValue / pieces));
-            const geo = new THREE.CylinderGeometry(0.4 * size, 0.4 * size, 0.08 * size, 16);
-            const colorHex = (value > 20) ? 0xffd700 : (value > 6 ? 0xc0c0c0 : 0xcd7f32);
-            const mat = new THREE.MeshPhongMaterial({ color: colorHex, shininess: 80 });
-            const coin = new THREE.Mesh(geo, mat);
+            // Loss coins: red/silver palette instead of gold/bronze
+            let colorHex;
+            if (isLoss) {
+                colorHex = (value > 20) ? 0xcc3333 : (value > 6 ? 0xaa4444 : 0x888888);
+            } else {
+                colorHex = (value > 20) ? 0xffd700 : (value > 6 ? 0xc0c0c0 : 0xcd7f32);
+            }
+            const mat = new THREE.MeshPhongMaterial({ color: colorHex, shininess: isLoss ? 20 : 80 });
+            const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.4 * size, 0.4 * size, 0.08 * size, 16), mat);
             coin.rotation.x = Math.PI / 2;
             coin.position.copy(origin);
             game.scene.add(coin);
 
-            // random velocity and angular velocity for playful scatter
-            const vel = new THREE.Vector3(
-                (Math.random() - 0.5) * 8,
-                Math.random() * 8 + 4,
-                (Math.random() - 0.5) * 8
-            );
+            // Loss coins: burst outward then fall (implosion feel), lower initial velocity
+            const vel = isLoss
+                ? new THREE.Vector3(
+                    (Math.random() - 0.5) * 5,
+                    Math.random() * 3 + 2,
+                    (Math.random() - 0.5) * 5
+                )
+                : new THREE.Vector3(
+                    (Math.random() - 0.5) * 8,
+                    Math.random() * 8 + 4,
+                    (Math.random() - 0.5) * 8
+                );
             const angular = new THREE.Vector3(
                 (Math.random() - 0.5) * 10,
                 (Math.random() - 0.5) * 10,
@@ -129,7 +147,7 @@ export function spawnCoinExplosion(game, origin, totalValue) {
                 velocity: vel,
                 angular: angular,
                 life: 0,
-                maxLife: 3 + Math.random() * 2
+                maxLife: isLoss ? (2 + Math.random() * 2) : (3 + Math.random() * 2)
             });
         }
 }
