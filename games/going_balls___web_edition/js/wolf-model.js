@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
 const WOLF_MODEL_PATH = 'assets/model/jack_the_wolf/scene.gltf';
-const WOLF_SCALE = 0.8;
+const WOLF_SCALE = 0.85;
 const WOLF_LEFT_OFFSET = 0;
-const WOLF_Y_OFFSET = 0;
-const WOLF_RUN_INDEX = 8;   // wolf__default__run
+const WOLF_Y_OFFSET = 0.5;
+const WOLF_Z_OFFSET = 0.5;  // behind the ball — Jack chases it like soccer
 const WOLF_IDLE_INDEX = 28; // wolf__default__idle
 const CROSSFADE_SPEED = 4;  // crossfade blend speed
 let _splashDismissed = false;
@@ -33,11 +33,11 @@ export function initWolfModel(game) {
   game.ballMesh.castShadow = true;
   game.scene.add(game.ballMesh);
 
-  // Fallback sphere shown until wolf model loads
+  // Soccer ball: visible sphere in front of Jack (doubles as fallback until model loads)
   const sphereGeo = new THREE.SphereGeometry(0.5, 32, 32);
-  game._fallbackMesh = new THREE.Mesh(sphereGeo, game.getBallMaterial());
-  game._fallbackMesh.castShadow = true;
-  game.ballMesh.add(game._fallbackMesh);
+  game._soccerBall = new THREE.Mesh(sphereGeo, game.getBallMaterial());
+  game._soccerBall.castShadow = true;
+  game.ballMesh.add(game._soccerBall);
 
   // Animation state: 0 = idle, 1 = running
   game._wolfAnimTarget = 0;
@@ -55,7 +55,7 @@ export function initWolfModel(game) {
     (gltf) => {
       const wolfModel = gltf.scene;
       wolfModel.scale.setScalar(WOLF_SCALE);
-      wolfModel.position.set(WOLF_LEFT_OFFSET, WOLF_Y_OFFSET, 0);
+      wolfModel.position.set(WOLF_LEFT_OFFSET, WOLF_Y_OFFSET, WOLF_Z_OFFSET);
       // PI offset cancels parent ballMesh.rotation.y (PI when moving forward -Z)
       // so the wolf faces -Z (forward on track) instead of backwards
       wolfModel.rotation.y = Math.PI;
@@ -64,12 +64,8 @@ export function initWolfModel(game) {
       game._wolfModel = wolfModel;
       console.log('[Jack] Model loaded — scale:', WOLF_SCALE, 'position:', wolfModel.position.toString());
 
-      if (game._fallbackMesh) {
-        game.ballMesh.remove(game._fallbackMesh);
-        game._fallbackMesh.geometry.dispose();
-        game._fallbackMesh.material.dispose();
-        game._fallbackMesh = null;
-      }
+      // Keep the sphere as the soccer ball — Jack chases it from behind
+      // (no longer remove the fallback)
 
       // Dismiss the splash screen now that the model is ready
       dismissSplash();
@@ -145,17 +141,17 @@ export function updateWolfAnimation(game, delta, speed) {
 }
 
 /**
- * Clean up the wolf model on reset.
+ * Reset wolf animation state on respawn.
+ * Keeps the model, mixer, and actions intact — just fades back to idle.
  */
 export function resetWolfModel(game) {
-  if (game._wolfMixer) { game._wolfMixer.stopAllAction(); game._wolfMixer = null; }
-  if (game._wolfModel && game.ballMesh) {
-    game.ballMesh.remove(game._wolfModel);
-    game._wolfModel = null;
-  }
-  game._wolfIdleAction = null;
-  game._wolfRunAction = null;
+  // Reset animation blend to idle (no removal needed — model persists across deaths)
   game._wolfAnimTarget = 0;
   game._wolfAnimCurrent = 0;
+  if (game._wolfIdleAction) game._wolfIdleAction.setEffectiveWeight(1);
+  if (game._wolfRunAction) {
+    game._wolfRunAction.setEffectiveWeight(0);
+    game._wolfRunAction.timeScale = 1;
+  }
   game._lastWolfFrame = null;
 }

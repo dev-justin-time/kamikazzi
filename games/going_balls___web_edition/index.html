@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,11 +20,29 @@
         </div>
     </div>
 
+    <!-- Start Screen -->
+    <div id="start-screen" role="dialog" aria-modal="true" aria-label="Game start screen">
+        <div id="start-content">
+            <h1 id="start-title">GOING BALLS</h1>
+            <p id="start-sub">Web Edition</p>
+            <p id="start-tagline">Roll Jack the Wolf through wild obstacle courses!</p>
+            <button id="start-btn" aria-label="Start game">START FLYING 🚀</button>
+            <p id="start-hint">Click or press Enter to start</p>
+        </div>
+    </div>
+
     <div id="ui">
         <div class="stats">
             <div id="coin-display">Session: 0</div>
             <div id="distance-display">Distance: 0%</div>
         </div>
+    </div>
+
+    <!-- Pre-death coin risk warning -->
+    <div id="coin-risk-warning" aria-live="polite">
+        <span class="risk-icon">⚠️</span>
+        <span class="risk-text">COINS AT RISK!</span>
+        <span class="risk-sub">Don't fall!</span>
     </div>
 
     <div id="total-coins">Wallet: 0</div>
@@ -36,26 +55,119 @@
         <button class="menu-btn" id="skies-btn-open" aria-label="Sky themes shop">SKIES</button>
         <button class="menu-btn" id="builder-btn-open" aria-label="Open track builder">BUILDER</button>
         <button class="menu-btn" id="stats-btn-open" aria-label="View lifetime stats">STATS</button>
+        <button class="menu-btn" id="settings-btn-open" aria-label="Open settings">⚙</button>
     </div>
 
-    <!-- Help Modal -->
+    <!-- Tutorial Modal (first launch) -->
+    <div id="tutorial-overlay" role="dialog" aria-label="Welcome tutorial">
+        <div id="tutorial-card">
+            <h2 id="tutorial-title">🐺 WELCOME TO GOING BALLS!</h2>
+            <p id="tutorial-subtitle">Roll Jack the Wolf through a wild obstacle course!</p>
+
+            <div class="tutorial-section">
+                <h3>🎮 Controls</h3>
+                <div class="tutorial-key-row">
+                    <span class="tutorial-key">W A S D</span> Move &amp; steer Jack
+                </div>
+                <div class="tutorial-key-row">
+                    <span class="tutorial-key">SPACE</span> Jump (up to 3× in the air!)
+                </div>
+                <div class="tutorial-key-row">
+                    <span class="tutorial-key">ESC</span> Pause game
+                </div>
+                <div class="tutorial-key-row">
+                    <span class="tutorial-key">🖱 Drag</span> Orbit camera around Jack
+                </div>
+                <div class="tutorial-key-row">
+                    <span class="tutorial-key">🖱 Scroll</span> Zoom camera in/out
+                </div>
+            </div>
+
+            <div class="tutorial-section">
+                <h3>🎯 Goal</h3>
+                <p>Run down the track and reach the <span style="color:#00ff00;">green finish line</span> without falling off! Collect <span style="color:#ffd700;">gold coins</span> along the way to buy cool stuff.</p>
+            </div>
+
+            <div class="tutorial-section">
+                <h3>🛒 Shop &amp; Skins</h3>
+                <p>Spend your coins in the <b>STORE</b>, <b>SKINS</b> or <b>SKIES</b> menus (top-right). Unlock 20+ ball skins and 4 sky themes!<br>⚠️ Coins are <b>lost on death</b> — spend them before you crash!</p>
+            </div>
+
+            <div class="tutorial-section">
+                <h3>💡 Tips</h3>
+                <p>• Pendulums and spinners have patterns — watch their timing!</p>
+                <p>• Jump right before ramps for extra airtime.</p>
+                <p>• Checkpoints save your progress if you fall.</p>
+                <p>• Use the <b>BUILDER</b> to create your own custom tracks!</p>
+            </div>
+
+            <button id="tutorial-dismiss-btn">GOT IT — LET'S ROLL! 🏀</button>
+        </div>
+    </div>
+
+    <!-- Help Modal (canonical controls reference) -->
     <div id="help-modal" class="modal" role="dialog" aria-label="How to play">
         <button class="close-modal" aria-label="Close help">&times;</button>
         <h2>HOW TO PLAY</h2>
+
         <h3 style="color:#ffcc00; margin:12px 0 6px;">🎮 Controls</h3>
-        <p>• <b>Desktop:</b> WASD or Arrow keys to move. Space to jump (up to 3× in air). Escape to pause.</p>
-        <p>• <b>Mouse:</b> Click anywhere to lock the cursor, then drag to steer. Press T to exit lock.</p>
-        <p>• <b>Mobile:</b> Use the on-screen joystick to steer. Tap the JUMP button to hop.</p>
+        <table class="help-controls-table">
+            <tr><td class="help-key">W / ↑</td><td>Move forward</td></tr>
+            <tr><td class="help-key">S / ↓</td><td>Slow down / reverse</td></tr>
+            <tr><td class="help-key">A / ←</td><td>Steer left</td></tr>
+            <tr><td class="help-key">D / →</td><td>Steer right</td></tr>
+            <tr><td class="help-key">Space</td><td>Jump (up to 3× in the air)</td></tr>
+            <tr><td class="help-key">Escape</td><td>Pause / Close modals</td></tr>
+            <tr><td class="help-key">R</td><td>Reset camera view</td></tr>
+            <tr><td class="help-key">🖱 Drag</td><td>Orbit camera around Jack</td></tr>
+            <tr><td class="help-key">🖱 Scroll</td><td>Zoom camera in/out</td></tr>
+            <tr><td class="help-key">🖱 Click</td><td>Toggle top menu</td></tr>
+            <tr><td class="help-key">🖱 Middle-click</td><td>Reset camera view</td></tr>
+        </table>
+        <p style="font-size:12px; color:#889;">Mobile: on-screen joystick to steer + JUMP button. Touch controls hidden on desktop.</p>
+
         <h3 style="color:#ffcc00; margin:12px 0 6px;">🎯 Goal</h3>
-        <p>• Roll Jack the Wolf through each level and reach the green finish line without falling off!</p>
-        <p>• Collect gold coins along the way to buy skins and sky themes.</p>
-        <h3 style="color:#ffcc00; margin:12px 0 6px;">🛒 Shop</h3>
-        <p>• Open STORE, SKINS, or SKIES to spend coins on ball skins and sky themes.</p>
-        <p>• Purchases use your Wallet first, then Session coins. Coins are lost on death!</p>
+        <p>• Reach the <span style="color:#00ff00;">green finish line</span> without falling off the track.</p>
+        <p>• Collect <span style="color:#ffd700;">gold coins</span> along the way — they fund skins and sky themes!</p>
+
+        <h3 style="color:#ffcc00; margin:12px 0 6px;">🛒 Shop & Coins</h3>
+        <p>• Open <b>STORE</b>, <b>SKINS</b>, or <b>SKIES</b> in the top-right menu to spend coins.</p>
+        <p>• ⚠️ Coins are <b>lost on death</b> — spend them before you crash!</p>
+
         <h3 style="color:#ffcc00; margin:12px 0 6px;">💡 Tips</h3>
-        <p>• Jump right before ramps to catch extra air.</p>
-        <p>• Pendulums and spinners follow patterns — watch their timing before charging through.</p>
-        <p>• Use the BUILDER to create and share your own custom tracks!</p>
+        <p>• Pendulums and spinners follow patterns — watch their timing.</p>
+        <p>• Jump right before ramps for extra airtime.</p>
+        <p>• Checkpoints save your progress if you fall.</p>
+        <p>• Use the <b>BUILDER</b> to create your own custom tracks!</p>
+        <p>• Open <b>SETTINGS</b> ⚙ to adjust camera sensitivity and shadow quality.</p>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" role="dialog" aria-label="Settings" style="max-width:420px;">
+        <button class="close-modal" aria-label="Close settings">&times;</button>
+        <h2>⚙ SETTINGS</h2>
+        <div class="settings-group">
+            <label class="settings-label" for="setting-sensitivity">Camera Sensitivity</label>
+            <div class="settings-slider-row">
+                <input type="range" id="setting-sensitivity" min="0.5" max="3" step="0.1" value="1">
+                <span class="settings-value" id="sensitivity-value">1.0×</span>
+            </div>
+        </div>
+        <div class="settings-group">
+            <label class="settings-label" for="setting-invert-y">Invert Vertical Orbit</label>
+            <label class="settings-toggle">
+                <input type="checkbox" id="setting-invert-y">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="settings-group">
+            <label class="settings-label" for="setting-shadows">Shadow Quality</label>
+            <label class="settings-toggle">
+                <input type="checkbox" id="setting-shadows" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">High</span>
+            </label>
+        </div>
     </div>
 
     <!-- Stats Modal -->

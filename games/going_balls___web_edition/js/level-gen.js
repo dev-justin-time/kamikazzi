@@ -100,6 +100,8 @@ export function createLevel(game) {
                 selectedSky.tex,
                 (tex) => {
                     tex.mapping = THREE.EquirectangularReflectionMapping;
+                    tex.wrapS = THREE.RepeatWrapping;
+                    tex.offset.x = 0.45;
                     game.scene.background = tex;
                 },
                 undefined,
@@ -386,15 +388,44 @@ export function createLevel(game) {
             }
         }
 
-        // Finish line
+        // Finish line with pillar markers for color-blind accessibility
         const finishLen = 30;
-        game.addPlatform(currentX, currentY, currentZ - finishLen/2, 8, finishLen, 0x00ff00);
+        const finishZ = currentZ - finishLen/2;
+        game.addPlatform(currentX, currentY, finishZ, 8, finishLen, 0x00ff00);
+        // Tall pillars flanking the finish — unmistakable silhouette regardless of color
+        const pillarGeo = new THREE.CylinderGeometry(0.3, 0.4, 5, 8);
+        const pillarLeft = new THREE.Mesh(pillarGeo, game.sharedMaterials.finish);
+        pillarLeft.position.set(currentX - 5, currentY + 2.5, finishZ + 5);
+        game.scene.add(pillarLeft);
+        game.levelObjects.push({ mesh: pillarLeft });
+        const pillarRight = new THREE.Mesh(pillarGeo, game.sharedMaterials.finish);
+        pillarRight.position.set(currentX + 5, currentY + 2.5, finishZ + 5);
+        game.scene.add(pillarRight);
+        game.levelObjects.push({ mesh: pillarRight });
         game.finishX = currentX;
         game.finishY = currentY;
         game.finishZ = currentZ - finishLen + 10;
         currentZ -= finishLen;
 
         game.levelLength = Math.abs(currentZ);
+
+        // Center-line visual guide: faint dashed line down the middle of the track
+        const clPoints = [
+            new THREE.Vector3(0, 0.15, 0),
+            new THREE.Vector3(0, 0.15, currentZ)
+        ];
+        const clGeo = new THREE.BufferGeometry().setFromPoints(clPoints);
+        const clMat = new THREE.LineDashedMaterial({
+            color: 0xffffff,
+            dashSize: 2,
+            gapSize: 1.5,
+            transparent: true,
+            opacity: 0.2
+        });
+        const centerLine = new THREE.Line(clGeo, clMat);
+        centerLine.computeLineDistances();
+        game.scene.add(centerLine);
+        game.levelObjects.push({ mesh: centerLine });
 
         // Rotate entire level 40° counter-clockwise around Y axis
         rotateLevel(game, TRACK_ANGLE);
@@ -492,6 +523,13 @@ export function addPendulum(game, x, y, z, speedMult = 1) {
         const line = new THREE.Line(lineGeo, game.sharedMaterials.rope);
         game.scene.add(line);
 
+        // Warning sphere at pivot point — recognizable hazard silhouette regardless of color
+        const warnGeo = new THREE.SphereGeometry(0.5, 8, 8);
+        const warnMesh = new THREE.Mesh(warnGeo, game.sharedMaterials.hazard);
+        warnMesh.position.set(x, pivotHeight, z);
+        game.scene.add(warnMesh);
+        game.levelObjects.push({ mesh: warnMesh });
+
         game.pendulums.push({ body, mesh, line, pivot: new THREE.Vector3(x, pivotHeight, z), startTime: Math.random() * Math.PI * 2, speedMult });
 }
 
@@ -508,6 +546,13 @@ export function addSpinner(game, x, y, z, speedMult = 1) {
         const geo = new THREE.BoxGeometry(w, h, d);
         const mesh = new THREE.Mesh(geo, game.sharedMaterials.spinner);
         game.scene.add(mesh);
+        // Floating diamond marker above spinner — recognizable regardless of color
+        const warnGeo = new THREE.ConeGeometry(0.5, 1.2, 4);
+        const warnMesh = new THREE.Mesh(warnGeo, game.sharedMaterials.hazard);
+        warnMesh.position.set(x, y + 2, z);
+        warnMesh.rotation.y = Math.PI / 4;
+        game.scene.add(warnMesh);
+        game.levelObjects.push({ mesh: warnMesh });
         game.spinners.push({ body, mesh, speed: (2.5 + Math.random() * 1.5) * speedMult });
 }
 
@@ -523,6 +568,13 @@ export function addHammer(game, x, y, z, speedMult = 1) {
         const geo = new THREE.BoxGeometry(hSize*2, hSize*2, 1);
         const mesh = new THREE.Mesh(geo, game.sharedMaterials.pendulum);
         game.scene.add(mesh);
+        // Warning cone floating above hammer — unmistakable hazard silhouette regardless of color
+        const warnGeo = new THREE.ConeGeometry(0.6, 1.5, 4);
+        const warnMesh = new THREE.Mesh(warnGeo, game.sharedMaterials.hazard);
+        warnMesh.position.set(x, y + 4.5, z);
+        warnMesh.rotation.y = Math.PI / 4;
+        game.scene.add(warnMesh);
+        game.levelObjects.push({ mesh: warnMesh });
         game.movers.push({ body, mesh, type: 'hammer', basePos: new THREE.Vector3(x, y + 2, z), offset: Math.random() * Math.PI, speedMult });
 }
 
@@ -537,6 +589,18 @@ export function addMover(game, x, y, z, w, h, d, sideways = false, speedMult = 1
         const geo = new THREE.BoxGeometry(w, h, d);
         const mesh = new THREE.Mesh(geo, game.sharedMaterials.spinner);
         game.scene.add(mesh);
+        // Small diamond markers at movement range ends — recognizable hazard silhouette
+        const warnGeo = new THREE.OctahedronGeometry(0.4, 0);
+        const warnMat = game.sharedMaterials.hazard;
+        const range = sideways ? 2 : 3;
+        const warn1 = new THREE.Mesh(warnGeo, warnMat);
+        warn1.position.set(x + range, y + h/2 + 1.5, z);
+        game.scene.add(warn1);
+        game.levelObjects.push({ mesh: warn1 });
+        const warn2 = new THREE.Mesh(warnGeo, warnMat);
+        warn2.position.set(x - range, y + h/2 + 1.5, z);
+        game.scene.add(warn2);
+        game.levelObjects.push({ mesh: warn2 });
         game.movers.push({ body, mesh, type: sideways ? 'side' : 'slide', basePos: new THREE.Vector3(x, y, z), offset: Math.random() * Math.PI, speedMult });
 }
 
@@ -581,8 +645,9 @@ export function addCoins(game, x, y, startZ, length, count) {
             else if (value <= 20) colorHex = 0xc0c0c0; // silver-ish for medium
             else colorHex = 0xffd700;                  // gold for large/high value
 
-            // Create geometry with a bit of thickness
-            const coinGeo = new THREE.CylinderGeometry(0.4 * scale, 0.4 * scale, 0.12 * scale, 24);
+            // Geometry varies by value tier: fewer sides = lower value (shape distinguishable beyond hue)
+            const geoDetail = value <= 5 ? 6 : (value <= 20 ? 8 : 24);
+            const coinGeo = new THREE.CylinderGeometry(0.4 * scale, 0.4 * scale, 0.12 * scale, geoDetail);
             const mat = new THREE.MeshPhongMaterial({ color: colorHex, shininess: 80, emissive: 0x000000 });
             const coin = new THREE.Mesh(coinGeo, mat);
             coin.rotation.x = Math.PI / 2;
@@ -607,13 +672,26 @@ export function addCoins(game, x, y, startZ, length, count) {
  */
 export function addCheckpoint(game, x, y, z, width) {
         const length = 6;
+        const cpZ = z - length/2;
         // Physical platform (Cyan color for checkpoint)
-        game.addPlatform(x, y, z - length/2, width + 2, length, 0x00ffff);
+        game.addPlatform(x, y, cpZ, width + 2, length, 0x00ffff);
+        
+        // Beacon poles on either side — unmistakable checkpoint silhouette regardless of color
+        const poleGeo = new THREE.CylinderGeometry(0.15, 0.15, 3, 8);
+        const poleMat = new THREE.MeshPhongMaterial({ color: 0xffff00, emissive: 0x444400 });
+        const leftPole = new THREE.Mesh(poleGeo, poleMat);
+        leftPole.position.set(x - width/2 - 1, y + 1.5, cpZ);
+        game.scene.add(leftPole);
+        game.levelObjects.push({ mesh: leftPole });
+        const rightPole = new THREE.Mesh(poleGeo, poleMat);
+        rightPole.position.set(x + width/2 + 1, y + 1.5, cpZ);
+        game.scene.add(rightPole);
+        game.levelObjects.push({ mesh: rightPole });
         
         // Logic object
         game.checkpoints.push({
             z: z,
-            pos: new CANNON.Vec3(x, y + 2, z - length/2),
+            pos: new CANNON.Vec3(x, y + 2, cpZ),
             reached: false
         });
 }

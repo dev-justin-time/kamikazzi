@@ -10,8 +10,10 @@
 | App | Directory | Description |
 |-----|-----------|-------------|
 | 🎮 **KAMIKAZZI 3D — Aero Command** | `kamakazii_3d_aero_comand/` | Endless flyer — dodge buildings, collect powerups, chase the high score across 8 sectors. AI skins, replays, leaderboard, multiplayer. |
-| 🛠️ **KAMAKAZII STUDIO 3D** | `kamakazii_studio3D/` | Browser-based 3D model editor and game content studio. Sculpting, texture painting, animation, node editor, physics, marketplace. |
 | ⚡ **VECTOR STRIKE: OMNI** | `kamasazii_vecter_omega3d/` | Air-to-air combat — Rust + Rhai + Go + Puter.js. 6DOF physics, wireframe rendering, multiplayer, Puter AI briefings, cloud replays. |
+| 🐺 **Going Balls — Web Edition** | `games/going_balls___web_edition/` | Physics-driven rolling platformer with Jack the Wolf. Procedural levels, shop, track builder, item studio, and accessibility features. |
+| 🧱 **BLOCKBUSTER** | `games/BLOCKBUSTER/` | Minecraft-inspired voxel sandbox with block breaking/placing, crafting, furnace smelting, inventory, zombie AI, chat, and multiplayer. |
+| 🛠️ **KAMAKAZII STUDIO 3D** | `kamakazii_studio3D/` | Browser-based 3D model editor and game content studio. Sculpting, texture painting, animation, node editor, physics, marketplace. |
 
 Each app is a **standalone repository** deployable independently on the Puter App Store. See each app's README for details.
 
@@ -130,9 +132,11 @@ All apps are designed for the [Puter App Store](https://developer.puter.com/app-
 
 | App | Entry URL | Category |
 |-----|-----------|----------|
-| Game | `/kamakazii_3d_aero_comand/index.html` | Games / Action |
+| KAMIKAZZI 3D | `/kamakazii_3d_aero_comand/index.html` | Games / Action |
+| VECTOR STRIKE: OMNI | `/kamasazii_vecter_omega3d/index.html` | Games / Action / Air Combat |
+| Going Balls | `/games/going_balls___web_edition/index.html` | Games / Arcade |
+| BLOCKBUSTER | `/games/BLOCKBUSTER/index.html` | Games / Sandbox |
 | Studio | `/kamakazii_studio3D/ui/index.html` | Developer Tools / 3D Modeling |
-| VECTOR STRIKE | `/kamasazii_vecter_omega3d/index.html` | Games / Action / Air Combat |
 
 See [`kamakazii_3d_aero_comand/docs/puter-deployment-audit.md`](./kamakazii_3d_aero_comand/docs/puter-deployment-audit.md) for the full audit checklist.
 

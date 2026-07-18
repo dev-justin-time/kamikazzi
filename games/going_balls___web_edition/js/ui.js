@@ -111,6 +111,58 @@ export function setupUI(game) {
                 statsBtn.focus();
             });
         }
+
+        // Settings modal
+        const settingsBtn = document.getElementById('settings-btn-open');
+        const settingsModal = document.getElementById('settings-modal');
+        if (settingsBtn && settingsModal) {
+            const sensSlider = document.getElementById('setting-sensitivity');
+            const sensValue = document.getElementById('sensitivity-value');
+            const invertCheck = document.getElementById('setting-invert-y');
+            const shadowCheck = document.getElementById('setting-shadows');
+            const toggleLabel = settingsModal.querySelector('.toggle-label');
+
+            settingsBtn.addEventListener('click', () => {
+                sensSlider.value = game.saveData.cameraSensitivity || 1;
+                sensValue.textContent = parseFloat(sensSlider.value).toFixed(1) + '\u00D7';
+                invertCheck.checked = game.saveData.invertY || false;
+                shadowCheck.checked = (game.saveData.shadowQuality || 'high') === 'high';
+                if (toggleLabel) toggleLabel.textContent = shadowCheck.checked ? 'High' : 'Low';
+                settingsModal.style.display = 'flex';
+                trapFocus(settingsModal);
+                if (document.pointerLockElement) document.exitPointerLock();
+            });
+
+            sensSlider.addEventListener('input', () => {
+                const val = parseFloat(sensSlider.value);
+                game.saveData.cameraSensitivity = val;
+                sensValue.textContent = val.toFixed(1) + '\u00D7';
+                game.save();
+            });
+            invertCheck.addEventListener('change', () => {
+                game.saveData.invertY = invertCheck.checked;
+                game.save();
+            });
+            shadowCheck.addEventListener('change', () => {
+                game.saveData.shadowQuality = shadowCheck.checked ? 'high' : 'low';
+                if (toggleLabel) toggleLabel.textContent = shadowCheck.checked ? 'High' : 'Low';
+                game.save();
+                const res = shadowCheck.checked ? 2048 : 1024;
+                if (game._sunLight && game._sunLight.shadow) {
+                    game._sunLight.shadow.mapSize.width = res;
+                    game._sunLight.shadow.mapSize.height = res;
+                    if (game._sunLight.shadow.map) { game._sunLight.shadow.map.dispose(); game._sunLight.shadow.map = null; }
+                    game.renderer.shadowMap.needsUpdate = true;
+                }
+            });
+
+            settingsModal.querySelector('.close-modal').addEventListener('click', (e) => {
+                e.stopPropagation();
+                settingsModal.style.display = 'none';
+                untrapFocus(settingsModal);
+                settingsBtn.focus();
+            });
+        }
 }
 
 /**
@@ -254,13 +306,13 @@ export function handlePurchase(game, type, key, price) {
         if (type === 'ball') {
             if (game.saveData.unlockedBalls.includes(key)) {
                 game.saveData.selectedBall = key;
-                game.ballMesh.material = game.getBallMaterial();
+                game._soccerBall.material = game.getBallMaterial();
             } else {
                 // Allow buying with Wallet OR Session coins combined
                 if (tryPay(price)) {
                     game.saveData.unlockedBalls.push(key);
                     game.saveData.selectedBall = key;
-                    game.ballMesh.material = game.getBallMaterial();
+                    game._soccerBall.material = game.getBallMaterial();
                 } else {
                     showToast('Not enough coins!', 'error');
                 }

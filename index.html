@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KAMIKAZZI — Game Suite</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='28' font-size='28'%3E⚡%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='28' font-size='28'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;700&family=Stick+No+Bills:wght@400;600;800&display=swap" rel="stylesheet" crossorigin="anonymous">
@@ -35,10 +34,10 @@
   }
   .container {
     position: relative; z-index: 1;
-    max-width: 960px; margin: 0 auto; padding: 40px 20px 60px;
+    max-width: 1100px; margin: 0 auto; padding: 40px 20px 60px;
   }
   header {
-    text-align: center; margin-bottom: 48px;
+    text-align: center; margin-bottom: 36px;
     border-bottom: 1px solid rgba(0,221,221,0.15);
     padding-bottom: 32px;
   }
@@ -66,35 +65,68 @@
     background: rgba(0,221,221,0.06);
     margin-top: 8px;
   }
+  .section-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #ff9352;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,147,82,0.15);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block; width: 6px; height: 6px;
+    background: #ff9352; border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255,147,82,0.6);
+  }
   .app-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 24px;
-    margin-bottom: 48px;
+    margin-bottom: 24px;
   }
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
     .app-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (min-width: 1024px) {
+    .app-grid { grid-template-columns: repeat(3, 1fr); }
   }
   .app-card {
     position: relative;
     border: 1px solid rgba(152,203,255,0.18);
     background: rgba(152,203,255,0.03);
     border-radius: 6px;
-    padding: 28px 24px;
+    padding: 24px 22px;
     transition: all 0.25s ease;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     flex-direction: column;
+    outline: none;
   }
-  .app-card:hover {
-    border-color: rgba(0,221,221,0.4);
+  .app-card:hover,
+  .app-card:focus-visible {
+    border-color: rgba(0,221,221,0.5);
     background: rgba(0,221,221,0.06);
     transform: translateY(-3px);
     box-shadow: 0 8px 32px rgba(0,221,221,0.08);
   }
+  .app-card:focus-visible {
+    outline: 2px solid #00dddd;
+    outline-offset: 3px;
+  }
   .app-card:active {
     transform: translateY(-1px);
+  }
+  .app-card.booting {
+    pointer-events: none;
+    border-color: rgba(0,221,221,0.6);
+    background: rgba(0,221,221,0.1);
+    animation: bootPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes bootPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(0,221,221,0); }
+    50% { box-shadow: 0 0 24px rgba(0,221,221,0.15); }
   }
   .app-card .bracket-tl,
   .app-card .bracket-tr,
@@ -110,18 +142,29 @@
   .app-card:hover .bracket-tl,
   .app-card:hover .bracket-tr,
   .app-card:hover .bracket-bl,
-  .app-card:hover .bracket-br {
-    border-color: rgba(0,221,221,0.6);
+  .app-card:hover .bracket-br,
+  .app-card:focus-visible .bracket-tl,
+  .app-card:focus-visible .bracket-tr,
+  .app-card:focus-visible .bracket-bl,
+  .app-card:focus-visible .bracket-br {
+    border-color: rgba(0,221,221,0.7);
   }
   .app-icon {
-    font-size: 36px; margin-bottom: 16px; line-height: 1;
+    font-size: 36px; margin-bottom: 14px; line-height: 1;
   }
   .app-name {
-    font-size: 18px; font-weight: 800; letter-spacing: 0.08em;
-    text-transform: uppercase; margin-bottom: 4px;
-    color: #98cbff;
+    font-size: 16px; font-weight: 800; letter-spacing: 0.07em;
+    text-transform: uppercase; margin-bottom: 6px;
+    color: #98cbff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   }
-  .app-card:hover .app-name { color: #00ffff; }
+  .app-card:hover .app-name,
+  .app-card:focus-visible .app-name { color: #00ffff; }
+  .recent-badge {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 999px;
+    background: rgba(0,221,221,0.15); color: #00dddd;
+    border: 1px solid rgba(0,221,221,0.3);
+  }
   .app-tag {
     display: inline-block;
     font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
@@ -132,9 +175,11 @@
   .tag-game { background: rgba(0,221,221,0.12); color: #00dddd; border: 1px solid rgba(0,221,221,0.2); }
   .tag-studio { background: rgba(201,153,255,0.12); color: #c999ff; border: 1px solid rgba(201,153,255,0.2); }
   .tag-combat { background: rgba(255,100,100,0.12); color: #ff6464; border: 1px solid rgba(255,100,100,0.2); }
+  .tag-arcade { background: rgba(0,255,170,0.12); color: #00ffaa; border: 1px solid rgba(0,255,170,0.2); }
+  .tag-action { background: rgba(255,200,0,0.12); color: #ffc800; border: 1px solid rgba(255,200,0,0.2); }
   .app-desc {
     font-size: 12px; line-height: 1.6;
-    color: rgba(152,203,255,0.7); flex: 1; margin-bottom: 16px;
+    color: rgba(152,203,255,0.7); flex: 1; margin-bottom: 14px;
   }
   .features {
     display: flex; flex-wrap: wrap; gap: 4px;
@@ -168,10 +213,20 @@
     transition: all 0.15s ease; border-radius: 3px;
     text-decoration: none;
   }
-  .app-card:hover .launch-btn {
+  .app-card:hover .launch-btn,
+  .app-card:focus-visible .launch-btn {
     background: rgba(0,221,221,0.18);
     border-color: #00dddd;
     color: #fff;
+  }
+  .launch-btn.status-loading {
+    background: rgba(0,221,221,0.25);
+    color: #fff;
+  }
+  .launch-btn.status-error {
+    background: rgba(255,80,80,0.15);
+    border-color: rgba(255,80,80,0.5);
+    color: #ff6464;
   }
   footer {
     text-align: center;
@@ -207,6 +262,48 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
   }
+  #launcher-help-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .launcher-help-panel {
+    border: 1px solid rgba(0,221,221,0.35);
+    background: #0a0f1a;
+    border-radius: 6px; padding: 24px;
+    max-width: 360px; width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .launcher-help-panel h3 {
+    font-size: 14px; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #00dddd; margin-bottom: 16px;
+  }
+  .launcher-help-panel ul {
+    list-style: none; margin-bottom: 20px;
+  }
+  .launcher-help-panel li {
+    font-size: 12px; color: rgba(152,203,255,0.8);
+    margin-bottom: 10px; line-height: 1.5;
+  }
+  .launcher-help-panel kbd {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(152,203,255,0.1);
+    border: 1px solid rgba(152,203,255,0.2);
+    border-radius: 3px; padding: 2px 6px;
+    font-size: 11px; color: #00ffff;
+  }
+  #launcher-help-close {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer;
+    border: 1px solid rgba(0,221,221,0.35);
+    background: rgba(0,221,221,0.08); color: #00dddd;
+    padding: 8px 18px; border-radius: 3px;
+  }
+  #launcher-help-close:hover {
+    background: rgba(0,221,221,0.18); color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -218,7 +315,8 @@
     <span class="suite-badge">Game Suite</span>
   </header>
 
-  <div class="app-grid">
+  <h2 class="section-title">Games</h2>
+  <div class="app-grid games-grid">
     <a class="app-card" href="kamakazii_3d_aero_comand/index.html" aria-label="Launch KAMIKAZZI 3D — Aero Command endless flyer game">
       <span class="bracket-tl"></span><span class="bracket-tr"></span>
       <span class="bracket-bl"></span><span class="bracket-br"></span>
@@ -228,46 +326,17 @@
       <p class="app-desc">
         Endless flyer — strap into a rattletrap warbird and scream through the neon valley.
         Dodge buildings, collect powerups, and chase the high score across 8 sectors.
-        AI skins, replays, leaderboard, multiplayer lobby, and a full 3D terrain editor.
       </p>
       <div class="features">
         <span class="feature-pill">3D WebGL</span>
         <span class="feature-pill">8 Sectors</span>
         <span class="feature-pill">6 Powerups</span>
         <span class="feature-pill">Multiplayer</span>
-        <span class="feature-pill">AI Skins</span>
-        <span class="feature-pill">Leaderboard</span>
       </div>
       <div class="app-meta">
         <span>📁 kamakazii_3d_aero_comand/</span>
       </div>
       <span class="launch-btn">Launch Game</span>
-    </a>
-
-    <a class="app-card" href="kamakazii_studio3D/ui/index.html" aria-label="Open KAMAKAZII Studio 3D — model editor and game content studio">
-      <span class="bracket-tl"></span><span class="bracket-tr"></span>
-      <span class="bracket-bl"></span><span class="bracket-br"></span>
-      <div class="app-icon">🛠️</div>
-      <div class="app-name">KAMAKAZII STUDIO 3D</div>
-      <span class="app-tag tag-studio">Model Editor &amp; Game Studio</span>
-      <p class="app-desc">
-        Browser-based 3D model editor and game content studio. Sculpting, texture
-        painting (layer &amp; vertex), animation timeline, node-based material editor,
-        rigid-body physics, SPH fluid simulation, marketplace, and AI-assisted mesh
-        generation — all in the browser.
-      </p>
-      <div class="features">
-        <span class="feature-pill">Sculpting</span>
-        <span class="feature-pill">Texture Paint</span>
-        <span class="feature-pill">Animation</span>
-        <span class="feature-pill">Node Editor</span>
-        <span class="feature-pill">Physics</span>
-        <span class="feature-pill">Marketplace</span>
-      </div>
-      <div class="app-meta">
-        <span>📁 kamakazii_studio3D/</span>
-      </div>
-      <span class="launch-btn">Open Studio</span>
     </a>
 
     <a class="app-card" href="kamasazii_vecter_omega3d/index.html" aria-label="Launch VECTOR STRIKE OMNI — air-to-air combat simulator">
@@ -279,31 +348,98 @@
       <p class="app-desc">
         Air-to-air combat sim with Rust-wasm 6DOF physics, Rhai-scripted AI pilots,
         wireframe rendering, and a Go authoritative multiplayer server.
-        Dual-player loadout system, Puter KV cloud sync, AI briefings, and replays.
       </p>
       <div class="features">
         <span class="feature-pill">Rust Physics</span>
         <span class="feature-pill">Rhai AI</span>
         <span class="feature-pill">Wireframe</span>
         <span class="feature-pill">Multiplayer</span>
-        <span class="feature-pill">Cloud Sync</span>
-        <span class="feature-pill">Loadouts</span>
       </div>
       <div class="app-meta">
         <span>📁 kamasazii_vecter_omega3d/</span>
       </div>
       <span class="launch-btn">Launch Combat</span>
     </a>
+
+    <a class="app-card" href="games/going_balls___web_edition/index.html" aria-label="Launch Going Balls — Web Edition physics platformer">
+      <span class="bracket-tl"></span><span class="bracket-tr"></span>
+      <span class="bracket-bl"></span><span class="bracket-br"></span>
+      <div class="app-icon">🐺</div>
+      <div class="app-name">Going Balls</div>
+      <span class="app-tag tag-arcade">Web Edition</span>
+      <p class="app-desc">
+        Physics-driven rolling platformer. Guide Jack the Wolf through procedural
+        obstacle courses with orbit camera, shop, track builder, and item studio.
+      </p>
+      <div class="features">
+        <span class="feature-pill">Three.js</span>
+        <span class="feature-pill">Cannon-es</span>
+        <span class="feature-pill">26 Segments</span>
+        <span class="feature-pill">Shop</span>
+      </div>
+      <div class="app-meta">
+        <span>📁 games/going_balls___web_edition/</span>
+      </div>
+      <span class="launch-btn">Launch Game</span>
+    </a>
+
+    <a class="app-card" href="games/BLOCKBUSTER/index.html" aria-label="Launch BLOCKBUSTER voxel world">
+      <span class="bracket-tl"></span><span class="bracket-tr"></span>
+      <span class="bracket-bl"></span><span class="bracket-br"></span>
+      <div class="app-icon">🧱</div>
+      <div class="app-name">BLOCKBUSTER</div>
+      <span class="app-tag tag-action">Voxel World</span>
+      <p class="app-desc">
+        Minecraft-inspired voxel sandbox with block breaking/placing, crafting,
+        furnace smelting, inventory, zombie AI, chat, and multiplayer.
+      </p>
+      <div class="features">
+        <span class="feature-pill">Voxel</span>
+        <span class="feature-pill">Crafting</span>
+        <span class="feature-pill">Multiplayer</span>
+        <span class="feature-pill">Zombie AI</span>
+      </div>
+      <div class="app-meta">
+        <span>📁 games/BLOCKBUSTER/</span>
+      </div>
+      <span class="launch-btn">Launch Game</span>
+    </a>
+  </div>
+
+  <h2 class="section-title">Studio & Tools</h2>
+  <div class="app-grid tools-grid">
+    <a class="app-card" href="kamakazii_studio3D/ui/index.html" aria-label="Open KAMIKAZII Studio 3D — model editor and game content studio">
+      <span class="bracket-tl"></span><span class="bracket-tr"></span>
+      <span class="bracket-bl"></span><span class="bracket-br"></span>
+      <div class="app-icon">🛠️</div>
+      <div class="app-name">KAMIKAZII STUDIO 3D</div>
+      <span class="app-tag tag-studio">Model Editor &amp; Game Studio</span>
+      <p class="app-desc">
+        Browser-based 3D model editor and game content studio. Sculpting, texture
+        painting, animation timeline, node-based material editor, physics, and marketplace.
+      </p>
+      <div class="features">
+        <span class="feature-pill">Sculpting</span>
+        <span class="feature-pill">Texture Paint</span>
+        <span class="feature-pill">Animation</span>
+        <span class="feature-pill">Node Editor</span>
+      </div>
+      <div class="app-meta">
+        <span>📁 kamakazii_studio3D/</span>
+      </div>
+      <span class="launch-btn">Open Studio</span>
+    </a>
   </div>
 
   <footer>
     <p>
-      <span class="status-dot online"></span>3 apps · built with Three.js · Rust · Go · Puter.js
+      <span class="status-dot online"></span>5 apps · built with Three.js · Rust · Go · Puter.js
     </p>
   </footer>
 </div>
 
-<div class="build-info">v1.0.0-suite</div>
+<div class="build-info">v1.1.0-suite</div>
 
+<script src="launcher.js"></script>
 </body>
 </html>

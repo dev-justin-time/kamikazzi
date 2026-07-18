@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import nipplejs from 'nipplejs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 // --- Extracted modules ---
 import { initAudio, playSound, spawnCoinExplosion, playFootstep } from "./js/audio.js";
@@ -48,6 +49,9 @@ class Game {
         this.trackForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this._trackQuat);
         this.initControls();
 
+        // Cache coin risk warning element to avoid DOM queries every frame
+        this._coinRiskWarning = document.getElementById('coin-risk-warning');
+
         // Pause resume button
         const pauseResumeBtn = document.getElementById('pause-resume-btn');
         if (pauseResumeBtn) {
@@ -71,6 +75,40 @@ class Game {
         this.setupUI();
         this.updateWalletUI();
         this.initStudio();
+
+        // Show start screen and pause until the player clicks START FLYING
+        this.isPaused = true;
+        this._startScreen = document.getElementById('start-screen');
+        this._wireStartButton();
+
+        // Show tutorial on first launch (after start screen is dismissed)
+        if (!this.saveData.tutorialSeen) {
+            this._pendingTutorial = true;
+        }
+    }
+
+    _wireStartButton() {
+        const startBtn = document.getElementById('start-btn');
+        if (!startBtn) return;
+
+        const startGame = () => {
+            if (this._startScreen) {
+                this._startScreen.classList.add('hidden');
+                setTimeout(() => { if (this._startScreen) this._startScreen.style.display = 'none'; }, 500);
+            }
+            this.isPaused = false;
+
+            // Show first-launch tutorial now that the player has started the game
+            if (this._pendingTutorial) {
+                this._pendingTutorial = false;
+                this.showTutorial();
+            }
+        };
+
+        startBtn.addEventListener('click', startGame);
+
+        // Focus the start button so keyboard users can press Enter/Space immediately
+        startBtn.focus();
     }
 
     loadData() {
@@ -83,16 +121,24 @@ class Game {
             bestLevel: 1,
             deaths: 0,
             totalPlayTime: 0,
-            lifetimeCoins: 0
+            lifetimeCoins: 0,
+            cameraSensitivity: 1.0,
+            invertY: false,
+            shadowQuality: 'high',
+            tutorialSeen: false
         };
         // Load saved data, fall back to default
         this.saveData = JSON.parse(localStorage.getItem('goingBallsData_v1')) || defaultData;
 
-        // Backfill stats fields if missing from older saved data
+        // Backfill fields if missing from older saved data
         if (this.saveData.bestLevel == null) this.saveData.bestLevel = 1;
         if (this.saveData.deaths == null) this.saveData.deaths = 0;
         if (this.saveData.totalPlayTime == null) this.saveData.totalPlayTime = 0;
         if (this.saveData.lifetimeCoins == null) this.saveData.lifetimeCoins = 0;
+        if (this.saveData.cameraSensitivity == null) this.saveData.cameraSensitivity = 1.0;
+        if (this.saveData.invertY == null) this.saveData.invertY = false;
+        if (this.saveData.shadowQuality == null) this.saveData.shadowQuality = 'high';
+        if (this.saveData.tutorialSeen == null) this.saveData.tutorialSeen = true;
 
         // Ensure core defaults are always available and selection is valid
         if (!Array.isArray(this.saveData.unlockedBalls)) this.saveData.unlockedBalls = ['rainbow'];
@@ -203,6 +249,9 @@ class Game {
                 sky.tex,
                 (texture) => {
                     texture.mapping = THREE.EquirectangularReflectionMapping;
+                    // Offset to rotate sky ~162° so the visible seam sits behind the camera
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.offset.x = 0.45;
                     this.scene.background = texture;
                 },
                 undefined,
@@ -235,14 +284,19 @@ class Game {
         sunLight.shadow.camera.right = 100;
         sunLight.shadow.camera.top = 100;
         sunLight.shadow.camera.bottom = -100;
-        // Shadow map: 1024 on phones/small tablets, 2048 on desktop
+        // Shadow map: respect saved setting, default high (2048) on desktop, low (1024) on mobile
+        const savedShadow = this.saveData.shadowQuality;
         const isMobile = 'ontouchstart' in window && window.innerWidth < 1024;
-        const shadowRes = isMobile ? 1024 : 2048;
+        const shadowRes = savedShadow ? (savedShadow === 'low' ? 1024 : 2048) : (isMobile ? 1024 : 2048);
         sunLight.shadow.mapSize.width = shadowRes;
         sunLight.shadow.mapSize.height = shadowRes;
+        this._sunLight = sunLight;
         this.scene.add(sunLight);
 
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
         this.gltfLoader = new GLTFLoader();
+        this.gltfLoader.setDRACOLoader(dracoLoader);
         this.finishModel = null;
         // No finish .glb model present — finishModel stays null, finish line uses procedural mesh
 
@@ -498,8 +552,10 @@ class Game {
         this.world.addBody(this.ballBody);
 
         initWolfModel(this);
-        // Set initial rotation so wolf faces forward (-Z) on first frame
-        this.ballMesh.rotation.y = Math.PI;
+        // Sync mesh position to physics body immediately so camera sees Jack during tutorial/pause
+        this.ballMesh.position.copy(this.ballBody.position);
+        // Set initial rotation to match track direction (no snap on first frame)
+        this.ballMesh.rotation.y = Math.atan2(this.trackForward.x, this.trackForward.z);
 
         this.dustParticles = [];
         this.dustSpawnTimer = 0;
@@ -521,6 +577,11 @@ class Game {
         this.jumpCount = 0;
         this.checkpoints = [];
         this.lastCheckpointPos = new CANNON.Vec3(0, 5, 0);
+
+        // Kick animation state (soccer ball bob when pressing forward)
+        this._kickOffset = 0;       // current Z offset of soccer ball
+        this._kickVelocity = 0;     // spring velocity for bounce-back
+        this._wasPressingForward = false;
     }
 
     initControls() {
@@ -571,46 +632,95 @@ class Game {
         // Chase camera: behind the ball, looking forward along the track
         // Offset is computed per-frame in animate() using trackForward
 
-        // Unified interaction listener for UI visibility and pointer lock
-        const handleInteraction = (e) => {
+        // --- Mouse orbit camera ---
+        this.cameraDistance = 9.43; // base distance, adjustable via mouse wheel
+        this.orbitYaw = 0;
+        this.orbitPitch = 0;
+        this._isDragging = false;
+        this._dragMoved = false;
+        this._lastMouseX = 0;
+        this._lastMouseY = 0;
+
+        const canvas = this.renderer.domElement;
+        canvas.addEventListener('mousedown', (e) => {
+            // Don't start drag on UI elements
+            if (e.target.closest('#top-menu') || e.target.closest('.modal') ||
+                e.target.closest('#joystick-container') || e.target.closest('#jump-btn')) return;
+            this._isDragging = true;
+            this._dragMoved = false;
+            this._lastMouseX = e.clientX;
+            this._lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!this._isDragging) return;
+            const dx = e.clientX - this._lastMouseX;
+            const dy = e.clientY - this._lastMouseY;
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) this._dragMoved = true;
+            const sens = (this.saveData.cameraSensitivity || 1) * 0.005;
+            const invert = this.saveData.invertY ? -1 : 1;
+            this.orbitYaw -= dx * sens;
+            this.orbitPitch -= dy * sens * invert;
+            this.orbitPitch = Math.max(-1.2, Math.min(1.2, this.orbitPitch)); // clamp ±70°
+            this._lastMouseX = e.clientX;
+            this._lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (this._isDragging && !this._dragMoved) {
+                // Short click (not a drag): toggle top menu
+                const topMenu = document.getElementById('top-menu');
+                const isVisible = topMenu.classList.toggle('visible');
+                if (this.menuHideTimeout) clearTimeout(this.menuHideTimeout);
+                if (isVisible) {
+                    this.menuHideTimeout = setTimeout(() => {
+                        topMenu.classList.remove('visible');
+                    }, 4000);
+                }
+            }
+            this._isDragging = false;
+        });
+
+        // Middle-click to reset orbit camera
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 1) {
+                e.preventDefault();
+                this.orbitYaw = 0;
+                this.orbitPitch = 0;
+                this.cameraDistance = 9.43;
+                this._isDragging = false;
+            }
+        });
+        // Also reset orbit on 'R' key (when not typing in inputs)
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyR' && document.activeElement === document.body) {
+                this.orbitYaw = 0;
+                this.orbitPitch = 0;
+                this.cameraDistance = 9.43;
+            }
+        });
+
+        // Mouse wheel zoom: scroll to zoom camera in/out
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSens = 0.005;
+            this.cameraDistance += e.deltaY * zoomSens;
+            this.cameraDistance = Math.max(4, Math.min(20, this.cameraDistance)); // clamp 4–20
+        }, { passive: false });
+
+        // Touch: keep menu toggle for touch taps (not joystick area)
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.closest('#top-menu') || e.target.closest('.modal')) return;
+            if (e.target.closest('#joystick-container') || e.target.closest('#jump-btn')) return;
             const topMenu = document.getElementById('top-menu');
-            const isMenuClick = e.target.closest('#top-menu');
-            const isModalClick = e.target.closest('.modal');
-            const isControlClick = e.target.closest('#joystick-container') || e.target.closest('#jump-btn');
-
-            if (isMenuClick || isModalClick) return;
-
-            // Toggle UI visibility when tapping anywhere else
             const isVisible = topMenu.classList.toggle('visible');
-
-            // Let mouse move freely — no pointer lock (keyboard + joystick only)
-            // Mobile browsers do not support requestPointerLock anyway
-            
-            // Auto-hide menu after 4 seconds of inactivity if shown
             if (this.menuHideTimeout) clearTimeout(this.menuHideTimeout);
             if (isVisible) {
                 this.menuHideTimeout = setTimeout(() => {
                     topMenu.classList.remove('visible');
                 }, 4000);
             }
-        };
-
-        window.addEventListener('mousedown', handleInteraction);
-        window.addEventListener('touchstart', (e) => {
-            // If we are clicking UI elements, don't trigger the game-world interaction logic
-            if (e.target.closest('#top-menu') || e.target.closest('.modal')) return;
-
-            // Special handling for touch to not conflict with joystick immediately
-            if (!e.target.closest('#joystick-container') && !e.target.closest('#jump-btn')) {
-                handleInteraction(e);
-            }
         }, { passive: true });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyT') {
-                document.exitPointerLock();
-            }
-        });
     }
 
 
@@ -629,6 +739,7 @@ class Game {
 
 
     jump() {
+        if (this.isStartScreenVisible()) return;
         if (this.jumpCount < 3 && !this.isGameOver) {
             this.ballBody.velocity.y = JUMP_FORCE;
             this.jumpCount++;
@@ -671,18 +782,32 @@ class Game {
         }
 
         this.ballMesh.position.copy(this.ballBody.position);
-        // Don't copy quaternion — Jack runs upright, doesn't roll like a ball
-        // Only rotate Y to face direction of movement
+        // Face Jack along the track direction when not steering.
+        // When actively steering, face the velocity direction for natural turning.
         const vel = this.ballBody.velocity;
-        if (Math.abs(vel.x) > 0.1 || Math.abs(vel.z) > 0.1) {
-            const moveAngle = Math.atan2(vel.x, vel.z);
-            this.ballMesh.rotation.y = moveAngle;
+        const moving = Math.abs(vel.x) > 0.1 || Math.abs(vel.z) > 0.1;
+        if (moving) {
+            if (Math.abs(this.inputX) < 0.05) {
+                // Not steering: face straight along the track
+                this.ballMesh.rotation.y = Math.atan2(this.trackForward.x, this.trackForward.z);
+            } else {
+                // Steering: face the raw velocity direction
+                this.ballMesh.rotation.y = Math.atan2(vel.x, vel.z);
+            }
         }
 
         if (this.keys['ArrowUp'] || this.keys['KeyW']) this.inputZ = -1;
         if (this.keys['ArrowDown'] || this.keys['KeyS']) this.inputZ = 1;
         if (this.keys['ArrowLeft'] || this.keys['KeyA']) this.inputX = -1;
         if (this.keys['ArrowRight'] || this.keys['KeyD']) this.inputX = 1;
+
+        // Kick animation: trigger on rising edge of forward press (soccer ball bob)
+        // Only fire if the ball is near home to prevent stacking from rapid taps
+        const pressingForward = this.inputZ < 0;
+        if (pressingForward && !this._wasPressingForward && this.isGrounded && Math.abs(this._kickOffset) < 0.05) {
+            this._kickVelocity = -3.0; // push ball forward in local Z (toward -Z)
+        }
+        this._wasPressingForward = pressingForward;
 
         this.inputX += this.joystickInput.x;
         this.inputZ -= this.joystickInput.y;
@@ -705,16 +830,16 @@ class Game {
 
         const velocity = this.ballBody.velocity;
         
-        // Aggressive lateral stabilization to prevent ramp sliding
+        // Track-relative lateral stabilization: decompose velocity into along-track
+        // and perpendicular components. When not steering, kill lateral drift entirely.
+        // When steering, lightly dampen lateral to keep movement tight on both axes.
         if (this.isGrounded) {
-            if (Math.abs(this.inputX) < 0.05) {
-                // Not steering: kill side velocity aggressively to stay centered on ramps
-                this.ballBody.velocity.x *= 0.75;
-                if (Math.abs(this.ballBody.velocity.x) < 0.05) this.ballBody.velocity.x = 0;
-            } else {
-                // Actively steering: allow movement but keep it tight
-                this.ballBody.velocity.x *= 0.95;
-            }
+            const v = this.ballBody.velocity;
+            const along = v.x * this.trackForward.x + v.z * this.trackForward.z;
+            const perp = v.x * (-this.trackForward.z) + v.z * this.trackForward.x;
+            const perpDamp = (Math.abs(this.inputX) < 0.05) ? 0 : 0.95;
+            this.ballBody.velocity.x = along * this.trackForward.x + perp * perpDamp * (-this.trackForward.z);
+            this.ballBody.velocity.z = along * this.trackForward.z + perp * perpDamp * this.trackForward.x;
         }
 
         const speed = Math.sqrt(velocity.x**2 + velocity.z**2);
@@ -790,6 +915,15 @@ class Game {
             }
         });
 
+        // Pre-death coin risk warning: show when falling with coins at stake
+        if (this._coinRiskWarning && !this.isGameOver) {
+            if (this.ballBody.position.y < -3 && this.score > 0) {
+                this._coinRiskWarning.classList.add('visible');
+            } else {
+                this._coinRiskWarning.classList.remove('visible');
+            }
+        }
+
         if (this.ballBody.position.y < -10 && !this.isGameOver) this.gameOver(false);
 
         // Project ball position onto track direction for progress/distance checks
@@ -822,6 +956,8 @@ class Game {
     gameOver(win) {
         this.isGameOver = true;
         this.isWin = win;
+        // Ensure coin risk warning is hidden when death occurs
+        if (this._coinRiskWarning) this._coinRiskWarning.classList.remove('visible');
         if (win) {
             this.playSound('finish_line');
             this._showCelebration();
@@ -925,6 +1061,10 @@ class Game {
         this.isGameOver = false;
         this.isWin = false;
         this.isPaused = false;
+        // Reset kick animation state
+        this._kickOffset = 0;
+        this._kickVelocity = 0;
+        this._wasPressingForward = false;
         document.getElementById('pause-overlay').classList.remove('visible');
         this.score = 0;
         document.getElementById('coin-display').innerText = `Session: 0`;
@@ -954,6 +1094,7 @@ class Game {
 
     togglePause() {
         if (this.isGameOver) return;
+        if (this.isStartScreenVisible()) return;
         this.isPaused = !this.isPaused;
         const pauseOverlay = document.getElementById('pause-overlay');
         if (this.isPaused) {
@@ -961,6 +1102,10 @@ class Game {
         } else {
             pauseOverlay.classList.remove('visible');
         }
+    }
+
+    isStartScreenVisible() {
+        return this._startScreen && !this._startScreen.classList.contains('hidden');
     }
 
     toggleMute() {
@@ -986,6 +1131,31 @@ class Game {
         document.body.classList.toggle('builder-active', active);
     }
 
+    showTutorial() {
+        const overlay = document.getElementById('tutorial-overlay');
+        if (!overlay) return;
+        overlay.classList.add('visible');
+        // Pause game while tutorial is shown
+        this.isPaused = true;
+
+        const dismissBtn = document.getElementById('tutorial-dismiss-btn');
+        const escHandler = (e) => {
+            if (e.code === 'Escape') {
+                e.stopImmediatePropagation();
+                dismiss();
+            }
+        };
+        const dismiss = () => {
+            window.removeEventListener('keydown', escHandler);
+            overlay.classList.remove('visible');
+            this.saveData.tutorialSeen = true;
+            this.save();
+            this.isPaused = false;
+        };
+        if (dismissBtn) dismissBtn.addEventListener('click', dismiss, { once: true });
+        window.addEventListener('keydown', escHandler);
+    }
+
     animate() {
         requestAnimationFrame(() => this.animate());
         // Skip physics/rendering when the studio overlay is open
@@ -997,19 +1167,27 @@ class Game {
             this.checkGameState();
         }
 
-        // Chase camera: behind Jack looking forward along track
-        const behindVec = new THREE.Vector3().copy(this.trackForward).multiplyScalar(-8);
-        const targetCamPos = new THREE.Vector3(
-            this.ballMesh.position.x + behindVec.x,
-            this.ballMesh.position.y + 5,
-            this.ballMesh.position.z + behindVec.z
+        // Orbit camera: default behind Jack, rotatable via mouse drag
+        const dist = this.cameraDistance; // zoomable via mouse wheel
+        const basePhi = 0.56; // atan2(5, 8) ≈ 32° base elevation
+        const phi = basePhi + this.orbitPitch;
+        const yaw = this.orbitYaw;
+
+        // Spherical → local offset (behind = +Z in track-local, before rotation)
+        const localOffset = new THREE.Vector3(
+            dist * Math.cos(phi) * Math.sin(yaw),
+            dist * Math.sin(phi),
+            dist * Math.cos(phi) * Math.cos(yaw)
         );
+        localOffset.applyQuaternion(this._trackQuat);
+
+        const targetCamPos = new THREE.Vector3().copy(this.ballMesh.position).add(localOffset);
         this.camera.position.lerp(targetCamPos, 0.08);
-        // Look ahead along track
+        // Look above Jack's head so the player can see the track ahead
         this.camera.lookAt(
-            this.ballMesh.position.x + this.trackForward.x * 6,
-            this.ballMesh.position.y + 1,
-            this.ballMesh.position.z + this.trackForward.z * 6
+            this.ballMesh.position.x,
+            this.ballMesh.position.y + 3.0,
+            this.ballMesh.position.z
         );
 
         // Throttle GIF texture updates to ~20fps (browser decodes new GIF frames every ~50ms)
@@ -1055,6 +1233,20 @@ class Game {
         const wolfSpeed = Math.sqrt(this.ballBody.velocity.x**2 + this.ballBody.velocity.z**2);
         updateWolfAnimation(this, wolfDelta, wolfSpeed);
 
+        // Kick animation: spring physics for soccer ball bob
+        if (Math.abs(this._kickOffset) > 0.001 || Math.abs(this._kickVelocity) > 0.01) {
+            const springForce = -this._kickOffset * 20;  // spring toward home (z=0)
+            const damping = 8;                            // smooth out oscillation
+            this._kickVelocity += springForce * wolfDelta;
+            this._kickVelocity *= Math.max(0, 1 - damping * wolfDelta);
+            this._kickOffset += this._kickVelocity * wolfDelta;
+            // Clamp to prevent extreme values
+            this._kickOffset = Math.max(-0.5, Math.min(0.1, this._kickOffset));
+            if (this._soccerBall) {
+                this._soccerBall.position.z = this._kickOffset;
+            }
+        }
+
         // Accumulate play time stat (save every ~5s to avoid excessive localStorage writes)
         if (!this.isGameOver && !this.isPaused) {
             this.saveData.totalPlayTime += wolfDelta;
@@ -1077,7 +1269,7 @@ class Game {
                     dust.rotation.x = -Math.PI / 2;
                     dust.position.set(
                         this.ballMesh.position.x + (Math.random() - 0.5) * 0.6,
-                        0.05,
+                        this.ballMesh.position.y - 0.45,
                         this.ballMesh.position.z + (Math.random() - 0.5) * 0.4 + 0.3
                     );
                     this.scene.add(dust);
